@@ -1,9 +1,9 @@
 ;;; zossima.el --- Ruby from Emacs
 
-;; Copyright (C) 2012 Phil Hagelberg
+;; Copyright © 2012 Phil Hagelberg
 
 ;; Author: Phil Hagelberg
-;; URL: http://www.emacswiki.org/cgi-bin/wiki/Zossima
+;; URL: https://github.com/technomancy/zossima
 ;; Version: 0.1
 ;; Created: 2012-10-24
 ;; Keywords: ruby convenience
