@@ -14,15 +14,18 @@
 
 ;;; Commentary:
 
+;; Jump to definition, driven by a live Ruby subprocess.
 
+;; Explain to me again why doesn't this exist yet?
+;; If you tell me "tags files" I'm going to kick you.
 
 ;;; Install
 
-;; M-x package-install zossima
+;; M-x package-install zossima (j/k not yet)
 
 ;;; Usage
 
-;; (add-hook 'inf-ruby-mode-hook 'zossima-enable)
+;; (add-hook 'inf-ruby-mode-hook 'zossima-mode)
 ;;
 ;;  - M-. to jump to a definition
 ;;  - M-, to jump back
@@ -49,6 +52,9 @@
 (require 'inf-ruby)
 (require 'etags)
 (require 'json)
+(require 'url)
+(require 'ido)
+(require 'cl)
 
 (defvar zossima-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
@@ -56,6 +62,8 @@
   "Path to file containing Ruby implementation of Zossima")
 
 (defvar zossima-port 24959)
+
+(defvar zossima-regex "^\\([A-Z][A-Za-z:]+\\)\\([#\\.]\\)\\([a-z_]+\\)$")
 
 (defun zossima-start ()
   "Ensure remote process has Zossima started."
@@ -72,7 +80,8 @@
          (value (with-current-buffer response-buffer
                   (goto-char (point-min))
                   (search-forward "\n\n")
-                  (json-read))))
+                  (let ((json-array-type 'list))
+                    (json-read)))))
     (kill-buffer response-buffer)
     value))
 
@@ -80,13 +89,19 @@
   "Jump to method definition."
   (interactive)
   (zossima-start)
-  (let* ((location (zossima-request "location"
-                                    (read-from-minibuffer "Class: ")
-                                    (read-from-minibuffer "Method: "))))
+  (let* ((classes (zossima-request "classes"))
+         (class (ido-completing-read "Class: " classes))
+         (targets (zossima-request "targets" class))
+         (target (ido-completing-read "Method: " targets))
+         (_ (string-match zossima-regex target))
+         (class (match-string 1 target))
+         (type (if (string= "#" (match-string 2 target)) "instance" "class"))
+         (method (match-string 3 target))
+         (location (zossima-request "location" class type method)))
     (ring-insert find-tag-marker-ring (point-marker))
-    (find-file (aref location 0))
+    (find-file (nth 0 location))
     (goto-char (point-min))
-    (forward-line (1- (aref location 1)))
+    (forward-line (1- (nth 1 location)))
     (back-to-indentation)))
 
 (defvar zossima-mode-map

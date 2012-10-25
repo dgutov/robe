@@ -1,12 +1,11 @@
 require "webrick"
 require "json"
-require "pp"
 
 module Zossima
   class Handler < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
-      _, endpoint, klass, method = req.path.split("/")
-      value = Zossima.send(endpoint.to_sym, klass, method)
+      _, endpoint, *args = req.path.split("/")
+      value = Zossima.send(endpoint.to_sym, *args)
       res["Content-Type"] = "application/json"
       res.status = 200
       res.body = value.to_json
@@ -14,9 +13,30 @@ module Zossima
     end
   end
 
-  def self.location(klass, method)
-    # TODO: replace eval with ruby's equivalent of resolve
-    eval(klass).instance_method(method.to_sym).source_location
+  def self.location(klass_name, method_type, method)
+    klass = eval(klass_name)
+    if method_type == "instance"
+      klass.instance_method(method.to_sym).source_location
+    else
+      klass.method(method.to_sym).source_location
+    end
+  end
+
+  def self.classes
+    ObjectSpace.each_object(Class).map{|c| c.to_s }
+  end
+
+  def self.targets(obj)
+    obj = eval(obj)
+    if obj.is_a? Class
+      # TODO: this filters out interesting things like #initialize
+      class_methods = (obj.methods - Class.methods).map{|m| "#{obj}.#{m}"}
+      instance_methods = (obj.instance_methods - Object.instance_methods).map{|m| "#{obj}\##{m}"}
+      class_methods + instance_methods
+    # elsif obj.is_a? Module
+    else
+      self.targets(obj.class.to_s)
+    end
   end
 
   def self.start(port)
@@ -25,5 +45,6 @@ module Zossima
       s.mount("/", Handler)
       Thread.new { s.start }
     end
+    nil # too noisy in inf-ruby otherwise
   end
 end

@@ -11,6 +11,15 @@ and <kbd>M-,</kbd> to jump back.
 It prompts you with a list of all known classes, and once you've
 chosen one, narrows down to a list of methods.
 
+## Install
+
+Currently you should just check it out and run <kbd>M-x
+package-install-file</kbd>. Once it's installed:
+
+```lisp
+(add-hook 'inf-ruby-mode-hook 'zossima-mode)
+```
+
 ## Todo
 
 * Support for modules
