@@ -74,7 +74,7 @@
                       (format "Zossima.start(%s)\n" zossima-port)))
 
 (defun zossima-request (endpoint &rest args)
-  (let* ((url (format "http://localhost:%s/%s/%s" zossima-port endpoint
+  (let* ((url (format "http://127.0.0.1:%s/%s/%s" zossima-port endpoint
                       (mapconcat 'identity args "/")))
          (response-buffer (url-retrieve-synchronously url))
          (value (with-current-buffer response-buffer
