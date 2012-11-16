@@ -1,6 +1,7 @@
 ;;; zossima.el --- Ruby from Emacs
 
 ;; Copyright © 2012 Phil Hagelberg
+;; Copyright © 2012 Dmitry Gutov
 
 ;; Author: Phil Hagelberg
 ;; URL: https://github.com/technomancy/zossima
