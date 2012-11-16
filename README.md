@@ -17,7 +17,7 @@ Currently you should just check it out and run <kbd>M-x
 package-install-file</kbd>. Once it's installed:
 
 ```lisp
-(add-hook 'inf-ruby-mode-hook 'zossima-mode)
+(add-hook 'ruby-mode-hook 'zossima-mode)
 ```
 
 ## Todo
