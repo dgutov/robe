@@ -67,6 +67,8 @@
 
 (defvar zossima-regex "^\\([A-Z][A-Za-z:]+\\)\\([#\\.]\\)\\([a-z_]+\\)$")
 
+(defvar zossima-max-retries 4)
+
 (defun zossima-start ()
   "Ensure remote process has Zossima started."
   (comint-send-string (inf-ruby-proc)
@@ -78,7 +80,7 @@
 (defun zossima-request (endpoint &rest args)
   (let* ((url (format "http://127.0.0.1:%s/%s/%s" zossima-port endpoint
                       (mapconcat 'identity args "/")))
-         (response-buffer (url-retrieve-synchronously url))
+         (response-buffer (zossima-retrieve url))
          (value (with-current-buffer response-buffer
                   (goto-char (point-min))
                   (search-forward "\n\n")
@@ -86,6 +88,16 @@
                     (json-read)))))
     (kill-buffer response-buffer)
     value))
+
+(defun zossima-retrieve (url &optional retries)
+  (with-current-buffer (url-retrieve-synchronously url)
+    (unless (memq url-http-response-status '(200 500))
+      (when (or (not retries) (plusp retries))
+        (kill-buffer)
+        (sit-for 0.3)
+        (set-buffer
+         (zossima-retrieve url (1- (or retries zossima-max-retries))))))
+    (current-buffer)))
 
 (defun zossima-jump ()
   "Jump to method definition."
