@@ -95,7 +95,7 @@
     (unless (memq url-http-response-status '(200 500))
       (when (or (not retries) (plusp retries))
         (kill-buffer)
-        (sit-for 0.3)
+        (sleep-for 0.3)
         (set-buffer
          (zossima-retrieve url (1- (or retries zossima-max-retries))))))
     (current-buffer)))
