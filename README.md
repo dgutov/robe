@@ -8,7 +8,7 @@ its dependencies Ruby keeps track of where each method is defined, so
 you can use <kbd>M-.</kbd> to jump to the definition of a given method
 and <kbd>M-,</kbd> to jump back.
 
-It prompts you with a list of all known classes, and once you've
+It prompts you with a list of all known classes and modules, and once you've
 chosen one, narrows down to a list of methods.
 
 ## Install
@@ -22,7 +22,6 @@ package-install-file</kbd>. Once it's installed:
 
 ## Todo
 
-* Support for modules
 * Package on Marmalade
 * Support for multiple inf-rubies in one Emacs instance
 * Using the class/method at point if applicable?

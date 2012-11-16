@@ -22,18 +22,17 @@ module Zossima
     end
   end
 
-  def self.classes
-    ObjectSpace.each_object(Class).map{|c| c.to_s }
+  def self.modules
+    ObjectSpace.each_object(Module).map{|c| c.to_s }
   end
 
   def self.targets(obj)
     obj = eval(obj)
-    if obj.is_a? Class
+    if obj.is_a? Module
       # TODO: this filters out interesting things like #initialize
-      class_methods = (obj.methods - Class.methods).map{|m| "#{obj}.#{m}"}
+      module_methods = (obj.methods - Class.methods).map{|m| "#{obj}.#{m}"}
       instance_methods = (obj.instance_methods - Object.instance_methods).map{|m| "#{obj}\##{m}"}
-      class_methods + instance_methods
-    # elsif obj.is_a? Module
+      module_methods + instance_methods
     else
       self.targets(obj.class.to_s)
     end
