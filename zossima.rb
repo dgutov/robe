@@ -44,6 +44,7 @@ module Zossima
 
   def self.start(port)
     @server ||= WEBrick::HTTPServer.new({:Port => port}).tap do |s|
+      Rails.application.eager_load! rescue nil
       ['INT', 'TERM'].each {|signal| trap(signal) {s.shutdown} }
       s.mount("/", Handler)
       Thread.new { s.start }
