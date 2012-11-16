@@ -79,7 +79,7 @@
 
 (defun zossima-request (endpoint &rest args)
   (let* ((url (format "http://127.0.0.1:%s/%s/%s" zossima-port endpoint
-                      (mapconcat 'identity args "/")))
+                      (mapconcat 'url-hexify-string args "/")))
          (response-buffer (zossima-retrieve url))
          (value (with-current-buffer response-buffer
                   (goto-char (point-min))
