@@ -65,7 +65,7 @@
 
 (defvar zossima-port 24959)
 
-(defvar zossima-regex "^\\([A-Z][A-Za-z:]+\\)\\([#\\.]\\)\\([a-z_]+[?!]?\\)$")
+(defvar zossima-regex "^\\([A-Z][A-Za-z:]+\\)\\([#\\.]\\)\\([a-z_]+[?!=]?\\)$")
 
 (defvar zossima-max-retries 4)
 
