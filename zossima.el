@@ -25,10 +25,12 @@
 
 ;;; Usage
 
-;; (add-hook 'inf-ruby-mode-hook 'zossima-mode)
+;; (add-hook 'ruby-mode-hook 'zossima-mode)
 ;;
 ;;  - M-. to jump to a definition
 ;;  - M-, to jump back
+;;
+;; Before using `zossima-jump', call `run-ruby' or `rinari-console'.
 
 ;;; License:
 
