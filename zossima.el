@@ -112,11 +112,13 @@
          (type (if (string= "#" (match-string 2 target)) "instance" "class"))
          (method (match-string 3 target))
          (location (zossima-request "location" class type method)))
-    (ring-insert find-tag-marker-ring (point-marker))
-    (find-file (nth 0 location))
-    (goto-char (point-min))
-    (forward-line (1- (nth 1 location)))
-    (back-to-indentation)))
+    (if (null location)
+        (message "Can't jump to a C method")
+      (ring-insert find-tag-marker-ring (point-marker))
+      (find-file (nth 0 location))
+      (goto-char (point-min))
+      (forward-line (1- (nth 1 location)))
+      (back-to-indentation))))
 
 (defvar zossima-mode-map
   (let ((map (make-sparse-keymap)))
