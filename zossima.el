@@ -103,7 +103,6 @@
 (defun zossima-ask ()
   "Prompt for module, method, and jump to its definition."
   (interactive)
-  (zossima-start)
   (let* ((modules (zossima-request "modules"))
          (module (ido-completing-read "Module: " modules))
          (targets (zossima-request "targets" module))
@@ -119,6 +118,7 @@
   "Jump to the method at point, prompt for module if necessary.
 If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
   (interactive "P")
+  (zossima-start)
   (let ((method (thing-at-point 'symbol)))
     (if (or (not method) arg)
         (zossima-ask)
