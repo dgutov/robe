@@ -136,7 +136,8 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                                    (setq method (third ctx)
                                          super "yes")))))
              (_ (when (and target (string= method "new"))
-                  (setq method "initialize")))
+                  (setq method "initialize"
+                        instance "yes")))
              (modules (zossima-request "method_targets"
                                        method target instance super))
              (_ (unless modules (error "Method not found")))
