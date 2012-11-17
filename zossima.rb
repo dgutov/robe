@@ -42,6 +42,22 @@ module Zossima
     end
   end
 
+  def self.method_targets(method, target = nil)
+    sym = method.to_sym
+    if owner = eval(target).method(sym).owner rescue nil
+      [[owner.name ? owner : target, "module"]]
+    else
+      targets = []
+      ObjectSpace.each_object(Module) do |m|
+        next unless m.name
+        mf = [MethodFinder.new(sym), InstanceMethodFinder.new(sym)]
+          .find {|f| f.candidate?(m)}
+        targets << [m.name, mf.type] if mf
+      end
+      targets
+    end
+  end
+
   def self.start(port)
     @server ||= WEBrick::HTTPServer.new({:Port => port}).tap do |s|
       Rails.application.eager_load! rescue nil
@@ -50,5 +66,46 @@ module Zossima
       Thread.new { s.start }
     end
     nil # too noisy in inf-ruby otherwise
+  end
+
+  class MethodFinder
+    def initialize(symbol)
+      @sym = symbol
+    end
+
+    def candidate?(mod)
+      if method = get_method(mod) rescue nil
+        return false unless method.source_location
+        (owner = method.owner) == mod or
+          !owner.name && !(mod.respond_to?(:superclass) &&
+                           defined_in?(mod.superclass))
+      end
+    end
+
+    def get_method(mod)
+      mod.method(@sym)
+    end
+
+    def defined_in?(mod)
+      mod.singleton_class.method_defined?(@sym)
+    end
+
+    def type
+      "module"
+    end
+  end
+
+  class InstanceMethodFinder < MethodFinder
+    def get_method(mod)
+      mod.instance_method(@sym)
+    end
+
+    def defined_in?(mod)
+      mod.method_defined?(@sym)
+    end
+
+    def type
+      "instance"
+    end
   end
 end

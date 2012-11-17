@@ -8,8 +8,8 @@ its dependencies Ruby keeps track of where each method is defined, so
 you can use <kbd>M-.</kbd> to jump to the definition of a given method
 and <kbd>M-,</kbd> to jump back.
 
-It prompts you with a list of all known classes and modules, and once you've
-chosen one, narrows down to a list of methods.
+It looks for the method at point in all known classes and modules. If there's
+none at point or the owner module is ambiguous, asks you to narrow it down.
 
 ## Install
 
@@ -24,8 +24,11 @@ package-install-file</kbd>. Once it's installed:
 
 * Package on Marmalade
 * Support for multiple inf-rubies in one Emacs instance
-* Using the class/method at point if applicable?
+* Lexically determine the current class and module/instance context
+* Jump to super
 * Possibly use the same class/method selector for docs?
+* For methods defined through macros, optionally jump to where the macro was
+  called, instead of its definition? For ActiveRecord classes?
 
 ## Copying
 
