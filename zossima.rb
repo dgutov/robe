@@ -59,6 +59,11 @@ module Zossima
       end
       if instance
         candidates += obj.included_modules
+
+        if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
+          deps = obj.instance_variable_get("@_dependencies")
+          candidates += deps if deps
+        end
       end
     end
 
