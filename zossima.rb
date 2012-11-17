@@ -4,7 +4,9 @@ require "json"
 module Zossima
   class Handler < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
-      _, endpoint, *args = req.path.split("/")
+      # Allow empty segments, convert "" to nils.
+      _, endpoint, *args = req.path.split(/(\/)/)
+        .reject {|s| s == "/"}.map {|s| s.empty? ? nil: s }
       value = Zossima.send(endpoint.to_sym, *args)
       res["Content-Type"] = "application/json"
       res.status = 200
@@ -35,33 +37,61 @@ module Zossima
                           obj.private_instance_methods(false))
         .select{|m| obj.instance_method(m).source_location}
         .map{|m| "#{obj}\##{m}"}
-      # XXX: Filter out not overridden methods? obj.instance_method(m).owner
+      # XXX: Filter out methods defined only in Object and Module?
       module_methods + instance_methods
     else
       self.targets(obj.class.to_s)
     end
   end
 
-  def self.method_targets(method, target = nil, instance = nil)
+  def self.method_targets(method, target = nil, instance = nil, superc = nil)
     sym = method.to_sym
-    if (eval(target).send(instance ? :instance_method : :method, sym) rescue nil)
-      [[target, instance ? "instance" : "module"]]
-    else
-      targets = []
-      ObjectSpace.each_object(Module) do |m|
-        next unless m.name
-        mf = [MethodFinder.new(sym), InstanceMethodFinder.new(sym)]
-          .find {|f| f.candidate?(m)}
-        targets << [m.name, mf.type] if mf
+    begin
+      obj = eval(target, TOPLEVEL_BINDING)
+      obj, instance = obj.class, true unless obj.is_a? Module
+    end rescue nil
+
+    if obj
+      candidates = superc ? [] : [obj]
+
+      ObjectSpace.each_object(Class) do |m|
+        candidates << m if m > obj or (!superc && m < obj)
       end
-      targets
+      if instance
+        candidates += obj.included_modules
+      end
     end
+
+    mf, imf = MethodFinder.new(sym), InstanceMethodFinder.new(sym)
+    targets, finders = [], nil
+
+    blk = lambda do |m|
+      next unless m.name
+      finder = finders.find {|er| er.fits?(m)}
+      targets << [m.name, finder.type] if finder
+    end
+
+    if candidates
+      finders = [instance ? imf : mf]
+      candidates.each(&blk)
+      unless instance
+        finders = [imf]
+        obj.singleton_class.included_modules.each(&blk)
+      end
+    end
+
+    unless targets.any?
+      finders = [mf, imf]
+      ObjectSpace.each_object(Module, &blk)
+    end
+
+    targets
   end
 
   def self.start(port)
     @server ||= WEBrick::HTTPServer.new({:Port => port}).tap do |s|
       Rails.application.eager_load! rescue nil
-      ['INT', 'TERM'].each {|signal| trap(signal) {s.shutdown} }
+      ['INT', 'TERM'].each {|signal| trap(signal) {s.shutdown; @server = nil} }
       s.mount("/", Handler)
       Thread.new { s.start }
     end
@@ -73,7 +103,7 @@ module Zossima
       @sym = symbol
     end
 
-    def candidate?(mod)
+    def fits?(mod)
       if method = get_method(mod) rescue nil
         return false unless method.source_location
         (owner = method.owner) == mod or

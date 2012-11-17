@@ -26,8 +26,8 @@ package-install-file</kbd>. Once it's installed:
 * Support for multiple inf-rubies in one Emacs instance
 * Jump to a class with no methods?
 * Handle `delegate` and `send`
-* Jump to super
 * Possibly use the same class/method selector for docs?
+* Eval call target name in a safer way?
 * For methods defined through macros, optionally jump to where the macro was
   called, instead of its definition? For ActiveRecord classes?
 

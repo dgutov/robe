@@ -119,7 +119,7 @@
 If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
   (interactive "P")
   (zossima-start)
-  (let ((method (thing-at-point 'symbol)) instance)
+  (let ((method (thing-at-point 'symbol)) instance super)
     (if (or (not method) arg)
         (zossima-ask)
       (let* ((target (save-excursion
@@ -130,11 +130,15 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
              (_ (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
                   (setq method (concat method "!"))))
              (_ (unless target (let ((ctx (zossima-context)))
-                                 (setq target (car ctx)
-                                       instance (cdr ctx)))))
+                                 (setq target (first ctx)
+                                       instance (second ctx))
+                                 (when (string= method "super")
+                                   (setq method (third ctx)
+                                         super "yes")))))
              (_ (when (and target (string= method "new"))
                   (setq method "initialize")))
-             (modules (zossima-request "method_targets" method target instance))
+             (modules (zossima-request "method_targets"
+                                       method target instance super))
              (_ (unless modules (error "Method not found")))
              (target (if (= 1 (length modules))
                          (car modules)
@@ -144,12 +148,14 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
 
 (defun zossima-context ()
   (let* ((current-method (ruby-add-log-current-method))
-         (target (first (split-string current-method "#.")))
-         ;; Side-stepping the bug in `ruby-add-log-current-method'.
+         ;; Side-stepping the class methods bug in the above function.
+         (segments (split-string current-method "#\\|\\.\\|::"))
+         (target (first segments))
+         (method-name (second segments))
          (class (or (string-match "\\." current-method)
                     (not (string-match "#" current-method)))))
     (set-text-properties 0 (length target) nil target) ;; for ease of debugging
-    (cons target (unless class "yes"))))
+    (list target (unless class "yes") method-name)))
 
 (defun zossima-jump-to (module type method)
   (let ((location (zossima-request "location" module type method)))
