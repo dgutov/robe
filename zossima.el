@@ -127,6 +127,8 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                                    (= ?. (char-before)))
                             (progn (forward-char -2)
                                    (thing-at-point 'symbol)))))
+             (_ (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
+                  (setq method (concat method "!"))))
              (_ (when (and target (string= method "new"))
                   (setq method "initialize")))
              (modules (zossima-request "method_targets" method target))
