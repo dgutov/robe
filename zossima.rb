@@ -44,8 +44,11 @@ module Zossima
 
   def self.method_targets(method, target = nil)
     sym = method.to_sym
-    if owner = eval(target).method(sym).owner rescue nil
-      [[owner.name ? owner : target, "module"]]
+    ctor = sym == :initialize
+    if owner = eval(target)
+        .send(ctor ? :instance_method : :method, sym).owner rescue nil
+      puts owner, target
+      [[owner.name || target, ctor ? "instance" : "module"]]
     else
       targets = []
       ObjectSpace.each_object(Module) do |m|
