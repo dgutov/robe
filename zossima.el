@@ -150,12 +150,15 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
 (defun zossima-context ()
   (let* ((current-method (ruby-add-log-current-method))
          ;; Side-stepping the class methods bug in the above function.
-         (segments (split-string current-method "#\\|\\.\\|::"))
-         (target (first segments))
-         (method-name (second segments))
+         (segments (split-string current-method "#\\|\\.\\|::" t))
+         (method-name (when (string-match "\\.\\|#" current-method)
+                        (car (last segments))))
          (class (or (string-match "\\." current-method)
-                    (not (string-match "#" current-method)))))
+                    (not (string-match "#" current-method))))
+         (target (mapconcat 'identity
+                            (if method-name (butlast segments) segments) "::")))
     (set-text-properties 0 (length target) nil target) ;; for ease of debugging
+    (set-text-properties 0 (length method-name) nil method-name)
     (list target (unless class "yes") method-name)))
 
 (defun zossima-jump-to (module type method)
