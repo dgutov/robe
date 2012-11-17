@@ -119,7 +119,7 @@
 If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
   (interactive "P")
   (zossima-start)
-  (let ((method (thing-at-point 'symbol)))
+  (let ((method (thing-at-point 'symbol)) instance)
     (if (or (not method) arg)
         (zossima-ask)
       (let* ((target (save-excursion
@@ -129,15 +129,27 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                                    (thing-at-point 'symbol)))))
              (_ (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
                   (setq method (concat method "!"))))
+             (_ (unless target (let ((ctx (zossima-context)))
+                                 (setq target (car ctx)
+                                       instance (cdr ctx)))))
              (_ (when (and target (string= method "new"))
                   (setq method "initialize")))
-             (modules (zossima-request "method_targets" method target))
+             (modules (zossima-request "method_targets" method target instance))
              (_ (unless modules (error "Method not found")))
              (target (if (= 1 (length modules))
                          (car modules)
                        (assoc (ido-completing-read "Module: " modules nil t)
                               modules))))
         (zossima-jump-to (first target) (second target) method)))))
+
+(defun zossima-context ()
+  (let* ((current-method (ruby-add-log-current-method))
+         (target (first (split-string current-method "#.")))
+         ;; Side-stepping the bug in `ruby-add-log-current-method'.
+         (class (or (string-match "\\." current-method)
+                    (not (string-match "#" current-method)))))
+    (set-text-properties 0 (length target) nil target) ;; for ease of debugging
+    (cons target (unless class "yes"))))
 
 (defun zossima-jump-to (module type method)
   (let ((location (zossima-request "location" module type method)))

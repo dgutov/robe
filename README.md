@@ -24,7 +24,8 @@ package-install-file</kbd>. Once it's installed:
 
 * Package on Marmalade
 * Support for multiple inf-rubies in one Emacs instance
-* Lexically determine the current class and module/instance context
+* Jump to a class with no methods?
+* Handle `delegate` and `send`
 * Jump to super
 * Possibly use the same class/method selector for docs?
 * For methods defined through macros, optionally jump to where the macro was
