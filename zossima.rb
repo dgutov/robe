@@ -68,7 +68,7 @@ module Zossima
     blk = lambda do |m|
       next unless m.name
       finder = finders.find {|er| er.fits?(m)}
-      targets << [m.name, finder.type] if finder
+      targets << [m, finder.type] if finder
     end
 
     if candidates
@@ -80,12 +80,18 @@ module Zossima
       end
     end
 
-    unless targets.any?
+    if targets.any?
+      ts = []
+      targets.each do |(m, type)|
+        ts << [m, type] if m < obj || !ts.find {|(t, _)| t < m}
+      end
+      targets = ts
+    else
       finders = [mf, imf]
       ObjectSpace.each_object(Module, &blk)
     end
 
-    targets
+    targets.map {|(m, type)| [m.name, type]}
   end
 
   def self.start(port)
