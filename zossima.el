@@ -116,7 +116,7 @@
     (zossima-jump-to module type method)))
 
 (defun zossima-jump (arg)
-  "Jump to the method or class at point, prompt for module or file if necessary.
+  "Jump to the method or module at point, prompt for module or file if necessary.
 If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
   (interactive "P")
   (zossima-start)
@@ -125,7 +125,7 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
      ((or (not thing) arg)
       (zossima-ask))
      ((let (case-fold-search) (string-match "\\`[A-Z]" thing))
-      (zossima-jump-to-class thing))
+      (zossima-jump-to-module thing))
      (t
       (let* ((target (save-excursion
                        (and (progn (beginning-of-thing 'symbol)
@@ -152,7 +152,9 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                               modules))))
         (zossima-jump-to (first target) (second target) thing))))))
 
-(defun zossima-jump-to-class (name)
+(defun zossima-jump-to-module (name)
+  "Prompt for module, jump to a file where it has method definitions."
+  (interactive `(,(ido-completing-read "Module: " (zossima-request "modules"))))
   (let ((paths (zossima-request "class_locations" name)))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
@@ -217,7 +219,6 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defvar zossima-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map ruby-mode-map)
     (define-key map (kbd "M-.") 'zossima-jump)
     (define-key map (kbd "M-,") 'pop-tag-mark)
     (define-key map (kbd "C-c C-k") 'zossima-rails-refresh)

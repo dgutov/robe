@@ -8,9 +8,9 @@ its dependencies Ruby keeps track of where each method is defined, so
 you can use <kbd>M-.</kbd> to jump to the definition of a given method
 and <kbd>M-,</kbd> to jump back.
 
-It looks for the method or class at point in the loaded environment.
+It looks for the method or module at point in the loaded environment.
 If it's a method and the receiver is known lexically, it first tries to narrow
-it down to sub/superclasses or modules as appropriate.
+it down to sub/superclasses or included modules as appropriate.
 If the result is ambiguous, it then asks you to pick the module/location.
 
 ## Install
