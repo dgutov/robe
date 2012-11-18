@@ -186,18 +186,21 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
     (mapcar (lambda (path) (cons (substring path len) path)) list)))
 
 (defun zossima-context ()
-  (let* ((current-method (ruby-add-log-current-method))
-         ;; Side-stepping the class methods bug in the above function.
-         (segments (split-string current-method "#\\|\\.\\|::" t))
-         (method-name (when (string-match "\\.\\|#" current-method)
-                        (car (last segments))))
-         (class (or (string-match "\\." current-method)
-                    (not (string-match "#" current-method))))
-         (target (mapconcat 'identity
-                            (if method-name (butlast segments) segments) "::")))
-    (set-text-properties 0 (length target) nil target) ;; for ease of debugging
-    (set-text-properties 0 (length method-name) nil method-name)
-    (list target (unless class "yes") method-name)))
+  (let ((current-method (ruby-add-log-current-method)))
+    (if current-method
+        ;; Side-stepping the class methods bug in the above function.
+        (let* ((segments (split-string current-method "#\\|\\.\\|::" t))
+               (method-name (when (string-match "\\.\\|#" current-method)
+                              (car (last segments))))
+               (class (or (string-match "\\." current-method)
+                          (not (string-match "#" current-method))))
+               (target (mapconcat 'identity (if method-name
+                                                (butlast segments)
+                                              segments) "::")))
+          (set-text-properties 0 (length target) nil target) ;; for debugging
+          (set-text-properties 0 (length method-name) nil method-name)
+          (list target (unless class "yes") method-name))
+      (list nil "yes" nil))))
 
 (defun zossima-jump-to (module type method)
   (let ((location (zossima-request "location" module type method)))
