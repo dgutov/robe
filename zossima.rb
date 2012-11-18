@@ -99,9 +99,13 @@ module Zossima
     targets.map {|(m, type)| [m.name, type]}
   end
 
+  def self.rails_refresh
+    reload!
+    Rails.application.eager_load!
+  end
+
   def self.start(port)
     @server ||= WEBrick::HTTPServer.new({:Port => port}).tap do |s|
-      Rails.application.eager_load! rescue nil
       ['INT', 'TERM'].each {|signal| trap(signal) {s.shutdown; @server = nil} }
       s.mount("/", Handler)
       Thread.new { s.start }

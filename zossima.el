@@ -5,9 +5,9 @@
 
 ;; Author: Phil Hagelberg
 ;; URL: https://github.com/technomancy/zossima
-;; Version: 0.1
+;; Version: 0.2
 ;; Created: 2012-10-24
-;; Keywords: ruby convenience
+;; Keywords: ruby convenience rails
 ;; EmacsWiki: Zossima
 ;; Package-Requires: ((inf-ruby "2.2.3"))
 
@@ -30,6 +30,7 @@
 ;;
 ;;  - M-. to jump to a definition
 ;;  - M-, to jump back
+;;  - C-c C-k to refresh Rails environment
 ;;
 ;; Before using `zossima-jump', call `run-ruby' or `rinari-console'.
 
@@ -171,11 +172,20 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
       (forward-line (1- (nth 1 location)))
       (back-to-indentation))))
 
+(defun zossima-rails-refresh ()
+  "Pick up changes in the loaded classes and detect new files.
+Only works with Rails, see e.g. `rinari-console'."
+  (interactive)
+  (zossima-start)
+  (zossima-request "rails_refresh")
+  (message "Done"))
+
 (defvar zossima-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map ruby-mode-map)
     (define-key map (kbd "M-.") 'zossima-jump)
     (define-key map (kbd "M-,") 'pop-tag-mark)
+    (define-key map (kbd "C-c C-k") 'zossima-rails-refresh)
     map))
 
 ;;;###autoload

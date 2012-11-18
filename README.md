@@ -26,11 +26,11 @@ package-install-file</kbd>. Once it's installed:
 * Support for multiple inf-rubies in one Emacs instance
 * Possibly use the same class/method selector for docs?
 * Eval call target name in a safer way?
-* Jump to private methods
+* Do not jump to private methods when the call has explicit receiver
 * Jump to a class with no methods?
 * Handle `delegate` and `send`, `Class.new.method` and `self.class.method`
 * For methods defined through macros, optionally jump to where the macro was
-  called, instead of its definition? For ActiveRecord classes?
+  called, instead of its definition?
 
 ## Copying
 
