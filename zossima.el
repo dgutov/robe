@@ -116,37 +116,70 @@
     (zossima-jump-to module type method)))
 
 (defun zossima-jump (arg)
-  "Jump to the method at point, prompt for module if necessary.
+  "Jump to the method or class at point, prompt for module or file if necessary.
 If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
   (interactive "P")
   (zossima-start)
-  (let ((method (thing-at-point 'symbol)) instance super)
-    (if (or (not method) arg)
-        (zossima-ask)
+  (let ((thing (thing-at-point 'symbol)) instance super)
+    (cond
+     ((or (not thing) arg)
+      (zossima-ask))
+     ((let (case-fold-search) (string-match "\\`[A-Z]" thing))
+      (zossima-jump-to-class thing))
+     (t
       (let* ((target (save-excursion
                        (and (progn (beginning-of-thing 'symbol)
                                    (= ?. (char-before)))
                             (progn (forward-char -2)
                                    (thing-at-point 'symbol)))))
              (_ (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
-                  (setq method (concat method "!"))))
+                  (setq thing (concat thing "!"))))
              (_ (unless target (let ((ctx (zossima-context)))
                                  (setq target (first ctx)
                                        instance (second ctx))
-                                 (when (string= method "super")
-                                   (setq method (third ctx)
+                                 (when (string= thing "super")
+                                   (setq thing (third ctx)
                                          super "yes")))))
-             (_ (when (and target (string= method "new"))
-                  (setq method "initialize"
+             (_ (when (and target (string= thing "new"))
+                  (setq thing "initialize"
                         instance "yes")))
              (modules (zossima-request "method_targets"
-                                       method target instance super))
+                                       thing target instance super))
              (_ (unless modules (error "Method not found")))
              (target (if (= 1 (length modules))
                          (car modules)
                        (assoc (ido-completing-read "Module: " modules nil t)
                               modules))))
-        (zossima-jump-to (first target) (second target) method)))))
+        (zossima-jump-to (first target) (second target) thing))))))
+
+(defun zossima-jump-to-class (name)
+  (let ((paths (zossima-request "class_locations" name)))
+    (when (null paths) (error "Can't find the location"))
+    (let ((file (if (= (length paths) 1)
+                    (car paths)
+                  (let ((alist (zossima-to-abbr-alist paths)))
+                    (cdr (assoc (ido-completing-read "File: " alist) alist))))))
+      (ring-insert find-tag-marker-ring (point-marker))
+      (find-file file)
+      (goto-char (point-min))
+      (let* ((nesting (split-string name "::"))
+             (cnt (1- (length nesting))))
+        (re-search-forward (concat "^[ \t]*\\(class\\|module\\) +"
+                                   (loop for i from 1 to cnt
+                                         concat "\\(")
+                                   (mapconcat #'identity nesting "\\)?")
+                                   "\\_>")))
+      (back-to-indentation))))
+
+(defun zossima-to-abbr-alist (list)
+  (let* ((sorted (sort list #'string-lessp))
+         (first (first sorted))
+         (last (car (last sorted)))
+         (len (loop for i from 0 to (min (length first)
+                                         (length last))
+                    when (/= (aref first i) (aref last i))
+                    return i)))
+    (mapcar (lambda (path) (cons (substring path len) path)) list)))
 
 (defun zossima-context ()
   (let* ((current-method (ruby-add-log-current-method))

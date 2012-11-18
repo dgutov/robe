@@ -24,6 +24,21 @@ module Zossima
     end
   end
 
+  def self.class_locations(name)
+    locations = {}
+    if (obj = eval(name) rescue nil) and obj.is_a? Module
+      methods = obj.methods(false).map{|m|obj.method(m)} +
+        obj.instance_methods(false).map{|m|obj.instance_method(m)}
+      methods.each do |m|
+        if path = m.source_location.try(:[], 0)
+          locations[path] ||= 0
+          locations[path] += 1
+        end
+      end
+    end
+    locations.keys.sort {|k1, k2| -(locations[k1] <=> locations[k2])}
+  end
+
   def self.modules
     ObjectSpace.each_object(Module).map{|c| c.name }.compact!
   end

@@ -8,8 +8,10 @@ its dependencies Ruby keeps track of where each method is defined, so
 you can use <kbd>M-.</kbd> to jump to the definition of a given method
 and <kbd>M-,</kbd> to jump back.
 
-It looks for the method at point in all known classes and modules. If there's
-none at point or the owner module is ambiguous, asks you to narrow it down.
+It looks for the method or class at point in the loaded environment.
+If it's a method and the receiver is known lexically, it first tries to narrow
+it down to sub/superclasses or modules as appropriate.
+If the result is ambiguous, it then asks you to pick the module/location.
 
 ## Install
 
@@ -27,7 +29,6 @@ package-install-file</kbd>. Once it's installed:
 * Possibly use the same class/method selector for docs?
 * Eval call target name in a safer way?
 * Do not jump to private methods when the call has explicit receiver
-* Jump to a class with no methods?
 * Handle `delegate` and `send`, `Class.new.method` and `self.class.method`
 * For methods defined through macros, optionally jump to where the macro was
   called, instead of its definition?
