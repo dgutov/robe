@@ -36,6 +36,9 @@ module Zossima
         end
       end
     end
+    if defined? Class.class_attribute and Class != obj
+      locations.delete Class.method(:class_attribute).source_location[0]
+    end
     locations.keys.sort {|k1, k2| -(locations[k1] <=> locations[k2])}
   end
 
