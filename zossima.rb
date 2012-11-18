@@ -91,7 +91,7 @@ module Zossima
         ts << [m, type] if m < obj || !ts.find {|(t, _)| t < m}
       end
       targets = ts
-    else
+    elsif !obj or (sym != :initialize and !superc)
       finders = [mf, imf]
       ObjectSpace.each_object(Module, &blk)
     end
