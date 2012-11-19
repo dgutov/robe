@@ -81,7 +81,11 @@
 
 (defun zossima-request (endpoint &rest args)
   (let* ((url (format "http://127.0.0.1:%s/%s/%s" zossima-port endpoint
-                      (mapconcat 'url-hexify-string args "/")))
+                      (mapconcat (lambda (arg)
+                                   (cond ((eq arg t) "yes")
+                                         (arg (url-hexify-string arg))
+                                         (t "_")))
+                                 args "/")))
          (response-buffer (zossima-retrieve url))
          (value (with-current-buffer response-buffer
                   (goto-char (point-min))
@@ -120,7 +124,7 @@
 If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
   (interactive "P")
   (zossima-start)
-  (let ((thing (thing-at-point 'symbol)) instance super)
+  (let ((thing (thing-at-point 'symbol)) instance super module)
     (cond
      ((or (not thing) arg)
       (zossima-ask))
@@ -134,17 +138,18 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                                    (thing-at-point 'symbol)))))
              (_ (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
                   (setq thing (concat thing "!"))))
-             (_ (unless target (let ((ctx (zossima-context)))
-                                 (setq target (first ctx)
-                                       instance (second ctx))
-                                 (when (string= thing "super")
-                                   (setq thing (third ctx)
-                                         super "yes")))))
+             (ctx (zossima-context))
+             (module (first ctx))
+             (_ (unless target
+                  (setq instance (second ctx))
+                  (when (string= thing "super")
+                    (setq thing (third ctx)
+                          super "yes"))))
              (_ (when (and target (string= thing "new"))
                   (setq thing "initialize"
                         instance "yes")))
              (modules (zossima-request "method_targets"
-                                       thing target instance super))
+                                       thing target module instance super))
              (_ (unless modules (error "Method not found")))
              (target (if (= 1 (length modules))
                          (car modules)
@@ -155,7 +160,7 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
 (defun zossima-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
   (interactive `(,(ido-completing-read "Module: " (zossima-request "modules"))))
-  (let ((paths (zossima-request "class_locations" name)))
+  (let ((paths (zossima-request "class_locations" name (car (zossima-context)))))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
@@ -167,10 +172,10 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
       (goto-char (point-min))
       (let* ((nesting (split-string name "::"))
              (cnt (1- (length nesting))))
-        (re-search-forward (concat "^[ \t]*\\(class\\|module\\) +"
+        (re-search-forward (concat "^[ \t]*\\(class\\|module\\) +.*\\_<"
                                    (loop for i from 1 to cnt
                                          concat "\\(")
-                                   (mapconcat #'identity nesting "\\)?")
+                                   (mapconcat #'identity nesting "::\\)?")
                                    "\\_>")))
       (back-to-indentation))))
 
@@ -188,18 +193,17 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
 (defun zossima-context ()
   (let ((current-method (ruby-add-log-current-method)))
     (if current-method
-        ;; Side-stepping the class methods bug in the above function.
+        ;; Side-stepping the module methods bug in the above function.
         (let* ((segments (split-string current-method "#\\|\\.\\|::" t))
                (method-name (when (string-match "\\.\\|#" current-method)
                               (car (last segments))))
-               (class (or (string-match "\\." current-method)
-                          (not (string-match "#" current-method))))
-               (target (mapconcat 'identity (if method-name
+               (instance (string-match "#" current-method))
+               (module (mapconcat 'identity (if method-name
                                                 (butlast segments)
                                               segments) "::")))
-          (set-text-properties 0 (length target) nil target) ;; for debugging
+          (set-text-properties 0 (length module) nil module) ;; for debugging
           (set-text-properties 0 (length method-name) nil method-name)
-          (list target (unless class "yes") method-name))
+          (list module (when instance "yes") method-name))
       (list nil "yes" nil))))
 
 (defun zossima-jump-to (module type method)

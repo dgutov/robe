@@ -4,9 +4,7 @@ require "json"
 module Zossima
   class Handler < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
-      # Allow empty segments, convert "" to nils.
-      _, endpoint, *args = req.path.split(/(\/)/)
-        .reject {|s| s == "/"}.map {|s| s.empty? ? nil: s }
+      _, endpoint, *args = req.path.split("/").map {|s| s == "_" ? nil : s }
       value = Zossima.send(endpoint.to_sym, *args)
       res["Content-Type"] = "application/json"
       res.status = 200
@@ -24,9 +22,9 @@ module Zossima
     end
   end
 
-  def self.class_locations(name)
+  def self.class_locations(name, mod)
     locations = {}
-    if (obj = eval(name) rescue nil) and obj.is_a? Module
+    if (obj = resolve_target(name, mod) rescue nil) and obj.is_a? Module
       methods = obj.methods(false).map{|m|obj.method(m)} +
         obj.instance_methods(false).map{|m|obj.instance_method(m)}
       methods.each do |m|
@@ -62,10 +60,23 @@ module Zossima
     end
   end
 
-  def self.method_targets(method, target = nil, instance = nil, superc = nil)
+  def self.resolve_target(name, mod)
+    nesting = mod ? mod.split("::") : []
+    puts "mod #{mod} name #{name}"
+    while nesting.any?
+      if obj = eval((nesting + [name]).join("::")) rescue nil
+        return obj
+      else
+        nesting.pop
+      end
+    end
+    eval(name)
+  end
+
+  def self.method_targets(method, target, mod, instance = nil, superc = nil)
     sym = method.to_sym
     begin
-      obj = eval(target, TOPLEVEL_BINDING)
+      obj = resolve_target(target, mod)
       obj, instance = obj.class, true unless obj.is_a? Module
     end rescue nil
 
