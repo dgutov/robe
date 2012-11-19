@@ -144,10 +144,10 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                   (setq instance (second ctx))
                   (when (string= thing "super")
                     (setq thing (third ctx)
-                          super "yes"))))
+                          super t))))
              (_ (when (and target (string= thing "new"))
                   (setq thing "initialize"
-                        instance "yes")))
+                        instance t)))
              (modules (zossima-request "method_targets"
                                        thing target module instance super))
              (_ (unless modules (error "Method not found")))
@@ -203,8 +203,8 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                                               segments) "::")))
           (set-text-properties 0 (length module) nil module) ;; for debugging
           (set-text-properties 0 (length method-name) nil method-name)
-          (list module (when instance "yes") method-name))
-      (list nil "yes" nil))))
+          (list module (when instance t) method-name))
+      (list nil t nil))))
 
 (defun zossima-jump-to (module type method)
   (let ((location (zossima-request "location" module type method)))
