@@ -61,8 +61,8 @@ module Zossima
   end
 
   def self.resolve_target(name, mod)
+    return eval(mod) unless name
     nesting = mod ? mod.split("::") : []
-    puts "mod #{mod} name #{name}"
     while nesting.any?
       if obj = eval((nesting + [name]).join("::")) rescue nil
         return obj
