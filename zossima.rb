@@ -85,7 +85,6 @@ module Zossima
       candidates -= obj.included_modules unless instance
       candidates +=
         ObjectSpace.each_object(obj.singleton_class).to_a unless superc
-      puts "cand #{candidates}"
 
       if instance
         if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
@@ -114,11 +113,9 @@ module Zossima
     end
 
     if targets.any?
-      ts = []
-      targets.each do |(m, type)|
-        ts << [m, type] if m <= obj || !ts.find {|(t, _)| t < m}
+      targets.reject! do |(m, _)|
+        !(m <= obj) && targets.find {|(t, _)| t < m}
       end
-      targets = ts
     elsif !obj or (sym != :initialize and !superc)
       finders = [mf, imf]
       ObjectSpace.each_object(Module, &blk)
