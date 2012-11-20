@@ -81,13 +81,11 @@ module Zossima
     end rescue nil
 
     if obj
-      candidates = obj.ancestors
+      candidates = obj.ancestors - [obj]
       candidates -= obj.included_modules unless instance
-      if superc
-        candidates.delete obj
-      else
-        candidates += ObjectSpace.each_object(obj.singleton_class).to_a
-      end
+      candidates +=
+        ObjectSpace.each_object(obj.singleton_class).to_a unless superc
+      puts "cand #{candidates}"
 
       if instance
         if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
@@ -118,7 +116,7 @@ module Zossima
     if targets.any?
       ts = []
       targets.each do |(m, type)|
-        ts << [m, type] if m < obj || !ts.find {|(t, _)| t < m}
+        ts << [m, type] if m <= obj || !ts.find {|(t, _)| t < m}
       end
       targets = ts
     elsif !obj or (sym != :initialize and !superc)
