@@ -10,9 +10,9 @@ and <kbd>M-,</kbd> to jump back.
 
 You can jump to the method, module, `super` or constructor definition at point.
 
-If the instance method call target is implicit (like with `super`), or the class
-method call target is explicit (`Foo.new`), then it first tries to look for
-definitions in superclasses, descendants and included modules as appropriate.
+If the method call target is implicit (like with `super`), or the call target is
+obvious (`Foo.new`, `2.seconds`), then we first try to look for the definition
+in superclasses, descendants and included modules as appropriate.
 
 If the result is ambiguous, it then asks you to pick the module/location.
 
