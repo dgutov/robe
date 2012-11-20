@@ -8,9 +8,11 @@ its dependencies Ruby keeps track of where each method is defined, so
 you can use <kbd>M-.</kbd> to jump to the definition of a given method
 and <kbd>M-,</kbd> to jump back.
 
-It looks for the method or module at point in the loaded environment.
-If it's a method and the receiver is known lexically, it first tries to narrow
-it down to sub/superclasses or included modules as appropriate.
+You can jump to the method, module, `super` or constructor definition at point.
+
+If the instance method call target is implicit (like with `super`), or the class
+method call target is explicit (`Foo.new`), then it first tries to look for
+definitions in superclasses, descendants and included modules as appropriate.
 If the result is ambiguous, it then asks you to pick the module/location.
 
 ## Install
