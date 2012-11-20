@@ -153,9 +153,20 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
              (_ (unless modules (error "Method not found")))
              (target (if (= 1 (length modules))
                          (car modules)
-                       (assoc (ido-completing-read "Module: " modules nil t)
+                       (assoc (substring
+                               (ido-completing-read
+                                "Module: " (zossima-decorate modules) nil t)
+                               0 -1)
                               modules))))
         (zossima-jump-to (first target) (second target) thing))))))
+
+(defun zossima-decorate (modules)
+  (mapcar (lambda (row)
+            (concat (first row)
+                    (if (string= "instance"
+                                 (second row))
+                        "#" ".")))
+          modules))
 
 (defun zossima-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
