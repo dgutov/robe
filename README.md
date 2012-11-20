@@ -15,10 +15,15 @@ If the result is ambiguous, it then asks you to pick the module/location.
 
 ## Install
 
-Currently you should just check it out and run <kbd>M-x
-package-install-file</kbd>. Once it's installed:
+Currently you should check it out from Git:
+
+`git clone https://github.com/dgutov/zossima.git ~/zossima`
+
+Once it's installed:
 
 ```lisp
+(add-to-list 'load-path "~/zossima")
+(require 'zossima)
 (add-hook 'ruby-mode-hook 'zossima-mode)
 ```
 
