@@ -13,6 +13,7 @@ You can jump to the method, module, `super` or constructor definition at point.
 If the instance method call target is implicit (like with `super`), or the class
 method call target is explicit (`Foo.new`), then it first tries to look for
 definitions in superclasses, descendants and included modules as appropriate.
+
 If the result is ambiguous, it then asks you to pick the module/location.
 
 ## Install
