@@ -81,14 +81,15 @@ module Zossima
     end rescue nil
 
     if obj
-      candidates = superc ? [] : [obj]
-
-      ObjectSpace.each_object(Class) do |m|
-        candidates << m if m > obj or (!superc && m < obj)
+      candidates = obj.ancestors
+      candidates -= obj.included_modules unless instance
+      if superc
+        candidates.delete obj
+      else
+        candidates += ObjectSpace.each_object(obj.singleton_class).to_a
       end
-      if instance
-        candidates += obj.included_modules
 
+      if instance
         if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
           deps = obj.instance_variable_get("@_dependencies")
           candidates += deps if deps
