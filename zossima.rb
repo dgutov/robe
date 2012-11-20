@@ -62,6 +62,7 @@ module Zossima
 
   def self.resolve_target(name, mod)
     return eval(mod) unless name
+    return eval(name) if name =~ /\A::/
     nesting = mod ? mod.split("::") : []
     while nesting.any?
       if obj = eval((nesting + [name]).join("::")) rescue nil
