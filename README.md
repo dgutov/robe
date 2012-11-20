@@ -16,6 +16,8 @@ definitions in superclasses, descendants and included modules as appropriate.
 
 If the result is ambiguous, it then asks you to pick the module/location.
 
+We can't jump to methods implemented in C, so these are ignored.
+
 ## Install
 
 Currently you should check it out from Git:
