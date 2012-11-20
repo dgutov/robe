@@ -112,12 +112,17 @@
          (module (ido-completing-read "Module: " modules))
          (targets (zossima-request "targets" module))
          (_ (unless targets (error "No jumpable methods found")))
-         (target (ido-completing-read "Method: " targets))
-         (_ (string-match zossima-regex target))
-         (module (match-string 1 target))
-         (type (if (string= "#" (match-string 2 target)) "instance" "module"))
-         (method (match-string 3 target)))
-    (zossima-jump-to module type method)))
+         (alist (zossima-decorate-methods (cdr targets)))
+         (target (assoc (ido-completing-read "Method: " alist) alist))
+         (module (car targets)))
+    (zossima-jump-to module (second target) (substring (first target) 1))))
+
+(defun zossima-decorate-methods (list)
+  (mapcar (lambda (row)
+            (list (concat (if (string= "instance" (second row)) "#" ".")
+                          (first row))
+                  (second row)))
+          list))
 
 (defun zossima-jump (arg)
   "Jump to the method or module at point, prompt for module or file if necessary.

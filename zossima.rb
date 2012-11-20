@@ -48,13 +48,13 @@ module Zossima
     obj = eval(obj)
     if obj.is_a? Module
       module_methods = obj.methods.select{|m| obj.method(m).source_location}
-        .map{|m| "#{obj}.#{m}"}
+        .map{|m| [m, :module]}
       instance_methods = (obj.instance_methods +
                           obj.private_instance_methods(false))
         .select{|m| obj.instance_method(m).source_location}
-        .map{|m| "#{obj}\##{m}"}
+        .map{|m| [m, :instance]}
       # XXX: Filter out methods defined only in Object and Module?
-      module_methods + instance_methods
+      [obj.name] + module_methods + instance_methods
     else
       self.targets(obj.class.to_s)
     end
@@ -161,7 +161,7 @@ module Zossima
     end
 
     def type
-      "module"
+      :module
     end
   end
 
@@ -175,7 +175,7 @@ module Zossima
     end
 
     def type
-      "instance"
+      :instance
     end
   end
 end
