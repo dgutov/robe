@@ -14,7 +14,7 @@ If the method call target is implicit (like with `super`), or the call target is
 obvious (`Foo.new`, `2.seconds`), then we first try to look for the definition
 in superclasses, descendants and included modules as appropriate.
 
-If the result is ambiguous, it then asks you to pick the module/location.
+If the result is ambiguous, you're prompted to pick the module/location.
 
 We can't jump to methods implemented in C, so these are ignored.
 
