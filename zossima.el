@@ -62,12 +62,10 @@
 
 (defvar zossima-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
-    (concat (file-name-directory current) "/zossima.rb"))
+    (concat (file-name-directory current) "zossima.rb"))
   "Path to file containing Ruby implementation of Zossima")
 
 (defvar zossima-port 24959)
-
-(defvar zossima-regex "^\\([A-Z][A-Za-z0-9:]+\\)\\([#\\.]\\)\\([a-z0-9_]+[?!=]?\\)$")
 
 (defvar zossima-max-retries 4)
 
