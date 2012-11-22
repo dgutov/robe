@@ -57,6 +57,7 @@
 (require 'etags)
 (require 'json)
 (require 'url)
+(require 'url-http)
 (require 'ido)
 (require 'cl)
 
@@ -81,7 +82,8 @@
   (let* ((url (format "http://127.0.0.1:%s/%s/%s" zossima-port endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
-                                         (arg (url-hexify-string arg))
+                                         ((plusp (length arg))
+                                          (url-hexify-string arg))
                                          (t "_")))
                                  args "/")))
          (response-buffer (zossima-retrieve url))
@@ -94,6 +96,7 @@
     value))
 
 (defun zossima-retrieve (url &optional retries)
+  (declare (special url-http-response-status))
   (with-current-buffer (url-retrieve-synchronously url)
     (unless (memq url-http-response-status '(200 500))
       (when (or (not retries) (plusp retries))
