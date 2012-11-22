@@ -112,7 +112,7 @@
   (let* ((modules (zossima-request "modules"))
          (module (ido-completing-read "Module: " modules))
          (targets (zossima-request "targets" module))
-         (_ (unless targets (error "No jumpable methods found")))
+         (_ (unless targets (error "No methods found")))
          (alist (zossima-decorate-methods (cdr targets))))
     (zossima-jump-to (cdr (assoc (ido-completing-read "Method: " alist nil t)
                                  alist)))))
