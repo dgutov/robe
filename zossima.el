@@ -133,7 +133,7 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
     (cond
      ((or (not thing) arg)
       (zossima-ask))
-     ((let (case-fold-search) (string-match "\\`[A-Z]" thing))
+     ((let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing))
       (zossima-jump-to-module thing))
      (t
       (let* ((target (save-excursion

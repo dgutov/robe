@@ -60,7 +60,10 @@ module Zossima
     return eval(name) if name =~ /\A::/
     nesting = mod ? mod.split("::") : []
     while nesting.any?
-      if obj = eval((nesting + [name]).join("::")) rescue nil
+      if obj = begin eval((nesting + [name]).join("::"))
+               rescue NameError
+               rescue SyntaxError
+               end
         return obj
       else
         nesting.pop
