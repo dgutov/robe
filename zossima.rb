@@ -28,7 +28,8 @@ module Zossima
       methods = obj.methods(false).map{|m|obj.method(m)} +
         obj.instance_methods(false).map{|m|obj.instance_method(m)}
       methods.each do |m|
-        if path = m.source_location.try(:[], 0)
+        if loc = m.source_location
+          path = loc[0]
           locations[path] ||= 0
           locations[path] += 1
         end
