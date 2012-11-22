@@ -48,12 +48,9 @@ module Zossima
   def self.targets(obj)
     obj = eval(obj)
     if obj.is_a? Module
-      module_methods = obj.methods.select{|m| obj.method(m).source_location}
-        .map{|m| [m, :module]}
+      module_methods = obj.methods.map{|m| [m, :module]}
       instance_methods = (obj.instance_methods +
-                          obj.private_instance_methods(false))
-        .select{|m| obj.instance_method(m).source_location}
-        .map{|m| [m, :instance]}
+                          obj.private_instance_methods(false)).map{|m| [m, :instance]}
       # XXX: Filter out methods defined only in Object and Module?
       [obj.name] + module_methods + instance_methods
     else
@@ -147,7 +144,6 @@ module Zossima
 
     def fits?(mod)
       if method = get_method(mod) rescue nil
-        return false unless method.source_location
         (owner = method.owner) == mod or
           !owner.name && !(mod.respond_to?(:superclass) &&
                            defined_in?(mod.superclass))
