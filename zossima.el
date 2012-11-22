@@ -113,16 +113,15 @@
          (module (ido-completing-read "Module: " modules))
          (targets (zossima-request "targets" module))
          (_ (unless targets (error "No jumpable methods found")))
-         (alist (zossima-decorate-methods (cdr targets)))
-         (target (assoc (ido-completing-read "Method: " alist) alist))
-         (module (car targets)))
-    (zossima-jump-to module (second target) (substring (first target) 1))))
+         (alist (zossima-decorate-methods (cdr targets))))
+    (zossima-jump-to (cdr (assoc (ido-completing-read "Method: " alist nil t)
+                                 alist)))))
 
 (defun zossima-decorate-methods (list)
   (mapcar (lambda (row)
-            (list (concat (if (string= "instance" (second row)) "#" ".")
-                          (first row))
-                  (second row)))
+            (cons (concat (if (string= "instance" (second row)) "#" ".")
+                          (third row))
+                  row))
           list))
 
 (defun zossima-jump (arg)
@@ -156,23 +155,21 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                         instance t)))
              (modules (zossima-request "method_targets"
                                        thing target module instance super))
-             (_ (unless modules (error "Method not found")))
-             (target (if (= 1 (length modules))
-                         (car modules)
-                       (assoc (substring
-                               (ido-completing-read
-                                "Module: " (zossima-decorate modules) nil t)
-                               0 -1)
-                              modules))))
-        (zossima-jump-to (first target) (second target) thing))))))
+             (_ (unless modules (error "Method not found"))))
+        (zossima-jump-to (if (= 1 (length modules))
+                             (car modules)
+                           (let ((alist (zossima-decorate-modules modules)))
+                             (cdr (assoc (ido-completing-read "Module: " alist nil t)
+                                         alist))))))))))
 
-(defun zossima-decorate (modules)
+(defun zossima-decorate-modules (list)
   (mapcar (lambda (row)
-            (concat (first row)
-                    (if (string= "instance"
-                                 (second row))
-                        "#" ".")))
-          modules))
+            (cons (concat (first row)
+                          (if (string= "instance"
+                                       (second row))
+                              "#" "."))
+                  row))
+          list))
 
 (defun zossima-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
@@ -223,8 +220,8 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
           (list module (when instance t) method-name))
       (list nil t nil))))
 
-(defun zossima-jump-to (module type method)
-  (let ((location (zossima-request "location" module type method)))
+(defun zossima-jump-to (info)
+  (let ((location (cdddr info)))
     (if (null location)
         (message "Can't jump to a C method")
       (ring-insert find-tag-marker-ring (point-marker))

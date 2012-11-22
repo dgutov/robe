@@ -13,15 +13,6 @@ module Zossima
     end
   end
 
-  def self.location(klass_name, method_type, method)
-    klass = eval(klass_name)
-    if method_type == "instance"
-      klass.instance_method(method.to_sym).source_location
-    else
-      klass.method(method.to_sym).source_location
-    end
-  end
-
   def self.class_locations(name, mod)
     locations = {}
     if (obj = resolve_target(name, mod) rescue nil) and obj.is_a? Module
@@ -48,14 +39,20 @@ module Zossima
   def self.targets(obj)
     obj = eval(obj)
     if obj.is_a? Module
-      module_methods = obj.methods.map{|m| [m, :module]}
+      module_methods = obj.methods.map{|m| method_info(obj, :module, m)}
       instance_methods = (obj.instance_methods +
-                          obj.private_instance_methods(false)).map{|m| [m, :instance]}
+                          obj.private_instance_methods(false))
+        .map{|m| method_info(obj, :instance, m)}
       # XXX: Filter out methods defined only in Object and Module?
       [obj.name] + module_methods + instance_methods
     else
       self.targets(obj.class.to_s)
     end
+  end
+
+  def self.method_info(mod, type, sym)
+    method = mod.send(type == :instance ? :instance_method : :method, sym)
+    [mod.name, type, sym] + method.source_location.to_a
   end
 
   def self.resolve_target(name, mod)
@@ -120,7 +117,7 @@ module Zossima
       ObjectSpace.each_object(Module, &blk)
     end
 
-    targets.map {|(m, type)| [m.name, type]}
+    targets.map {|(m, type)| method_info(m, type, sym)}
   end
 
   def self.rails_refresh
