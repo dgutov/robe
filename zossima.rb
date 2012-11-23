@@ -1,12 +1,6 @@
 require "webrick"
 require "json"
 
-begin
-  require "pry-doc"
-rescue LoadError
-  # no built-in docs for you
-end
-
 module Zossima
   class Handler < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
@@ -66,28 +60,30 @@ module Zossima
 
   def self.doc_for(mod, type, sym)
     method = find_method(eval(mod), type.to_sym, sym.to_sym)
-    if method.source_location
-      buf = []
-      loc, n = method.source_location
-      File.open(loc) do |f|
-        f.each_line.with_index do |line, index|
-          break if index == n - 1
-          case line
-          when /\A[ \t]*#( (?<text>.*))?/
-            buf << $~[:text]
-          when /\A[ \t]*[^#]/
-            buf.clear
-          end
-        end
-      end
-      comment = buf.join("\n")
-    elsif defined? Pry::MethodInfo.info_for
-      h = Object.new.extend Pry::Helpers::DocumentationHelpers
+    begin
+      require "pry-doc"
       YARD::Registry.send :thread_local_store=, Thread.main[:__yard_registry__]
       ym = Pry::MethodInfo.info_for(method)
-      comment = h.process_comment_markup(ym.docstring)
-    else
-      comment = "Install 'pry-doc' to see the documentation for core classes."
+      comment = ym.docstring
+    rescue LoadError
+      if method.source_location
+        buf = []
+        loc, n = method.source_location
+        File.open(loc) do |f|
+          f.each_line.with_index do |line, index|
+            break if index == n - 1
+            case line
+            when /\A[ \t]*#( (?<text>.*))?/
+              buf << $~[:text]
+            when /\A[ \t]*[^#]/
+              buf.clear
+            end
+          end
+        end
+        comment = buf.join("\n")
+      else
+        comment = "Definition not found. For core classes, try installing 'pry-doc'."
+      end
     end
     {comment: comment,
      signature: signature(mod, type.to_sym, sym)}
