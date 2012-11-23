@@ -1,6 +1,12 @@
 require "webrick"
 require "json"
 
+begin
+  require "pry-doc"
+rescue LoadError
+  # no built-in docs for you
+end
+
 module Zossima
   class Handler < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
@@ -50,9 +56,68 @@ module Zossima
     end
   end
 
+  def self.find_method(mod, type, sym)
+    mod.send(type == :instance ? :instance_method : :method, sym)
+  end
+
   def self.method_info(mod, type, sym)
-    method = mod.send(type == :instance ? :instance_method : :method, sym)
-    [mod.name, type, sym] + method.source_location.to_a
+    [mod.name, type, sym] + find_method(mod, type, sym).source_location.to_a
+  end
+
+  def self.doc_for(mod, type, sym)
+    method = find_method(eval(mod), type.to_sym, sym.to_sym)
+    if method.source_location
+      buf = []
+      loc, n = method.source_location
+      File.open(loc) do |f|
+        f.each_line.with_index do |line, index|
+          break if index == n - 1
+          case line
+          when /\A[ \t]*#( (?<text>.*))?/
+            buf << $~[:text]
+          when /\A[ \t]*[^#]/
+            buf.clear
+          end
+        end
+      end
+      comment = buf.join("\n")
+    elsif defined? Pry::MethodInfo.info_for
+      h = Object.new.extend Pry::Helpers::DocumentationHelpers
+      YARD::Registry.send :thread_local_store=, Thread.main[:__yard_registry__]
+      ym = Pry::MethodInfo.info_for(method)
+      comment = h.process_comment_markup(ym.docstring)
+    else
+      comment = "Install 'pry-doc' to see the documentation for core classes."
+    end
+    {comment: comment,
+     signature: signature(mod, type.to_sym, sym)}
+  end
+
+  def self.signature(mod, type, sym)
+    sig = "#{mod}#{type == :instance ? '#' : '.'}#{sym}("
+    dummy = "a"
+    find_method(eval(mod), type, sym).parameters.each_with_index do |(kind, name), n|
+      unless name
+        case kind
+        when :rest
+          name = :args
+        when :block
+          name = :block
+        else
+          name = dummy
+          dummy.succ!
+        end
+      end
+      if kind == :opt
+        sig << "["
+        sig << ", " if n > 0
+        sig << name.to_s << "]"
+      else
+        sig << ", " if n > 0
+        sig << {req: "%s", rest: "%s...", block: "&%s"}[kind] % name
+      end
+    end
+    sig << ")"
   end
 
   def self.resolve_target(name, mod)

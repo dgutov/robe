@@ -2,21 +2,19 @@
 
 Jump to definition in Emacs, driven by a live Ruby subprocess.
 
-This builds on `inf-ruby` to handle Ruby subprocesses from Emacs. Once
-you've loaded your inf-ruby process with the code for your project and
-its dependencies Ruby keeps track of where each method is defined, so
-you can use <kbd>M-.</kbd> to jump to the definition of a given method
-and <kbd>M-,</kbd> to jump back.
+This builds on `inf-ruby` to handle Ruby subprocesses from Emacs.
 
-You can jump to the method, module, `super` or constructor definition at point.
+Once you've loaded your inf-ruby process with the code for your project and its
+dependencies Ruby keeps track of where each method is defined.
+
+You can jump to or read the documentation for the method, module, `super` or
+constructor definition at point.
 
 If the method call target is implicit (like with `super`), or the call target is
 obvious (`Foo.new`, `2.seconds`), then we first try to look for the definition
 in superclasses, descendants and included modules as appropriate.
 
 If the result is ambiguous, you're prompted to pick the module/location.
-
-We can't jump to methods implemented in C, so these are ignored.
 
 ## Install
 
@@ -36,8 +34,8 @@ Once it's installed:
 
 * Package on Marmalade
 * Support for multiple inf-rubies in one Emacs instance
-* Possibly use the same class/method selector for docs?
 * Eval call target name in a safer way?
+* `zossima-doc` fails for `ObjectSpace.each_object` and `foo.is_a?`
 * Do not jump to private methods when the call has explicit receiver
 * Handle `delegate` and `send`, `Class.new.method` and `self.class.method`
 * For methods defined through macros, optionally jump to where the macro was

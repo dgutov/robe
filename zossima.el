@@ -5,7 +5,7 @@
 
 ;; Author: Phil Hagelberg
 ;; URL: https://github.com/technomancy/zossima
-;; Version: 0.2
+;; Version: 0.3
 ;; Created: 2012-10-24
 ;; Keywords: ruby convenience rails
 ;; EmacsWiki: Zossima
@@ -17,12 +17,9 @@
 
 ;; Jump to definition, driven by a live Ruby subprocess.
 
-;; Explain to me again why doesn't this exist yet?
-;; If you tell me "tags files" I'm going to kick you.
-
 ;;; Install
 
-;; M-x package-install zossima (j/k not yet)
+;; See the README.
 
 ;;; Usage
 
@@ -30,9 +27,10 @@
 ;;
 ;;  - M-. to jump to a definition
 ;;  - M-, to jump back
+;;  - C-c C-d to see the documentation
 ;;  - C-c C-k to refresh Rails environment
 ;;
-;; Before using `zossima-jump', call `run-ruby' or `rinari-console'.
+;; Before using any of these commands, call `run-ruby' or `rinari-console'.
 
 ;;; License:
 
@@ -109,13 +107,16 @@
 (defun zossima-ask ()
   "Prompt for module, method, and jump to its definition."
   (interactive)
+  (zossima-jump-to (zossima-ask-prompt)))
+
+(defun zossima-ask-prompt ()
   (let* ((modules (zossima-request "modules"))
          (module (ido-completing-read "Module: " modules))
          (targets (zossima-request "targets" module))
          (_ (unless targets (error "No methods found")))
          (alist (zossima-decorate-methods (cdr targets))))
-    (zossima-jump-to (cdr (assoc (ido-completing-read "Method: " alist nil t)
-                                 alist)))))
+    (cdr (assoc (ido-completing-read "Method: " alist nil t)
+                alist))))
 
 (defun zossima-decorate-methods (list)
   (mapcar (lambda (row)
@@ -129,38 +130,42 @@
 If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
   (interactive "P")
   (zossima-start)
-  (let ((thing (thing-at-point 'symbol)) instance super module)
+  (let ((thing (thing-at-point 'symbol)))
     (cond
      ((or (not thing) arg)
       (zossima-ask))
      ((let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing))
       (zossima-jump-to-module thing))
      (t
-      (let* ((target (save-excursion
-                       (and (progn (beginning-of-thing 'symbol)
-                                   (= ?. (char-before)))
-                            (progn (forward-char -2)
-                                   (thing-at-point 'symbol)))))
-             (_ (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
-                  (setq thing (concat thing "!"))))
-             (ctx (zossima-context))
-             (module (first ctx))
-             (_ (unless target
-                  (setq instance (second ctx))
-                  (when (string= thing "super")
-                    (setq thing (third ctx)
-                          super t))))
-             (_ (when (and target (string= thing "new"))
-                  (setq thing "initialize"
-                        instance t)))
-             (modules (zossima-request "method_targets"
-                                       thing target module instance super))
-             (_ (unless modules (error "Method not found"))))
-        (zossima-jump-to (if (= 1 (length modules))
-                             (car modules)
-                           (let ((alist (zossima-decorate-modules modules)))
-                             (cdr (assoc (ido-completing-read "Module: " alist nil t)
-                                         alist))))))))))
+      (zossima-jump-to (zossima-jump-prompt thing))))))
+
+(defun zossima-jump-prompt (thing)
+  (let* (instance super module
+         (target (save-excursion
+                   (and (progn (beginning-of-thing 'symbol)
+                               (= ?. (char-before)))
+                        (progn (forward-char -2)
+                               (thing-at-point 'symbol)))))
+         (_ (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
+              (setq thing (concat thing "!"))))
+         (ctx (zossima-context))
+         (module (first ctx))
+         (_ (unless target
+              (setq instance (second ctx))
+              (when (string= thing "super")
+                (setq thing (third ctx)
+                      super t))))
+         (_ (when (and target (string= thing "new"))
+              (setq thing "initialize"
+                    instance t)))
+         (modules (zossima-request "method_targets"
+                                   thing target module instance super))
+         (_ (unless modules (error "Method not found"))))
+    (if (= 1 (length modules))
+        (car modules)
+      (let ((alist (zossima-decorate-modules modules)))
+        (cdr (assoc (ido-completing-read "Module: " alist nil t)
+                    alist))))))
 
 (defun zossima-decorate-modules (list)
   (mapcar (lambda (row)
@@ -223,7 +228,8 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
 (defun zossima-jump-to (info)
   (let ((location (cdddr info)))
     (if (null location)
-        (message "Can't jump to a C method")
+        (when (yes-or-no-p "Can't jump to a C method. Show documentation? ")
+          (zossima-show-doc info))
       (ring-insert find-tag-marker-ring (point-marker))
       (find-file (nth 0 location))
       (goto-char (point-min))
@@ -238,10 +244,33 @@ Only works with Rails, see e.g. `rinari-console'."
   (zossima-request "rails_refresh")
   (message "Done"))
 
+(defun zossima-doc (arg)
+  "Show docstring for the method at point."
+  (interactive "P")
+  (let ((thing (thing-at-point 'symbol)))
+    (zossima-show-doc (if (or (not thing) arg)
+                          (zossima-ask-prompt)
+                        (zossima-jump-prompt thing)))))
+
+(defun zossima-show-doc (info)
+  (interactive)
+  (zossima-start)
+  (let ((doc (apply 'zossima-request "doc_for" (subseq info 0 3)))
+        (buffer (get-buffer-create "*zossima-doc*"))
+        (inhibit-read-only t))
+    (with-help-window buffer
+      (princ (cdr (assoc 'signature doc)))
+      (princ "\n\n")
+      (princ (cdr (assoc 'comment doc))))
+    (with-current-buffer buffer
+      (visual-line-mode 1)
+      (ansi-color-apply-on-region (point-min) (point-max)))))
+
 (defvar zossima-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-.") 'zossima-jump)
     (define-key map (kbd "M-,") 'pop-tag-mark)
+    (define-key map (kbd "C-c C-d") 'zossima-doc)
     (define-key map (kbd "C-c C-k") 'zossima-rails-refresh)
     map))
 
