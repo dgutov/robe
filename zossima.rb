@@ -91,7 +91,7 @@ module Zossima
 
   def self.signature(mod, type, sym)
     sig = "#{mod}#{type == :instance ? '#' : '.'}#{sym}("
-    dummy = "a"
+    dummy = "arg0"
     find_method(eval(mod), type, sym).parameters.each_with_index do |(kind, name), n|
       unless name
         case kind
@@ -100,8 +100,7 @@ module Zossima
         when :block
           name = :block
         else
-          name = dummy
-          dummy.succ!
+          name = dummy.succ!
         end
       end
       if kind == :opt
