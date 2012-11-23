@@ -247,6 +247,7 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun zossima-doc (arg)
   "Show docstring for the method at point."
   (interactive "P")
+  (zossima-start)
   (let ((thing (thing-at-point 'symbol)))
     (zossima-show-doc (if (or (not thing) arg)
                           (zossima-ask-prompt)
@@ -254,7 +255,6 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun zossima-show-doc (info)
   (interactive)
-  (zossima-start)
   (let ((doc (apply 'zossima-request "doc_for" (subseq info 0 3)))
         (buffer (get-buffer-create "*zossima-doc*"))
         (inhibit-read-only t))
