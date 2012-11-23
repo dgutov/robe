@@ -253,6 +253,16 @@ Only works with Rails, see e.g. `rinari-console'."
                           (zossima-ask-prompt)
                         (zossima-jump-prompt thing)))))
 
+(defvar zossima-code-face 'font-lock-preprocessor-face)
+
+(defvar zossima-em-face 'font-lock-variable-name-face)
+
+(defvar zossima-doc-rules
+  '(("<\\(tt\\|code\\)>\\([^<]+\\)</\\1>" 2 zossima-code-face)
+    ("\\_<\\+\\([^[:space:]]+\\)\\+\\_>" 1 zossima-code-face)
+    ("<\\(i\\|em\\)>\\([^<]+\\)</\\1>" 2 zossima-em-face)
+    ("\\_<_\\([^[:space:]]*\\)_\\_>" 1 zossima-em-face)))
+
 (defun zossima-show-doc (info)
   (interactive)
   (let ((doc (apply 'zossima-request "doc_for" (subseq info 0 3)))
@@ -263,8 +273,13 @@ Only works with Rails, see e.g. `rinari-console'."
       (princ "\n\n")
       (princ (cdr (assoc 'comment doc))))
     (with-current-buffer buffer
-      (visual-line-mode 1)
-      (ansi-color-apply-on-region (point-min) (point-max)))))
+      (loop for (re n sym) in zossima-doc-rules do
+        (goto-char (point-min))
+        (while (re-search-forward re nil t)
+          (replace-match (format "\\%d" n))
+          (put-text-property (match-beginning 0) (match-end 0)
+                             'face (symbol-value sym))))
+      (visual-line-mode 1))))
 
 (defvar zossima-mode-map
   (let ((map (make-sparse-keymap)))
