@@ -30,6 +30,15 @@ Once it's installed:
 (add-hook 'ruby-mode-hook 'zossima-mode)
 ```
 
+## Notes
+
+* We can't jump to the methods defined in C (such as most of the core classes).
+  To read their docs, install `pry-doc` or add it to your Gemfile.
+* We can't jump to lazily defined methods, such as `model.column` or `find_by_`
+  `ActiveRecord` methods. This is treatable, but low priority.
+* Jumping to methods defined with `Module#delegate` just brings us to the place
+  where `delegate` is called, which is accurate, but often useless.
+
 ## Todo
 
 * Package on Marmalade
