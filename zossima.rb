@@ -167,7 +167,7 @@ module Zossima
       candidates.each(&blk)
       unless instance
         finders = [imf]
-        obj.singleton_class.included_modules.each(&blk)
+        obj.singleton_class.ancestors.each(&blk)
       end
     end
 
@@ -206,7 +206,8 @@ module Zossima
       if method = get_method(mod) rescue nil
         (owner = method.owner) == mod or
           !owner.name && !(mod.respond_to?(:superclass) &&
-                           defined_in?(mod.superclass))
+                           defined_in?(mod.superclass)) or
+          mod.name == owner.name # ObjectSpace; other examples?
       end
     end
 

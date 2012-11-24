@@ -35,16 +35,16 @@ Once it's installed:
 * We can't jump to the methods defined in C (such as most of the core classes).
   To read their docs, install `pry-doc` or add it to your Gemfile.
 * We can't jump to lazily defined methods, such as `model.column` or `find_by_`
-  `ActiveRecord` methods. This is treatable, but low priority.
+  `ActiveRecord` methods, before they've been called. This is treatable, but low
+  priority.
 * Jumping to methods defined with `Module#delegate` just brings us to the place
-  where `delegate` is called, which is accurate, but often useless.
+  where `delegate` is called, which is accurate, but often less than useful.
 
 ## Todo
 
 * Package on Marmalade
 * Support for multiple inf-rubies in one Emacs instance
 * Eval call target name in a safer way?
-* `zossima-doc` fails for `ObjectSpace.each_object` and `foo.is_a?`
 * Do not jump to private methods when the call has explicit receiver
 * Handle `delegate` and `send`, `Class.new.method` and `self.class.method`
 * For methods defined through macros, optionally jump to where the macro was
