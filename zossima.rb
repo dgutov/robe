@@ -64,7 +64,7 @@ module Zossima
       require "pry-doc"
       YARD::Registry.send :thread_local_store=, Thread.main[:__yard_registry__]
       ym = Pry::MethodInfo.info_for(method)
-      comment = ym.docstring
+      comment = ym ? ym.docstring : ""
     rescue LoadError
       if method.source_location
         buf = []
