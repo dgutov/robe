@@ -29,6 +29,7 @@
 ;;  - M-, to jump back
 ;;  - C-c C-d to see the documentation
 ;;  - C-c C-k to refresh Rails environment
+;;  - C-M-i to complete symbol at point
 ;;
 ;; Before using any of these commands, call `run-ruby' or `rinari-console'.
 
