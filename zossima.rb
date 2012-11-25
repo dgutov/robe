@@ -61,7 +61,8 @@ module Zossima
   end
 
   def self.doc_for(mod, type, sym)
-    method = find_method(resolve_const(mod), type.to_sym, sym.to_sym)
+    mod = resolve_const(mod)
+    method = find_method(mod, type.to_sym, sym.to_sym)
     begin
       require "pry-doc"
       YARD::Registry.send :thread_local_store=, Thread.main[:__yard_registry__]
@@ -92,9 +93,9 @@ module Zossima
   end
 
   def self.signature(mod, type, sym)
-    sig = "#{mod}#{type == :instance ? '#' : '.'}#{sym}("
+    sig = "#{mod.name}#{type == :instance ? '#' : '.'}#{sym}("
     dummy = "arg0"
-    parameters = find_method(resolve_const(mod), type, sym).parameters
+    parameters = find_method(mod, type, sym).parameters
     parameters.each_with_index do |(kind, name), n|
       unless name
         case kind
