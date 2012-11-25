@@ -294,7 +294,8 @@ Only works with Rails, see e.g. `rinari-console'."
   (apply 'zossima-request "doc_for" (subseq info 0 3)))
 
 (defun zossima-eldoc ()
-  (unless (or (eq (get-text-property (1- (point)) 'face) 'font-lock-keyword-face)
+  (unless (or (memq (get-text-property (1- (point)) 'face)
+                    '(font-lock-keyword-face font-lock-function-name-face))
               (nth 8 (syntax-ppss)))
     (let ((thing (thing-at-point 'symbol))
           (url-show-status nil))
