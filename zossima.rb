@@ -155,19 +155,19 @@ module Zossima
       end
     end
 
-    mf, imf = MethodFinder.new(sym), InstanceMethodFinder.new(sym)
-    targets, finders = [], nil
+    mf, imf = MethodChecker.new(sym), InstanceMethodChecker.new(sym)
+    targets, checkers = [], nil
 
     blk = lambda do |m|
-      finder = finders.find {|er| er.fits?(m)}
+      finder = checkers.find {|er| er.fits?(m)}
       targets << [m, finder.type] if finder
     end
 
     if candidates
-      finders = [instance ? imf : mf]
+      checkers = [instance ? imf : mf]
       candidates.each(&blk)
       unless instance
-        finders = [imf]
+        checkers = [imf]
         obj.singleton_class.ancestors.each(&blk)
       end
     end
@@ -177,7 +177,7 @@ module Zossima
         !(m <= obj) && targets.find {|(t, _)| t < m}
       end
     elsif !obj or (sym != :initialize and !superc)
-      finders = [mf, imf]
+      checkers = [mf, imf]
       ObjectSpace.each_object(Module, &blk)
     end
 
@@ -198,7 +198,7 @@ module Zossima
     nil # too noisy in inf-ruby otherwise
   end
 
-  class MethodFinder
+  class MethodChecker
     def initialize(symbol)
       @sym = symbol
     end
@@ -212,7 +212,7 @@ module Zossima
     end
   end
 
-  class InstanceMethodFinder < MethodFinder
+  class InstanceMethodChecker < MethodChecker
     def fits?(mod)
       mod.instance_methods(false).include?(@sym) or
         mod.private_instance_methods(false).include?(@sym)
