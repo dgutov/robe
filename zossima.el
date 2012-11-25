@@ -305,7 +305,8 @@ Only works with Rails, see e.g. `rinari-console'."
           (url-show-status nil)
           (zossima-max-retries 0))
       (when (and thing zossima-running (not (zossima-module-p thing)))
-        (let ((list (zossima-jump-modules thing)))
+        (let ((list (loop for info in (zossima-jump-modules thing)
+                          when (car info) collect info)))
           (when (consp list)
             (let* ((doc (zossima-doc-for (car list)))
                    (summary (with-temp-buffer
