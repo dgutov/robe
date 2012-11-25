@@ -147,8 +147,8 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
       (zossima-jump-to (zossima-jump-prompt thing))))))
 
 (defun zossima-jump-prompt (thing)
-  (let* ((modules (zossima-jump-modules thing))
-         (_ (unless modules (error "Method not found"))))
+  (let* ((modules (zossima-jump-modules thing)))
+    (unless modules (error "Method not found"))
     (if (= 1 (length modules))
         (car modules)
       (let ((alist (zossima-decorate-modules modules)))
@@ -182,13 +182,16 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                      thing target module instance super)))
 
 (defun zossima-decorate-modules (list)
-  (mapcar (lambda (row)
-            (cons (concat (first row)
-                          (if (string= "instance"
-                                       (second row))
-                              "#" "."))
-                  row))
-          list))
+  (loop for row in list
+        for name = (cond ((first row) (first row))
+                         ((nth 3 row)
+                          (format "<%s>" (file-name-nondirectory (nth 3 row)))))
+        when name
+        collect (cons (concat name
+                              (if (string= "instance"
+                                           (second row))
+                                  "#" "."))
+                      (cons name (cdr row)))))
 
 (defun zossima-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
