@@ -344,6 +344,19 @@ Only works with Rails, see e.g. `rinari-console'."
                    (message (format "%s %s" (cdr (assoc 'signature doc)) summary)))
               (substring message 0 (min (frame-width) (length message))))))))))
 
+(defun zossima-complete-at-point ()
+  (let ((bounds (bounds-of-thing-at-point 'symbol)))
+    (when bounds
+      (list (car bounds) (cdr bounds)
+            (completion-table-dynamic #'zossima-complete-thing)))))
+
+(defun zossima-complete-thing (thing)
+  (setq this-command 'zossima-complete-thing)
+  (zossima-request (if (zossima-module-p thing)
+                       "complete_const"
+                     "complete_method")
+                   thing))
+
 (defvar zossima-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-.") 'zossima-jump)
@@ -357,6 +370,7 @@ Only works with Rails, see e.g. `rinari-console'."
   "Improved navigation for Ruby"
   nil " zossima" zossima-mode-map
   (set (make-local-variable 'eldoc-documentation-function) 'zossima-eldoc)
+  (eldoc-add-command 'zossima-complete-thing)
   (turn-on-eldoc-mode))
 
 (provide 'zossima)

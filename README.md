@@ -16,6 +16,9 @@ in superclasses, descendants and included modules as appropriate.
 
 If the result is ambiguous, you're prompted to pick the module/location.
 
+ElDoc support and basic symbol completion (triggered with <kbd>C-M-i</kbd>) are
+also provided.
+
 ## Install
 
 Currently you should check it out from Git:

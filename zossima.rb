@@ -189,6 +189,27 @@ module Zossima
     targets.map {|(m, type)| method_info(m, type, sym)}
   end
 
+  def self.complete_method(prefix)
+    re, res = /^#{Regexp.escape(prefix)}/, []
+    ObjectSpace.each_object(Module) do |m|
+      res += m.methods(false).grep(re)
+      res += m.instance_methods(false).grep(re)
+    end
+    res
+  end
+
+  def self.complete_const(prefix)
+    colons = prefix.rindex("::")
+    if !colons || colons == 0
+      base, base_name = Object, ""
+    else
+      base = resolve_const(prefix[0..colons - 1])
+      base_name = base.name + "::"
+    end
+    tail = colons ? prefix[colons + 2..-1] : prefix
+    base.constants.grep(/^#{Regexp.escape(tail)}/).map {|c| "#{base_name}#{c}"}
+  end
+
   def self.rails_refresh
     reload!
     Rails.application.eager_load!
