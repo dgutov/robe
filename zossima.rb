@@ -55,6 +55,8 @@ module Zossima
   end
 
   def self.method_info(mod, type, sym)
+    # FIXME: For anonymous modules, substitute the name of the class.
+    # But as long as it's just for ActiveModel::AttributeMethods, not worth it.
     [mod.name, type, sym] + find_method(mod, type, sym).source_location.to_a
   end
 
@@ -157,7 +159,6 @@ module Zossima
     targets, finders = [], nil
 
     blk = lambda do |m|
-      next unless m.name
       finder = finders.find {|er| er.fits?(m)}
       targets << [m, finder.type] if finder
     end
@@ -203,20 +204,7 @@ module Zossima
     end
 
     def fits?(mod)
-      if method = get_method(mod) rescue nil
-        (owner = method.owner) == mod or
-          !owner.name && !(mod.respond_to?(:superclass) &&
-                           defined_in?(mod.superclass)) or
-          mod.name == owner.name # ObjectSpace; other examples?
-      end
-    end
-
-    def get_method(mod)
-      mod.method(@sym)
-    end
-
-    def defined_in?(mod)
-      mod.singleton_class.method_defined?(@sym)
+      mod.methods(false).include?(@sym)
     end
 
     def type
@@ -225,12 +213,9 @@ module Zossima
   end
 
   class InstanceMethodFinder < MethodFinder
-    def get_method(mod)
-      mod.instance_method(@sym)
-    end
-
-    def defined_in?(mod)
-      mod.method_defined?(@sym)
+    def fits?(mod)
+      mod.instance_methods(false).include?(@sym) or
+        mod.private_instance_methods(false).include?(@sym)
     end
 
     def type
