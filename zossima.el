@@ -125,6 +125,9 @@
                   row))
           list))
 
+(defun zossima-module-p (thing)
+  (let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing)))
+
 (defun zossima-jump (arg)
   "Jump to the method or module at point, prompt for module or file if necessary.
 If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
@@ -134,12 +137,21 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
     (cond
      ((or (not thing) arg)
       (zossima-ask))
-     ((let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing))
+     ((zossima-module-p thing)
       (zossima-jump-to-module thing))
      (t
       (zossima-jump-to (zossima-jump-prompt thing))))))
 
 (defun zossima-jump-prompt (thing)
+  (let* ((modules (zossima-jump-modules thing))
+         (_ (unless modules (error "Method not found"))))
+    (if (= 1 (length modules))
+        (car modules)
+      (let ((alist (zossima-decorate-modules modules)))
+        (cdr (assoc (ido-completing-read "Module: " alist nil t)
+                    alist))))))
+
+(defun zossima-jump-modules (thing)
   (let* (instance super module
          (target (save-excursion
                    (and (progn (beginning-of-thing 'symbol)
@@ -157,15 +169,9 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                       super t))))
          (_ (when (and target (string= thing "new"))
               (setq thing "initialize"
-                    instance t)))
-         (modules (zossima-request "method_targets"
-                                   thing target module instance super))
-         (_ (unless modules (error "Method not found"))))
-    (if (= 1 (length modules))
-        (car modules)
-      (let ((alist (zossima-decorate-modules modules)))
-        (cdr (assoc (ido-completing-read "Module: " alist nil t)
-                    alist))))))
+                    instance t))))
+    (zossima-request "method_targets"
+                     thing target module instance super)))
 
 (defun zossima-decorate-modules (list)
   (mapcar (lambda (row)
@@ -265,7 +271,7 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun zossima-show-doc (info)
   (interactive)
-  (let ((doc (apply 'zossima-request "doc_for" (subseq info 0 3)))
+  (let ((doc (zossima-doc-for info))
         (buffer (get-buffer-create "*zossima-doc*"))
         (inhibit-read-only t))
     (with-help-window buffer
@@ -273,13 +279,42 @@ Only works with Rails, see e.g. `rinari-console'."
       (princ "\n\n")
       (princ (cdr (assoc 'comment doc))))
     (with-current-buffer buffer
-      (loop for (re n sym) in zossima-doc-rules do
+      (zossima-doc-apply-rules)
+      (visual-line-mode 1))))
+
+(defun zossima-doc-apply-rules ()
+  (loop for (re n sym) in zossima-doc-rules do
         (goto-char (point-min))
         (while (re-search-forward re nil t)
           (replace-match (format "\\%d" n))
           (put-text-property (match-beginning 0) (match-end 0)
-                             'face (symbol-value sym))))
-      (visual-line-mode 1))))
+                             'face (symbol-value sym)))))
+
+(defun zossima-doc-for (info)
+  (apply 'zossima-request "doc_for" (subseq info 0 3)))
+
+(defun zossima-eldoc ()
+  (unless (or (eq (get-text-property (1- (point)) 'face) 'font-lock-keyword-face)
+              (nth 8 (syntax-ppss)))
+    (let ((thing (thing-at-point 'symbol))
+          (url-show-status nil))
+      (when (and thing (not (zossima-module-p thing)))
+        (let ((list (zossima-jump-modules thing)))
+          (when (consp list)
+            (let* ((doc (zossima-doc-for (car list)))
+                   (summary (with-temp-buffer
+                              (insert (cdr (assoc 'comment doc)))
+                              (unless (= (point) (point-min))
+                                (goto-char (point-min))
+                                (save-excursion
+                                  (forward-sentence)
+                                  (delete-region (point) (point-max))
+                                  (zossima-doc-apply-rules))
+                                (while (search-forward "\n" nil t)
+                                  (replace-match " ")))
+                              (buffer-string)))
+                   (message (format "%s %s" (cdr (assoc 'signature doc)) summary)))
+              (substring message 0 (min (frame-width) (length message))))))))))
 
 (defvar zossima-mode-map
   (let ((map (make-sparse-keymap)))
@@ -292,7 +327,9 @@ Only works with Rails, see e.g. `rinari-console'."
 ;;;###autoload
 (define-minor-mode zossima-mode
   "Improved navigation for Ruby"
-  nil " zossima" zossima-mode-map)
+  nil " zossima" zossima-mode-map
+  (set (make-local-variable 'eldoc-documentation-function) 'zossima-eldoc)
+  (turn-on-eldoc-mode))
 
 (provide 'zossima)
 ;;; zossima.el ends here
