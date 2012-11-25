@@ -297,11 +297,23 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun zossima-doc-for (info)
   (apply 'zossima-request "doc_for" (subseq info 0 3)))
 
+(defun zossima-call-at-point ()
+  (let ((state (syntax-ppss)) pt)
+    (unless (nth 8 state)
+      (when (and (not (ignore-errors (save-excursion
+                                       (eq ?. (char-before
+                                               (beginning-of-thing 'symbol))))))
+                 (plusp (nth 0 state))
+                 (eq (char-after (nth 1 state)) ?\())
+        (goto-char (nth 1 state))
+        (skip-chars-backward " "))
+      (unless (or (memq (get-text-property (1- (point)) 'face)
+                        '(font-lock-keyword-face font-lock-function-name-face)))
+        (thing-at-point 'symbol)))))
+
 (defun zossima-eldoc ()
-  (unless (or (memq (get-text-property (1- (point)) 'face)
-                    '(font-lock-keyword-face font-lock-function-name-face))
-              (nth 8 (syntax-ppss)))
-    (let ((thing (thing-at-point 'symbol))
+  (save-excursion
+    (let ((thing (zossima-call-at-point))
           (url-show-status nil)
           (zossima-max-retries 0))
       (when (and thing zossima-running (not (zossima-module-p thing)))
