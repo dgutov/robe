@@ -161,7 +161,8 @@ module Zossima
       end
     end
 
-    mf, imf = MethodChecker.new(sym), InstanceMethodChecker.new(sym)
+    args = [sym, !target]
+    mf, imf = MethodChecker.new(*args), InstanceMethodChecker.new(*args)
     targets, checkers = [], nil
 
     blk = lambda do |m|
@@ -183,7 +184,7 @@ module Zossima
         !(m <= obj) && targets.find {|(t, _)| t < m}
       end
     elsif !obj or (sym != :initialize and !superc)
-      checkers = [mf, imf]
+      checkers = [mf, imf].each {|c| c.with_private = false}
       ObjectSpace.each_object(Module, &blk)
     end
 
@@ -226,12 +227,16 @@ module Zossima
   end
 
   class MethodChecker
-    def initialize(symbol)
+    attr_accessor :with_private
+
+    def initialize(symbol, with_private)
       @sym = symbol
+      @with_private = symbol
     end
 
     def fits?(mod)
-      mod.methods(false).include?(@sym)
+      mod.methods(false).include?(@sym) or
+        @with_private && mod.private_methods(false).include?(@sym)
     end
 
     def type
@@ -242,7 +247,7 @@ module Zossima
   class InstanceMethodChecker < MethodChecker
     def fits?(mod)
       mod.instance_methods(false).include?(@sym) or
-        mod.private_instance_methods(false).include?(@sym)
+        @with_private && mod.private_instance_methods(false).include?(@sym)
     end
 
     def type
