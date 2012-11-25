@@ -84,7 +84,7 @@ module Zossima
         end
         comment = buf.join("\n")
       else
-        comment = "Definition not found. For core classes, try installing 'pry-doc'."
+        comment = "Docstring not found. For core classes, try installing 'pry-doc'."
       end
     end
     {comment: comment,

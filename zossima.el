@@ -174,7 +174,9 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
     (when (and target (string= thing "new"))
       (setq thing "initialize"
             instance t))
-    (when (and target (save-excursion (end-of-thing 'symbol) (looking-at " *=")))
+    (when (and target (save-excursion
+                        (end-of-thing 'symbol)
+                        (looking-at " *=[^=]")))
       (setq thing (concat thing "=")))
     (when (string= target "self")
       (setq target nil))
