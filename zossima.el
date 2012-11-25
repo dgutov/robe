@@ -370,6 +370,7 @@ Only works with Rails, see e.g. `rinari-console'."
 (define-minor-mode zossima-mode
   "Improved navigation for Ruby"
   nil " zossima" zossima-mode-map
+  (add-to-list 'completion-at-point-functions 'zossima-complete-at-point)
   (set (make-local-variable 'eldoc-documentation-function) 'zossima-eldoc)
   (eldoc-add-command 'zossima-complete-thing)
   (turn-on-eldoc-mode))
