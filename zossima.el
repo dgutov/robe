@@ -68,13 +68,16 @@
 
 (defvar zossima-max-retries 4)
 
+(defvar zossima-running nil)
+
 (defun zossima-start ()
   "Ensure remote process has Zossima started."
   (comint-send-string (inf-ruby-proc)
                       (format "load '%s' unless defined? Zossima\n"
                               zossima-ruby-path))
   (comint-send-string (inf-ruby-proc)
-                      (format "Zossima.start(%s)\n" zossima-port)))
+                      (format "Zossima.start(%s)\n" zossima-port))
+  (setq zossima-running t))
 
 (defun zossima-request (endpoint &rest args)
   (let* ((url (format "http://127.0.0.1:%s/%s/%s" zossima-port endpoint
@@ -97,7 +100,8 @@
   (declare (special url-http-response-status))
   (with-current-buffer (url-retrieve-synchronously url)
     (unless (memq url-http-response-status '(200 500))
-      (when (or (not retries) (plusp retries))
+      (if (and retries (not (plusp retries)))
+          (setq zossima-connected nil)
         (kill-buffer)
         (sleep-for 0.3)
         (set-buffer
@@ -298,8 +302,9 @@ Only works with Rails, see e.g. `rinari-console'."
                     '(font-lock-keyword-face font-lock-function-name-face))
               (nth 8 (syntax-ppss)))
     (let ((thing (thing-at-point 'symbol))
-          (url-show-status nil))
-      (when (and thing (not (zossima-module-p thing)))
+          (url-show-status nil)
+          (zossima-max-retries 0))
+      (when (and thing zossima-running (not (zossima-module-p thing)))
         (let ((list (zossima-jump-modules thing)))
           (when (consp list)
             (let* ((doc (zossima-doc-for (car list)))
