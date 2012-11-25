@@ -44,7 +44,6 @@ Once it's installed:
 
 * Package on Marmalade
 * Support for multiple inf-rubies in one Emacs instance
-* Eval call target name in a safer way?
 * Do not jump to private methods when the call has explicit receiver
 * Handle `delegate` and `send`, `Class.new.method` and `self.class.method`
 * For methods defined through macros, optionally jump to where the macro was

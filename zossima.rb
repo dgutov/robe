@@ -37,7 +37,7 @@ module Zossima
   end
 
   def self.targets(obj)
-    obj = eval(obj)
+    obj = resolve_const(obj)
     if obj.is_a? Module
       module_methods = obj.methods.map{|m| method_info(obj, :module, m)}
       instance_methods = (obj.instance_methods +
@@ -61,7 +61,7 @@ module Zossima
   end
 
   def self.doc_for(mod, type, sym)
-    method = find_method(eval(mod), type.to_sym, sym.to_sym)
+    method = find_method(resolve_const(mod), type.to_sym, sym.to_sym)
     begin
       require "pry-doc"
       YARD::Registry.send :thread_local_store=, Thread.main[:__yard_registry__]
@@ -94,7 +94,8 @@ module Zossima
   def self.signature(mod, type, sym)
     sig = "#{mod}#{type == :instance ? '#' : '.'}#{sym}("
     dummy = "arg0"
-    find_method(eval(mod), type, sym).parameters.each_with_index do |(kind, name), n|
+    parameters = find_method(resolve_const(mod), type, sym).parameters
+    parameters.each_with_index do |(kind, name), n|
       unless name
         case kind
         when :rest
@@ -118,20 +119,24 @@ module Zossima
   end
 
   def self.resolve_target(name, mod)
-    return eval(mod) unless name
-    return eval(name) if name =~ /\A::/
-    nesting = mod ? mod.split("::") : []
-    while nesting.any?
-      if obj = begin eval((nesting + [name]).join("::"))
-               rescue NameError
-               rescue SyntaxError
-               end
-        return obj
-      else
-        nesting.pop
+    return resolve_const(mod) unless name
+    unless name =~ /\A::/
+      nesting = mod ? mod.split("::") : []
+      while nesting.any?
+        if obj = resolve_const((nesting + [name]).join("::")) rescue nil
+          return obj
+        else
+          nesting.pop
+        end
       end
     end
-    eval(name)
+    resolve_const(name)
+  end
+
+  def self.resolve_const(name)
+    nesting = name.split("::")
+    nesting.shift if nesting[0].blank?
+    nesting.reduce(Object, :const_get)
   end
 
   def self.method_targets(method, target, mod, instance = nil, superc = nil)
