@@ -7,8 +7,8 @@ This builds on `inf-ruby` to handle Ruby subprocesses from Emacs.
 Once you've loaded your inf-ruby process with the code for your project and its
 dependencies Ruby keeps track of where each method is defined.
 
-You can jump to or read the documentation for the method, module, `super` or
-constructor definition at point.
+You can jump to or read the documentation for the method, module (jump only),
+`super` or constructor definition at point.
 
 If the method call target is implicit (like with `super`), or the call target is
 obvious (`Foo.new`, `2.seconds`), then we first try to look for the definition

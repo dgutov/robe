@@ -156,24 +156,28 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                     alist))))))
 
 (defun zossima-jump-modules (thing)
-  (let* (instance super module
-         (target (save-excursion
+  (let* ((target (save-excursion
                    (and (progn (beginning-of-thing 'symbol)
                                (= ?. (char-before)))
-                        (progn (forward-char -2)
+                        (progn (forward-char -1)
                                (thing-at-point 'symbol)))))
-         (_ (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
-              (setq thing (concat thing "!"))))
          (ctx (zossima-context))
          (module (first ctx))
-         (_ (unless target
-              (setq instance (second ctx))
-              (when (string= thing "super")
-                (setq thing (third ctx)
-                      super t))))
-         (_ (when (and target (string= thing "new"))
-              (setq thing "initialize"
-                    instance t))))
+         instance super)
+    (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
+      (setq thing (concat thing "!")))
+    (unless target
+      (setq instance (second ctx))
+      (when (string= thing "super")
+        (setq thing (third ctx)
+              super t)))
+    (when (and target (string= thing "new"))
+      (setq thing "initialize"
+            instance t))
+    (when (and target (save-excursion (end-of-thing 'symbol) (looking-at " *=")))
+      (setq thing (concat thing "=")))
+    (when (string= target "self")
+      (setq target nil))
     (zossima-request "method_targets"
                      thing target module instance super)))
 
