@@ -353,6 +353,7 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun zossima-complete-thing (thing)
   (setq this-command 'zossima-complete-thing)
+  (zossima-start)
   (zossima-request (if (zossima-module-p thing)
                        "complete_const"
                      "complete_method")
