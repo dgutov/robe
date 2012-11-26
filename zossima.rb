@@ -135,6 +135,7 @@ module Zossima
   end
 
   def self.resolve_const(name)
+    return ARGF.class if name == "ARGF.class"
     nesting = name.split("::")
     nesting.shift if nesting[0].blank?
     nesting.reduce(Object, :const_get)
