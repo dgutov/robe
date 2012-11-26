@@ -149,17 +149,16 @@ module Zossima
       obj, instance = obj.class, true unless obj.is_a? Module
     end rescue nil
 
-    if obj
-      candidates = obj.ancestors - [obj]
-      candidates -= obj.included_modules unless instance
-      candidates +=
-        ObjectSpace.each_object(obj.singleton_class).to_a unless superc
+    obj ||= Object
+    candidates = obj.ancestors - [obj]
+    candidates -= obj.included_modules unless instance
+    candidates +=
+      ObjectSpace.each_object(obj.singleton_class).to_a unless superc
 
-      if instance
-        if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
-          deps = obj.instance_variable_get("@_dependencies")
-          candidates += deps if deps
-        end
+    if instance
+      if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
+        deps = obj.instance_variable_get("@_dependencies")
+        candidates += deps if deps
       end
     end
 
@@ -172,13 +171,11 @@ module Zossima
       targets << [m, finder.type] if finder
     end
 
-    if candidates
-      checkers = [instance ? imf : mf]
-      candidates.each(&blk)
-      unless instance
-        checkers = [imf]
-        obj.singleton_class.ancestors.each(&blk)
-      end
+    checkers = [instance ? imf : mf]
+    candidates.each(&blk)
+    unless instance
+      checkers = [imf]
+      obj.singleton_class.ancestors.each(&blk)
     end
 
     if targets.any?
