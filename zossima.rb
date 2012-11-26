@@ -64,6 +64,7 @@ module Zossima
     mod = resolve_const(mod)
     method = find_method(mod, type.to_sym, sym.to_sym)
     begin
+      require "pry"
       require "pry-doc"
       YARD::Registry.send :thread_local_store=, Thread.main[:__yard_registry__]
       ym = Pry::MethodInfo.info_for(method)
@@ -137,7 +138,7 @@ module Zossima
   def self.resolve_const(name)
     return ARGF.class if name == "ARGF.class"
     nesting = name.split("::")
-    nesting.shift if nesting[0].blank?
+    nesting.shift if nesting[0].empty?
     nesting.reduce(Object, :const_get)
   end
 
