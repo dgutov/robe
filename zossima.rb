@@ -145,7 +145,8 @@ module Zossima
   def self.method_targets(method, target, mod, instance, superc, conservative)
     sym = method.to_sym
     space = TypeSpace.new(target, mod, instance, superc)
-    scanner = ModuleScanner.new(sym, !target)
+    special_method = sym == :initialize || superc
+    scanner = ModuleScanner.new(sym, special_method || !target)
 
     space.scan_with(scanner)
 
@@ -153,7 +154,7 @@ module Zossima
       targets.reject! do |(m, _)|
         !(m <= space.target_type) && targets.find {|(t, _)| t < m}
       end
-    elsif (target || !conservative) && sym != :initialize && !superc
+    elsif (target || !conservative) && !special_method
       scanner.check_private = false
       scanner.scan(ObjectSpace.each_object(Module), true, true)
     end
