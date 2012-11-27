@@ -69,6 +69,8 @@
 
 (defvar zossima-max-retries 4)
 
+(defvar zossima-jump-conservative nil)
+
 (defvar zossima-running nil)
 
 (defun zossima-start ()
@@ -173,7 +175,8 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                           (looking-at " *=[^=]")))
         (setq thing (concat thing "=")))
       (zossima-request "method_targets"
-                       thing target module instance super))))
+                       thing target module instance super
+                       zossima-jump-conservative))))
 
 (defun zossima-call-context ()
   (let* ((target (save-excursion
@@ -334,8 +337,9 @@ Only works with Rails, see e.g. `rinari-console'."
           (url-show-status nil)
           (zossima-max-retries 0))
       (when (and thing zossima-running (not (zossima-module-p thing)))
-        (let ((list (loop for info in (zossima-jump-modules thing)
-                          when (car info) collect info)))
+        (let* ((zossima-jump-conservative t)
+               (list (loop for info in (zossima-jump-modules thing)
+                           when (car info) collect info)))
           (when (consp list)
             (let* ((doc (zossima-doc-for (car list)))
                    (summary (with-temp-buffer

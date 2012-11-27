@@ -142,7 +142,7 @@ module Zossima
     nesting.reduce(Object, :const_get)
   end
 
-  def self.method_targets(method, target, mod, instance = nil, superc = nil)
+  def self.method_targets(method, target, mod, instance, superc, conservative)
     sym = method.to_sym
     space = TypeSpace.new(target, mod, instance, superc)
     scanner = ModuleScanner.new(sym, !target)
@@ -153,7 +153,7 @@ module Zossima
       targets.reject! do |(m, _)|
         !(m <= space.target_type) && targets.find {|(t, _)| t < m}
       end
-    elsif (sym != :initialize and !superc)
+    elsif (target || !conservative) && sym != :initialize && !superc
       scanner.check_private = false
       scanner.scan(ObjectSpace.each_object(Module), true, true)
     end
@@ -161,7 +161,7 @@ module Zossima
     scanner.candidates.map {|(m, type)| method_info(m, type, sym)}
   end
 
-  def self.complete_method(prefix, target, mod, instance = nil)
+  def self.complete_method(prefix, target, mod, instance)
     space = TypeSpace.new(target, mod, instance, nil)
     scanner = MethodScanner.new(prefix, !target)
 
