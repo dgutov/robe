@@ -349,8 +349,8 @@ Only works with Rails, see e.g. `rinari-console'."
                                 (while (search-forward "\n" nil t)
                                   (replace-match " ")))
                               (buffer-string)))
-                   (message (format "%s %s" (cdr (assoc 'signature doc)) summary)))
-              (substring message 0 (min (frame-width) (length message))))))))))
+                   (msg (format "%s %s" (cdr (assoc 'signature doc)) summary)))
+              (substring msg 0 (min (frame-width) (length msg))))))))))
 
 (defun zossima-complete-at-point ()
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
