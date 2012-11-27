@@ -146,13 +146,12 @@ module Zossima
     sym = method.to_sym
     space = TypeSpace.new(target, mod, instance, superc)
     scanner = ModuleScanner.new(sym, !target)
-    obj = space.target_type
 
     space.scan_with(scanner)
 
     if (targets = scanner.candidates).any?
       targets.reject! do |(m, _)|
-        !(m <= obj) && targets.find {|(t, _)| t < m}
+        !(m <= space.target_type) && targets.find {|(t, _)| t < m}
       end
     elsif (sym != :initialize and !superc)
       scanner.check_private = false
