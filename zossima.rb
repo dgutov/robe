@@ -15,7 +15,7 @@ module Zossima
 
   def self.class_locations(name, mod)
     locations = {}
-    if (obj = resolve_target(name, mod) rescue nil) and obj.is_a? Module
+    if (obj = resolve_context(name, mod) rescue nil) and obj.is_a? Module
       methods = obj.methods(false).map{|m|obj.method(m)} +
         obj.instance_methods(false).map{|m|obj.instance_method(m)}
       methods.each do |m|
@@ -120,7 +120,7 @@ module Zossima
     sig << ")"
   end
 
-  def self.resolve_target(name, mod)
+  def self.resolve_context(name, mod)
     return resolve_const(mod) unless name
     unless name =~ /\A::/
       nesting = mod ? mod.split("::") : []
@@ -145,7 +145,7 @@ module Zossima
   def self.method_targets(method, target, mod, instance = nil, superc = nil)
     sym = method.to_sym
     begin
-      obj = resolve_target(target, mod)
+      obj = resolve_context(target, mod)
       obj, instance = obj.class, true unless obj.is_a? Module
     end rescue nil
 
