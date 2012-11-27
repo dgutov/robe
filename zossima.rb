@@ -154,7 +154,7 @@ module Zossima
       targets.reject! do |(m, _)|
         !(m <= obj) && targets.find {|(t, _)| t < m}
       end
-    elsif !obj or (sym != :initialize and !superc)
+    elsif (sym != :initialize and !superc)
       scanner.check_private = false
       scanner.scan(ObjectSpace.each_object(Module), true, true)
     end
