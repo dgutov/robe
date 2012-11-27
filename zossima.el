@@ -102,7 +102,7 @@
   (with-current-buffer (url-retrieve-synchronously url)
     (unless (memq url-http-response-status '(200 500))
       (if (and retries (not (plusp retries)))
-          (setq zossima-connected nil)
+          (setq zossima-running nil)
         (kill-buffer)
         (sleep-for 0.3)
         (set-buffer
