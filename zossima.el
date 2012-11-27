@@ -320,9 +320,13 @@ Only works with Rails, see e.g. `rinari-console'."
                  (eq (char-after (nth 1 state)) ?\())
         (goto-char (nth 1 state))
         (skip-chars-backward " "))
-      (unless (or (memq (get-text-property (1- (point)) 'face)
-                        '(font-lock-keyword-face font-lock-function-name-face)))
-        (thing-at-point 'symbol)))))
+      (let* ((bounds (bounds-of-thing-at-point 'symbol))
+             (beg (car bounds))
+             (end (cdr bounds)))
+        (unless (or (not bounds)
+                    (text-property-any beg end 'face font-lock-function-name-face)
+                    (text-property-any beg end 'face font-lock-keyword-face))
+          (buffer-substring beg end))))))
 
 (defun zossima-eldoc ()
   (save-excursion
