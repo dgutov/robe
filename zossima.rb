@@ -144,59 +144,36 @@ module Zossima
 
   def self.method_targets(method, target, mod, instance = nil, superc = nil)
     sym = method.to_sym
-    begin
-      obj = resolve_context(target, mod)
-      obj, instance = obj.class, true unless obj.is_a? Module
-    end rescue nil
+    space = TypeSpace.new(target, mod, instance, superc)
+    scanner = ModuleScanner.new(sym, !target)
+    obj = space.target_type
 
-    obj ||= Object
-    candidates = obj.ancestors - [obj]
-    candidates -= obj.included_modules unless instance
-    candidates +=
-      ObjectSpace.each_object(obj.singleton_class).to_a unless superc
+    space.scan_with(scanner)
 
-    if instance
-      if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
-        deps = obj.instance_variable_get("@_dependencies")
-        candidates += deps if deps
-      end
-    end
-
-    args = [sym, !target]
-    mf, imf = MethodChecker.new(*args), InstanceMethodChecker.new(*args)
-    targets, checkers = [], nil
-
-    blk = lambda do |m|
-      finder = checkers.find {|er| er.fits?(m)}
-      targets << [m, finder.type] if finder
-    end
-
-    checkers = [instance ? imf : mf]
-    candidates.each(&blk)
-    unless instance
-      checkers = [imf]
-      obj.singleton_class.ancestors.each(&blk)
-    end
-
-    if targets.any?
+    if (targets = scanner.candidates).any?
       targets.reject! do |(m, _)|
         !(m <= obj) && targets.find {|(t, _)| t < m}
       end
     elsif !obj or (sym != :initialize and !superc)
-      checkers = [mf, imf].each {|c| c.with_private = false}
-      ObjectSpace.each_object(Module, &blk)
+      scanner.check_private = false
+      scanner.scan(ObjectSpace.each_object(Module), true, true)
     end
 
-    targets.map {|(m, type)| method_info(m, type, sym)}
+    scanner.candidates.map {|(m, type)| method_info(m, type, sym)}
   end
 
-  def self.complete_method(prefix)
-    re, res = /^#{Regexp.escape(prefix)}/, []
-    ObjectSpace.each_object(Module) do |m|
-      res += m.methods(false).grep(re)
-      res += m.instance_methods(false).grep(re)
+  def self.complete_method(prefix, target, mod, instance = nil)
+    space = TypeSpace.new(target, mod, instance, nil)
+    scanner = MethodScanner.new(prefix, !target)
+
+    space.scan_with(scanner)
+
+    if scanner.candidates.empty?
+      scanner.check_private = false
+      scanner.scan(ObjectSpace.each_object(Module), true, true)
     end
-    res
+
+    scanner.candidates
   end
 
   def self.complete_const(prefix)
@@ -230,7 +207,7 @@ module Zossima
 
     def initialize(symbol, with_private)
       @sym = symbol
-      @with_private = symbol
+      @with_private = with_private
     end
 
     def fits?(mod)
@@ -251,6 +228,90 @@ module Zossima
 
     def type
       :instance
+    end
+  end
+
+  class TypeSpace
+    attr_reader :target_type, :instance
+
+    def initialize(target, mod, instance, superc)
+      @target = target
+      @mod = mod
+      @instance = instance
+      @superc = superc
+      guess_target_type
+    end
+
+    def scan_with(scanner)
+      obj = target_type
+      modules = obj.ancestors - [obj]
+      modules -= obj.included_modules unless instance
+      modules +=
+        ObjectSpace.each_object(obj.singleton_class).to_a unless @superc
+
+      if instance
+        if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
+          deps = obj.instance_variable_get("@_dependencies")
+          modules += deps if deps
+        end
+      end
+
+      scanner.scan(modules, instance, !instance)
+      scanner.scan(obj.singleton_class.ancestors, true, false) unless instance
+    end
+
+    private
+
+    def guess_target_type
+      begin
+        @target_type = Zossima.resolve_context(@target, @mod)
+        unless @target_type.is_a? Module
+          @target_type, @instance = @target_type.class, true
+        end
+      end rescue nil
+
+      @target_type ||= Object
+    end
+  end
+
+  class Scanner
+    attr_accessor :check_private
+    attr_reader :candidates
+
+    def initialize(sym, check_private)
+      @candidates = []
+      @sym = sym
+      @check_private = check_private
+    end
+  end
+
+  class ModuleScanner < Scanner
+    def scan(modules, check_instance, check_module)
+      checkers, args = [], [@sym, check_private]
+      checkers.push InstanceMethodChecker.new(*args) if check_instance
+      checkers.push MethodChecker.new(*args) if check_module
+
+      modules.each do |m|
+        checkers.each {|er| candidates << [m, er.type] if er.fits?(m)}
+      end
+    end
+  end
+
+  class MethodScanner < Scanner
+    def initialize(*args)
+      super
+      @re = /^#{Regexp.escape(@sym || "")}/
+    end
+
+    def scan(modules, check_instance, check_module)
+      modules.each do |m|
+        methods = []
+        methods += m.instance_methods(false) if check_instance
+        methods += m.methods(false) if check_module
+        methods += m.private_instance_methods(false) if (check_instance &&
+                                                         check_private)
+        candidates.concat(methods.grep(@re))
+      end
     end
   end
 end

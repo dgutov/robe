@@ -5,7 +5,7 @@
 
 ;; Author: Phil Hagelberg
 ;; URL: https://github.com/technomancy/zossima
-;; Version: 0.3
+;; Version: 0.4
 ;; Created: 2012-10-24
 ;; Keywords: ruby convenience rails
 ;; EmacsWiki: Zossima
@@ -157,6 +157,25 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                     alist))))))
 
 (defun zossima-jump-modules (thing)
+  (destructuring-bind (target module instance ctx) (zossima-call-context)
+    (let (super)
+      (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
+        (setq thing (concat thing "!")))
+      (unless target
+        (when (string= thing "super")
+          (setq thing (third ctx)
+                super t)))
+      (when (and target (string= thing "new"))
+        (setq thing "initialize"
+              instance t))
+      (when (and target (save-excursion
+                          (end-of-thing 'symbol)
+                          (looking-at " *=[^=]")))
+        (setq thing (concat thing "=")))
+      (zossima-request "method_targets"
+                       thing target module instance super))))
+
+(defun zossima-call-context ()
   (let* ((target (save-excursion
                    (and (progn (beginning-of-thing 'symbol)
                                (= ?. (char-before)))
@@ -164,25 +183,9 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                                (thing-at-point 'symbol)))))
          (ctx (zossima-context))
          (module (first ctx))
-         instance super)
-    (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
-      (setq thing (concat thing "!")))
-    (unless target
-      (setq instance (second ctx))
-      (when (string= thing "super")
-        (setq thing (third ctx)
-              super t)))
-    (when (and target (string= thing "new"))
-      (setq thing "initialize"
-            instance t))
-    (when (and target (save-excursion
-                        (end-of-thing 'symbol)
-                        (looking-at " *=[^=]")))
-      (setq thing (concat thing "=")))
-    (when (string= target "self")
-      (setq target nil))
-    (zossima-request "method_targets"
-                     thing target module instance super)))
+         (_ (when (string= target "self") (setq target nil)))
+         (instance (unless target (second ctx))))
+    (list target module instance ctx)))
 
 (defun zossima-decorate-modules (list)
   (loop for row in list
@@ -354,10 +357,10 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun zossima-complete-thing (thing)
   (setq this-command 'zossima-complete-thing)
   (zossima-start)
-  (zossima-request (if (zossima-module-p thing)
-                       "complete_const"
-                     "complete_method")
-                   thing))
+  (if (zossima-module-p thing)
+      (zossima-request "complete_const" thing)
+    (destructuring-bind (target module instance _) (zossima-call-context)
+      (zossima-request "complete_method" thing target module instance))))
 
 (defvar zossima-mode-map
   (let ((map (make-sparse-keymap)))

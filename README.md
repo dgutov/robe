@@ -16,8 +16,8 @@ in superclasses, descendants and included modules as appropriate.
 
 If the result is ambiguous, you're prompted to pick the module/location.
 
-ElDoc support and basic symbol completion (triggered with <kbd>C-M-i</kbd>) are
-also provided.
+ElDoc support and constant and method completion (triggered with
+<kbd>C-M-i</kbd>) are also provided.
 
 ## Install
 
@@ -50,6 +50,7 @@ Once it's installed:
 * Handle `delegate` and `send`, `Class.new.method` and `self.class.method`
 * For methods defined through macros, optionally jump to where the macro was
   called, instead of its definition?
+* Type inference
 
 ## Copying
 
