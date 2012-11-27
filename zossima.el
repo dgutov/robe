@@ -323,13 +323,13 @@ Only works with Rails, see e.g. `rinari-console'."
                  (eq (char-after (nth 1 state)) ?\())
         (goto-char (nth 1 state))
         (skip-chars-backward " "))
-      (let* ((bounds (bounds-of-thing-at-point 'symbol))
-             (beg (car bounds))
-             (end (cdr bounds)))
-        (unless (or (not bounds)
-                    (text-property-any beg end 'face font-lock-function-name-face)
-                    (text-property-any beg end 'face font-lock-keyword-face))
-          (buffer-substring beg end))))))
+      (let ((thing (thing-at-point 'symbol)))
+        (when (and thing
+                   (or (string= thing "super")
+                       (not (memq (get-text-property 0 'face thing)
+                                  '(font-lock-function-name-face
+                                    font-lock-keyword-face)))))
+          thing)))))
 
 (defun zossima-eldoc ()
   (save-excursion
