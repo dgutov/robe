@@ -160,6 +160,9 @@ module Zossima
         !(m <= space.target_type) && targets.find {|(t, _)| t < m}
       end
     elsif (target || !conservative) && !special_method
+      unless target
+        scanner.scan_methods(Object, :private_instance_methods, :instance)
+      end
       scanner.check_private = false
       scanner.scan(ObjectSpace.each_object(Module), true, true)
     end
@@ -219,7 +222,7 @@ module Zossima
     end
 
     def scan_with(scanner)
-      obj = target_type
+      return unless obj = target_type
       modules = obj.ancestors - [obj]
       modules -= obj.included_modules unless instance
       modules +=
@@ -245,8 +248,6 @@ module Zossima
           @target_type, @instance = @target_type.class, true
         end
       end rescue nil
-
-      @target_type ||= Object
     end
   end
 
@@ -274,8 +275,6 @@ module Zossima
         end
       end
     end
-
-    private
 
     def scan_methods(mod, method, type)
       candidates << [mod, type] if mod.send(method, false).include?(@sym)
