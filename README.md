@@ -45,11 +45,11 @@ Once it's installed:
 
 ## Todo
 
-* Handle `delegate` and `send`, `Class.new.method` and `self.class.method`
+* Handle `delegate` and `send`, `Class.new.method` and `self.class.method`.
 * For methods defined through macros, optionally jump to where the macro was
   called, instead of its definition?
-* Apropos search for classes and methods
-* Type inference
+* Apropos search for classes and methods.
+* Type inference and local variable completion.
 
 ## Copying
 
