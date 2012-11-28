@@ -11,8 +11,8 @@ You can jump to or read the documentation for the method, module (jump only),
 `super` or constructor definition at point.
 
 If the method call target is implicit (like with `super`), or the call target is
-obvious (`Foo.new`, `2.seconds`), then we first try to look for the definition
-in superclasses, descendants and included modules as appropriate.
+obvious (`Foo.new`, `self.foo`), then we first try to look for the definition in
+superclasses, descendants and included modules as appropriate.
 
 If the result is ambiguous, you're prompted to pick the module/location.
 
