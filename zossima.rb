@@ -202,35 +202,6 @@ module Zossima
     nil # too noisy in inf-ruby otherwise
   end
 
-  class MethodChecker
-    attr_accessor :with_private
-
-    def initialize(symbol, with_private)
-      @sym = symbol
-      @with_private = with_private
-    end
-
-    def fits?(mod)
-      mod.methods(false).include?(@sym) or
-        @with_private && mod.private_methods(false).include?(@sym)
-    end
-
-    def type
-      :module
-    end
-  end
-
-  class InstanceMethodChecker < MethodChecker
-    def fits?(mod)
-      mod.instance_methods(false).include?(@sym) or
-        @with_private && mod.private_instance_methods(false).include?(@sym)
-    end
-
-    def type
-      :instance
-    end
-  end
-
   class TypeSpace
     attr_reader :target_type, :instance
 
@@ -287,13 +258,22 @@ module Zossima
 
   class ModuleScanner < Scanner
     def scan(modules, check_instance, check_module)
-      checkers, args = [], [@sym, check_private]
-      checkers.push InstanceMethodChecker.new(*args) if check_instance
-      checkers.push MethodChecker.new(*args) if check_module
-
       modules.each do |m|
-        checkers.each {|er| candidates << [m, er.type] if er.fits?(m)}
+        if check_module
+          scan_methods(m, :methods, :module)
+          scan_methods(m, :private_methods, :module) if check_private
+        end
+        if check_instance
+          scan_methods(m, :instance_methods, :instance)
+          scan_methods(m, :private_instance_methods, :instance) if check_private
+        end
       end
+    end
+
+    private
+
+    def scan_methods(mod, method, type)
+      candidates << [mod, type] if mod.send(method, false).include?(@sym)
     end
   end
 
