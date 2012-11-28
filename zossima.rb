@@ -1,6 +1,13 @@
 require "webrick"
 require "json"
 
+begin
+  require "pry"
+  require "pry-doc"
+rescue LoadError
+  # no built-in docs for you
+end
+
 module Zossima
   class Handler < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
@@ -63,13 +70,11 @@ module Zossima
   def self.doc_for(mod, type, sym)
     mod = resolve_const(mod)
     method = find_method(mod, type.to_sym, sym.to_sym)
-    begin
-      require "pry"
-      require "pry-doc"
+    if defined? Pry::MethodInfo.info_for
       YARD::Registry.send :thread_local_store=, Thread.main[:__yard_registry__]
       ym = Pry::MethodInfo.info_for(method)
       comment = ym ? ym.docstring : ""
-    rescue LoadError
+    else
       if method.source_location
         buf = []
         loc, n = method.source_location
