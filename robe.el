@@ -302,12 +302,13 @@ Only works with Rails, see e.g. `rinari-console'."
       (visual-line-mode 1))))
 
 (defun robe-doc-apply-rules ()
+  (goto-char (point-min))
   (loop for (re n sym) in robe-doc-rules do
-        (goto-char (point-min))
-        (while (re-search-forward re nil t)
-          (replace-match (format "\\%d" n))
-          (put-text-property (match-beginning 0) (match-end 0)
-                             'face (symbol-value sym)))))
+        (save-excursion
+          (while (re-search-forward re nil t)
+            (replace-match (format "\\%d" n))
+            (put-text-property (match-beginning 0) (match-end 0)
+                               'face (symbol-value sym))))))
 
 (defun robe-doc-for (info)
   (apply 'robe-request "doc_for" (subseq info 0 3)))
