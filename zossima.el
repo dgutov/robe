@@ -94,8 +94,7 @@
                                  args "/")))
          (response-buffer (zossima-retrieve url))
          (value (with-current-buffer response-buffer
-                  (goto-char (point-min))
-                  (search-forward "\n\n")
+                  (goto-char url-http-end-of-headers)
                   (let ((json-array-type 'list))
                     (json-read)))))
     (kill-buffer response-buffer)
