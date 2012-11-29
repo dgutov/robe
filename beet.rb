@@ -1,5 +1,6 @@
 require "webrick"
 require "json"
+require "tmpdir"
 
 begin
   require "pry"
@@ -207,7 +208,7 @@ module Beet
 
   def self.start(port)
     @server ||= WEBrick::HTTPServer.new({:Port => port}).tap do |s|
-      access_log = File.open("/tmp/beet-access.log", "w")
+      access_log = File.open("#{Dir.tmpdir}/beet-access.log", "w")
       access_log.sync = true
       s.config[:AccessLog] = [[access_log, WEBrick::AccessLog::COMMON_LOG_FORMAT]]
       ['INT', 'TERM'].each {|signal| trap(signal) {s.shutdown; @server = nil} }
