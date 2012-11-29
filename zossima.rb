@@ -201,8 +201,15 @@ module Zossima
     Rails.application.eager_load!
   end
 
+  def self.ping
+    true
+  end
+
   def self.start(port)
     @server ||= WEBrick::HTTPServer.new({:Port => port}).tap do |s|
+      access_log = File.open("/tmp/zossima-access.log", "w")
+      access_log.sync = true
+      s.config[:AccessLog] = [[access_log, WEBrick::AccessLog::COMMON_LOG_FORMAT]]
       ['INT', 'TERM'].each {|signal| trap(signal) {s.shutdown; @server = nil} }
       s.mount("/", Handler)
       Thread.new { s.start }
