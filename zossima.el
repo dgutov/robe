@@ -77,9 +77,11 @@
   "Start Zossima server if it isn't already running."
   (interactive "p")
   (when (or arg (not zossima-running))
-    (zossima-send-string (format "load '%s' unless defined? Zossima\n"
-                                 zossima-ruby-path))
-    (zossima-send-string (format "Zossima.start(%s)\n" zossima-port))
+    (comint-send-string (inf-ruby-proc)
+                        (format "load '%s' unless defined? Zossima\n"
+                                zossima-ruby-path))
+    (comint-send-string (inf-ruby-proc)
+                        (format "Zossima.start(%s)\n" zossima-port))
     (if (zossima-request "ping")
         (setq zossima-running t)
       (error "Server doesn't respond"))))
