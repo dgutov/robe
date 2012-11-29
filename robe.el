@@ -1,10 +1,10 @@
-;;; beet.el --- Code navigation, documentation and completion for Ruby
+;;; robe.el --- Code navigation, documentation and completion for Ruby
 
 ;; Copyright © 2012 Phil Hagelberg
 ;; Copyright © 2012 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
-;; URL: https://github.com/dgutov/beet
+;; URL: https://github.com/dgutov/robe
 ;; Version: 0.5
 ;; Keywords: ruby convenience rails
 ;; Package-Requires: ((inf-ruby "2.2.3"))
@@ -20,7 +20,7 @@
 
 ;;; Usage
 
-;; (add-hook 'ruby-mode-hook 'beet-mode)
+;; (add-hook 'ruby-mode-hook 'robe-mode)
 ;;
 ;;  - M-. to jump to the definition
 ;;  - M-, to jump back
@@ -57,41 +57,41 @@
 (require 'ido)
 (require 'cl)
 
-(defvar beet-ruby-path
+(defvar robe-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
-    (concat (file-name-directory current) "beet.rb"))
+    (concat (file-name-directory current) "robe.rb"))
   "Path to the backend Ruby code.")
 
-(defvar beet-port 24969)
+(defvar robe-port 24969)
 
-(defvar beet-max-retries 4)
+(defvar robe-max-retries 4)
 
-(defvar beet-jump-conservative nil)
+(defvar robe-jump-conservative nil)
 
-(defvar beet-running nil)
+(defvar robe-running nil)
 
-(defun beet-start (&optional arg)
-  "Start Beet server if it isn't already running."
+(defun robe-start (&optional arg)
+  "Start Robe server if it isn't already running."
   (interactive "p")
-  (when (or arg (not beet-running))
+  (when (or arg (not robe-running))
     (comint-send-string (inf-ruby-proc)
-                        (format "load '%s' unless defined? Beet\n"
-                                beet-ruby-path))
+                        (format "load '%s' unless defined? Robe\n"
+                                robe-ruby-path))
     (comint-send-string (inf-ruby-proc)
-                        (format "Beet.start(%s)\n" beet-port))
-    (if (beet-request "ping")
-        (setq beet-running t)
+                        (format "Robe.start(%s)\n" robe-port))
+    (if (robe-request "ping")
+        (setq robe-running t)
       (error "Server doesn't respond"))))
 
-(defun beet-request (endpoint &rest args)
-  (let* ((url (format "http://127.0.0.1:%s/%s/%s" beet-port endpoint
+(defun robe-request (endpoint &rest args)
+  (let* ((url (format "http://127.0.0.1:%s/%s/%s" robe-port endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
                                          ((plusp (length arg))
                                           (url-hexify-string arg))
                                          (t "_")))
                                  args "/")))
-         (response-buffer (beet-retrieve url))
+         (response-buffer (robe-retrieve url))
          (value (with-current-buffer response-buffer
                   (goto-char url-http-end-of-headers)
                   (let ((json-array-type 'list))
@@ -99,66 +99,66 @@
     (kill-buffer response-buffer)
     value))
 
-(defun beet-retrieve (url &optional retries)
+(defun robe-retrieve (url &optional retries)
   (declare (special url-http-response-status))
   (with-current-buffer (url-retrieve-synchronously url)
     (unless (memq url-http-response-status '(200 500))
       (if (and retries (not (plusp retries)))
-          (setq beet-running nil)
+          (setq robe-running nil)
         (kill-buffer)
         (sleep-for 0.3)
         (set-buffer
-         (beet-retrieve url (1- (or retries beet-max-retries))))))
+         (robe-retrieve url (1- (or retries robe-max-retries))))))
     (current-buffer)))
 
-(defun beet-ask ()
+(defun robe-ask ()
   "Prompt for module, method, and jump to its definition."
   (interactive)
-  (beet-jump-to (beet-ask-prompt)))
+  (robe-jump-to (robe-ask-prompt)))
 
-(defun beet-ask-prompt ()
-  (let* ((modules (beet-request "modules"))
+(defun robe-ask-prompt ()
+  (let* ((modules (robe-request "modules"))
          (module (ido-completing-read "Module: " modules))
-         (targets (beet-request "targets" module))
+         (targets (robe-request "targets" module))
          (_ (unless targets (error "No methods found")))
-         (alist (beet-decorate-methods (cdr targets))))
+         (alist (robe-decorate-methods (cdr targets))))
     (cdr (assoc (ido-completing-read "Method: " alist nil t)
                 alist))))
 
-(defun beet-decorate-methods (list)
+(defun robe-decorate-methods (list)
   (mapcar (lambda (row)
             (cons (concat (if (string= "instance" (second row)) "#" ".")
                           (third row))
                   row))
           list))
 
-(defun beet-module-p (thing)
+(defun robe-module-p (thing)
   (let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing)))
 
-(defun beet-jump (arg)
+(defun robe-jump (arg)
   "Jump to the method or module at point, prompt for module or file if necessary.
-If invoked with a prefix or no symbol at point, delegate to `beet-ask'."
+If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   (interactive "P")
-  (beet-start)
+  (robe-start)
   (let ((thing (thing-at-point 'symbol)))
     (cond
      ((or (not thing) arg)
-      (beet-ask))
-     ((beet-module-p thing)
-      (beet-jump-to-module thing))
+      (robe-ask))
+     ((robe-module-p thing)
+      (robe-jump-to-module thing))
      (t
-      (beet-jump-to (beet-jump-prompt thing))))))
+      (robe-jump-to (robe-jump-prompt thing))))))
 
-(defun beet-jump-prompt (thing)
-  (let* ((alist (beet-decorate-modules (beet-jump-modules thing))))
+(defun robe-jump-prompt (thing)
+  (let* ((alist (robe-decorate-modules (robe-jump-modules thing))))
     (unless alist (error "Method not found"))
     (if (= 1 (length alist))
         (cdar alist)
       (cdr (assoc (ido-completing-read "Module: " alist nil t)
                   alist)))))
 
-(defun beet-jump-modules (thing)
-  (destructuring-bind (target module instance ctx) (beet-call-context)
+(defun robe-jump-modules (thing)
+  (destructuring-bind (target module instance ctx) (robe-call-context)
     (let (super)
       (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
         (setq thing (concat thing "!")))
@@ -173,23 +173,23 @@ If invoked with a prefix or no symbol at point, delegate to `beet-ask'."
                           (end-of-thing 'symbol)
                           (looking-at " *=[^=]")))
         (setq thing (concat thing "=")))
-      (beet-request "method_targets"
+      (robe-request "method_targets"
                        thing target module instance super
-                       beet-jump-conservative))))
+                       robe-jump-conservative))))
 
-(defun beet-call-context ()
+(defun robe-call-context ()
   (let* ((target (save-excursion
                    (and (progn (beginning-of-thing 'symbol)
                                (= ?. (char-before)))
                         (progn (forward-char -1)
                                (thing-at-point 'symbol)))))
-         (ctx (beet-context))
+         (ctx (robe-context))
          (module (first ctx))
          (_ (when (string= target "self") (setq target nil)))
          (instance (unless target (second ctx))))
     (list target module instance ctx)))
 
-(defun beet-decorate-modules (list)
+(defun robe-decorate-modules (list)
   (loop for row in list
         for name = (cond ((first row) (first row))
                          ((nth 3 row)
@@ -201,14 +201,14 @@ If invoked with a prefix or no symbol at point, delegate to `beet-ask'."
                                   "#" "."))
                       (cons name (cdr row)))))
 
-(defun beet-jump-to-module (name)
+(defun robe-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
-  (interactive `(,(ido-completing-read "Module: " (beet-request "modules"))))
-  (let ((paths (beet-request "class_locations" name (car (beet-context)))))
+  (interactive `(,(ido-completing-read "Module: " (robe-request "modules"))))
+  (let ((paths (robe-request "class_locations" name (car (robe-context)))))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
-                  (let ((alist (beet-to-abbr-paths paths)))
+                  (let ((alist (robe-to-abbr-paths paths)))
                     (cdr (assoc (ido-completing-read "File: " alist nil t)
                                 alist))))))
       (ring-insert find-tag-marker-ring (point-marker))
@@ -223,7 +223,7 @@ If invoked with a prefix or no symbol at point, delegate to `beet-ask'."
                                    "\\_>")))
       (back-to-indentation))))
 
-(defun beet-to-abbr-paths (list)
+(defun robe-to-abbr-paths (list)
   (let* ((sorted (sort (copy-sequence list) #'string-lessp))
          (first (first sorted))
          (last (car (last sorted)))
@@ -234,7 +234,7 @@ If invoked with a prefix or no symbol at point, delegate to `beet-ask'."
     (while (/= (aref first (1- len)) ?/) (decf len))
     (mapcar (lambda (path) (cons (substring path len) path)) list)))
 
-(defun beet-context ()
+(defun robe-context ()
   (let ((current-method (ruby-add-log-current-method)))
     (if current-method
         ;; Side-stepping the module methods bug in the above function.
@@ -250,69 +250,69 @@ If invoked with a prefix or no symbol at point, delegate to `beet-ask'."
           (list module (when instance t) method-name))
       (list nil t nil))))
 
-(defun beet-jump-to (info)
+(defun robe-jump-to (info)
   (let ((location (cdddr info)))
     (if (null location)
         (when (yes-or-no-p "Can't jump to a C method. Show documentation? ")
-          (beet-show-doc info))
+          (robe-show-doc info))
       (ring-insert find-tag-marker-ring (point-marker))
       (find-file (nth 0 location))
       (goto-char (point-min))
       (forward-line (1- (nth 1 location)))
       (back-to-indentation))))
 
-(defun beet-rails-refresh ()
+(defun robe-rails-refresh ()
   "Pick up changes in the loaded classes and detect new files.
 Only works with Rails, see e.g. `rinari-console'."
   (interactive)
-  (beet-start)
-  (beet-request "rails_refresh")
+  (robe-start)
+  (robe-request "rails_refresh")
   (message "Done"))
 
-(defun beet-doc (arg)
+(defun robe-doc (arg)
   "Show docstring for the method at point."
   (interactive "P")
-  (beet-start)
+  (robe-start)
   (let ((thing (thing-at-point 'symbol)))
-    (beet-show-doc (if (or (not thing) arg)
-                          (beet-ask-prompt)
-                        (beet-jump-prompt thing)))))
+    (robe-show-doc (if (or (not thing) arg)
+                          (robe-ask-prompt)
+                        (robe-jump-prompt thing)))))
 
-(defvar beet-code-face 'font-lock-preprocessor-face)
+(defvar robe-code-face 'font-lock-preprocessor-face)
 
-(defvar beet-em-face 'font-lock-variable-name-face)
+(defvar robe-em-face 'font-lock-variable-name-face)
 
-(defvar beet-doc-rules
-  '(("<\\(tt\\|code\\)>\\([^<]+\\)</\\1>" 2 beet-code-face)
-    ("\\_<\\+\\([^[:space:]]+\\)\\+\\_>" 1 beet-code-face)
-    ("<\\(i\\|em\\)>\\([^<]+\\)</\\1>" 2 beet-em-face)
-    ("\\_<_\\([^[:space:]]*\\)_\\_>" 1 beet-em-face)))
+(defvar robe-doc-rules
+  '(("<\\(tt\\|code\\)>\\([^<]+\\)</\\1>" 2 robe-code-face)
+    ("\\_<\\+\\([^[:space:]]+\\)\\+\\_>" 1 robe-code-face)
+    ("<\\(i\\|em\\)>\\([^<]+\\)</\\1>" 2 robe-em-face)
+    ("\\_<_\\([^[:space:]]*\\)_\\_>" 1 robe-em-face)))
 
-(defun beet-show-doc (info)
+(defun robe-show-doc (info)
   (interactive)
-  (let ((doc (beet-doc-for info))
-        (buffer (get-buffer-create "*beet-doc*"))
+  (let ((doc (robe-doc-for info))
+        (buffer (get-buffer-create "*robe-doc*"))
         (inhibit-read-only t))
     (with-help-window buffer
       (princ (cdr (assoc 'signature doc)))
       (princ "\n\n")
       (princ (cdr (assoc 'comment doc))))
     (with-current-buffer buffer
-      (beet-doc-apply-rules)
+      (robe-doc-apply-rules)
       (visual-line-mode 1))))
 
-(defun beet-doc-apply-rules ()
-  (loop for (re n sym) in beet-doc-rules do
+(defun robe-doc-apply-rules ()
+  (loop for (re n sym) in robe-doc-rules do
         (goto-char (point-min))
         (while (re-search-forward re nil t)
           (replace-match (format "\\%d" n))
           (put-text-property (match-beginning 0) (match-end 0)
                              'face (symbol-value sym)))))
 
-(defun beet-doc-for (info)
-  (apply 'beet-request "doc_for" (subseq info 0 3)))
+(defun robe-doc-for (info)
+  (apply 'robe-request "doc_for" (subseq info 0 3)))
 
-(defun beet-call-at-point ()
+(defun robe-call-at-point ()
   (let ((state (syntax-ppss)) pt)
     (unless (nth 8 state)
       (when (and (not (ignore-errors (save-excursion
@@ -330,17 +330,17 @@ Only works with Rails, see e.g. `rinari-console'."
                                     font-lock-keyword-face)))))
           thing)))))
 
-(defun beet-eldoc ()
+(defun robe-eldoc ()
   (save-excursion
-    (let ((thing (beet-call-at-point))
+    (let ((thing (robe-call-at-point))
           (url-show-status nil)
-          (beet-max-retries 0))
-      (when (and thing beet-running (not (beet-module-p thing)))
-        (let* ((beet-jump-conservative t)
-               (list (loop for info in (beet-jump-modules thing)
+          (robe-max-retries 0))
+      (when (and thing robe-running (not (robe-module-p thing)))
+        (let* ((robe-jump-conservative t)
+               (list (loop for info in (robe-jump-modules thing)
                            when (car info) collect info)))
           (when (consp list)
-            (let* ((doc (beet-doc-for (car list)))
+            (let* ((doc (robe-doc-for (car list)))
                    (summary (with-temp-buffer
                               (insert (cdr (assoc 'comment doc)))
                               (unless (= (point) (point-min))
@@ -348,43 +348,43 @@ Only works with Rails, see e.g. `rinari-console'."
                                 (save-excursion
                                   (forward-sentence)
                                   (delete-region (point) (point-max))
-                                  (beet-doc-apply-rules))
+                                  (robe-doc-apply-rules))
                                 (while (search-forward "\n" nil t)
                                   (replace-match " ")))
                               (buffer-string)))
                    (msg (format "%s %s" (cdr (assoc 'signature doc)) summary)))
               (substring msg 0 (min (frame-width) (length msg))))))))))
 
-(defun beet-complete-at-point ()
+(defun robe-complete-at-point ()
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
     (when bounds
       (list (car bounds) (cdr bounds)
-            (completion-table-dynamic #'beet-complete-thing)))))
+            (completion-table-dynamic #'robe-complete-thing)))))
 
-(defun beet-complete-thing (thing)
-  (setq this-command 'beet-complete-thing)
-  (beet-start)
-  (if (beet-module-p thing)
-      (beet-request "complete_const" thing)
-    (destructuring-bind (target module instance _) (beet-call-context)
-      (beet-request "complete_method" thing target module instance))))
+(defun robe-complete-thing (thing)
+  (setq this-command 'robe-complete-thing)
+  (robe-start)
+  (if (robe-module-p thing)
+      (robe-request "complete_const" thing)
+    (destructuring-bind (target module instance _) (robe-call-context)
+      (robe-request "complete_method" thing target module instance))))
 
-(defvar beet-mode-map
+(defvar robe-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "M-.") 'beet-jump)
+    (define-key map (kbd "M-.") 'robe-jump)
     (define-key map (kbd "M-,") 'pop-tag-mark)
-    (define-key map (kbd "C-c C-d") 'beet-doc)
-    (define-key map (kbd "C-c C-k") 'beet-rails-refresh)
+    (define-key map (kbd "C-c C-d") 'robe-doc)
+    (define-key map (kbd "C-c C-k") 'robe-rails-refresh)
     map))
 
 ;;;###autoload
-(define-minor-mode beet-mode
+(define-minor-mode robe-mode
   "Improved navigation for Ruby"
-  nil " beet" beet-mode-map
-  (add-to-list 'completion-at-point-functions 'beet-complete-at-point)
-  (set (make-local-variable 'eldoc-documentation-function) 'beet-eldoc)
-  (eldoc-add-command 'beet-complete-thing)
+  nil " robe" robe-mode-map
+  (add-to-list 'completion-at-point-functions 'robe-complete-at-point)
+  (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)
+  (eldoc-add-command 'robe-complete-thing)
   (turn-on-eldoc-mode))
 
-(provide 'beet)
-;;; beet.el ends here
+(provide 'robe)
+;;; robe.el ends here

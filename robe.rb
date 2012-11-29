@@ -9,11 +9,11 @@ rescue LoadError
   # no built-in docs for you
 end
 
-module Beet
+module Robe
   class Handler < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
       _, endpoint, *args = req.path.split("/").map {|s| s == "_" ? nil : s }
-      value = Beet.send(endpoint.to_sym, *args)
+      value = Robe.send(endpoint.to_sym, *args)
       res["Content-Type"] = "application/json"
       res.status = 200
       res.body = value.to_json
@@ -208,7 +208,7 @@ module Beet
 
   def self.start(port)
     @server ||= WEBrick::HTTPServer.new({:Port => port}).tap do |s|
-      access_log = File.open("#{Dir.tmpdir}/beet-access.log", "w")
+      access_log = File.open("#{Dir.tmpdir}/robe-access.log", "w")
       access_log.sync = true
       s.config[:AccessLog] = [[access_log, WEBrick::AccessLog::COMMON_LOG_FORMAT]]
       ['INT', 'TERM'].each {|signal| trap(signal) {s.shutdown; @server = nil} }
@@ -251,7 +251,7 @@ module Beet
 
     def guess_target_type
       begin
-        @target_type = Beet.resolve_context(@target, @mod)
+        @target_type = Robe.resolve_context(@target, @mod)
         unless @target_type.is_a? Module
           @target_type, @instance = @target_type.class, true
         end

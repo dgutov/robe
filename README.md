@@ -1,4 +1,4 @@
-# Beet
+# Robe
 
 This builds on `inf-ruby` to handle Ruby subprocesses from Emacs.
 
@@ -21,14 +21,14 @@ ElDoc support and constant and method completion (triggered with
 
 Currently you should check it out from Git:
 
-`git clone https://github.com/dgutov/beet.git ~/beet`
+`git clone https://github.com/dgutov/robe.git ~/robe`
 
 Once it's installed:
 
 ```lisp
-(add-to-list 'load-path "~/beet")
-(require 'beet)
-(add-hook 'ruby-mode-hook 'beet-mode)
+(add-to-list 'load-path "~/robe")
+(require 'robe)
+(add-hook 'ruby-mode-hook 'robe-mode)
 ```
 
 ## Notes
