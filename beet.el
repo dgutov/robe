@@ -22,7 +22,7 @@
 
 ;; (add-hook 'ruby-mode-hook 'beet-mode)
 ;;
-;;  - M-. to jump to a definition
+;;  - M-. to jump to the definition
 ;;  - M-, to jump back
 ;;  - C-c C-d to see the documentation
 ;;  - C-c C-k to refresh Rails environment
