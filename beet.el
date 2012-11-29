@@ -1,14 +1,12 @@
-;;; zossima.el --- Ruby from Emacs
+;;; beet.el --- Code navigation, documentation and completion for Ruby
 
 ;; Copyright © 2012 Phil Hagelberg
 ;; Copyright © 2012 Dmitry Gutov
 
-;; Author: Phil Hagelberg
-;; URL: https://github.com/technomancy/zossima
-;; Version: 0.4
-;; Created: 2012-10-24
+;; Author: Dmitry Gutov
+;; URL: https://github.com/dgutov/beet
+;; Version: 0.5
 ;; Keywords: ruby convenience rails
-;; EmacsWiki: Zossima
 ;; Package-Requires: ((inf-ruby "2.2.3"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -23,7 +21,7 @@
 
 ;;; Usage
 
-;; (add-hook 'ruby-mode-hook 'zossima-mode)
+;; (add-hook 'ruby-mode-hook 'beet-mode)
 ;;
 ;;  - M-. to jump to a definition
 ;;  - M-, to jump back
@@ -60,41 +58,41 @@
 (require 'ido)
 (require 'cl)
 
-(defvar zossima-ruby-path
+(defvar beet-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
-    (concat (file-name-directory current) "zossima.rb"))
-  "Path to file containing Ruby implementation of Zossima")
+    (concat (file-name-directory current) "beet.rb"))
+  "Path to the backend Ruby code.")
 
-(defvar zossima-port 24959)
+(defvar beet-port 24969)
 
-(defvar zossima-max-retries 4)
+(defvar beet-max-retries 4)
 
-(defvar zossima-jump-conservative nil)
+(defvar beet-jump-conservative nil)
 
-(defvar zossima-running nil)
+(defvar beet-running nil)
 
-(defun zossima-start (&optional arg)
-  "Start Zossima server if it isn't already running."
+(defun beet-start (&optional arg)
+  "Start Beet server if it isn't already running."
   (interactive "p")
-  (when (or arg (not zossima-running))
+  (when (or arg (not beet-running))
     (comint-send-string (inf-ruby-proc)
-                        (format "load '%s' unless defined? Zossima\n"
-                                zossima-ruby-path))
+                        (format "load '%s' unless defined? Beet\n"
+                                beet-ruby-path))
     (comint-send-string (inf-ruby-proc)
-                        (format "Zossima.start(%s)\n" zossima-port))
-    (if (zossima-request "ping")
-        (setq zossima-running t)
+                        (format "Beet.start(%s)\n" beet-port))
+    (if (beet-request "ping")
+        (setq beet-running t)
       (error "Server doesn't respond"))))
 
-(defun zossima-request (endpoint &rest args)
-  (let* ((url (format "http://127.0.0.1:%s/%s/%s" zossima-port endpoint
+(defun beet-request (endpoint &rest args)
+  (let* ((url (format "http://127.0.0.1:%s/%s/%s" beet-port endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
                                          ((plusp (length arg))
                                           (url-hexify-string arg))
                                          (t "_")))
                                  args "/")))
-         (response-buffer (zossima-retrieve url))
+         (response-buffer (beet-retrieve url))
          (value (with-current-buffer response-buffer
                   (goto-char url-http-end-of-headers)
                   (let ((json-array-type 'list))
@@ -102,66 +100,66 @@
     (kill-buffer response-buffer)
     value))
 
-(defun zossima-retrieve (url &optional retries)
+(defun beet-retrieve (url &optional retries)
   (declare (special url-http-response-status))
   (with-current-buffer (url-retrieve-synchronously url)
     (unless (memq url-http-response-status '(200 500))
       (if (and retries (not (plusp retries)))
-          (setq zossima-running nil)
+          (setq beet-running nil)
         (kill-buffer)
         (sleep-for 0.3)
         (set-buffer
-         (zossima-retrieve url (1- (or retries zossima-max-retries))))))
+         (beet-retrieve url (1- (or retries beet-max-retries))))))
     (current-buffer)))
 
-(defun zossima-ask ()
+(defun beet-ask ()
   "Prompt for module, method, and jump to its definition."
   (interactive)
-  (zossima-jump-to (zossima-ask-prompt)))
+  (beet-jump-to (beet-ask-prompt)))
 
-(defun zossima-ask-prompt ()
-  (let* ((modules (zossima-request "modules"))
+(defun beet-ask-prompt ()
+  (let* ((modules (beet-request "modules"))
          (module (ido-completing-read "Module: " modules))
-         (targets (zossima-request "targets" module))
+         (targets (beet-request "targets" module))
          (_ (unless targets (error "No methods found")))
-         (alist (zossima-decorate-methods (cdr targets))))
+         (alist (beet-decorate-methods (cdr targets))))
     (cdr (assoc (ido-completing-read "Method: " alist nil t)
                 alist))))
 
-(defun zossima-decorate-methods (list)
+(defun beet-decorate-methods (list)
   (mapcar (lambda (row)
             (cons (concat (if (string= "instance" (second row)) "#" ".")
                           (third row))
                   row))
           list))
 
-(defun zossima-module-p (thing)
+(defun beet-module-p (thing)
   (let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing)))
 
-(defun zossima-jump (arg)
+(defun beet-jump (arg)
   "Jump to the method or module at point, prompt for module or file if necessary.
-If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
+If invoked with a prefix or no symbol at point, delegate to `beet-ask'."
   (interactive "P")
-  (zossima-start)
+  (beet-start)
   (let ((thing (thing-at-point 'symbol)))
     (cond
      ((or (not thing) arg)
-      (zossima-ask))
-     ((zossima-module-p thing)
-      (zossima-jump-to-module thing))
+      (beet-ask))
+     ((beet-module-p thing)
+      (beet-jump-to-module thing))
      (t
-      (zossima-jump-to (zossima-jump-prompt thing))))))
+      (beet-jump-to (beet-jump-prompt thing))))))
 
-(defun zossima-jump-prompt (thing)
-  (let* ((alist (zossima-decorate-modules (zossima-jump-modules thing))))
+(defun beet-jump-prompt (thing)
+  (let* ((alist (beet-decorate-modules (beet-jump-modules thing))))
     (unless alist (error "Method not found"))
     (if (= 1 (length alist))
         (cdar alist)
       (cdr (assoc (ido-completing-read "Module: " alist nil t)
                   alist)))))
 
-(defun zossima-jump-modules (thing)
-  (destructuring-bind (target module instance ctx) (zossima-call-context)
+(defun beet-jump-modules (thing)
+  (destructuring-bind (target module instance ctx) (beet-call-context)
     (let (super)
       (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
         (setq thing (concat thing "!")))
@@ -176,23 +174,23 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                           (end-of-thing 'symbol)
                           (looking-at " *=[^=]")))
         (setq thing (concat thing "=")))
-      (zossima-request "method_targets"
+      (beet-request "method_targets"
                        thing target module instance super
-                       zossima-jump-conservative))))
+                       beet-jump-conservative))))
 
-(defun zossima-call-context ()
+(defun beet-call-context ()
   (let* ((target (save-excursion
                    (and (progn (beginning-of-thing 'symbol)
                                (= ?. (char-before)))
                         (progn (forward-char -1)
                                (thing-at-point 'symbol)))))
-         (ctx (zossima-context))
+         (ctx (beet-context))
          (module (first ctx))
          (_ (when (string= target "self") (setq target nil)))
          (instance (unless target (second ctx))))
     (list target module instance ctx)))
 
-(defun zossima-decorate-modules (list)
+(defun beet-decorate-modules (list)
   (loop for row in list
         for name = (cond ((first row) (first row))
                          ((nth 3 row)
@@ -204,14 +202,14 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                                   "#" "."))
                       (cons name (cdr row)))))
 
-(defun zossima-jump-to-module (name)
+(defun beet-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
-  (interactive `(,(ido-completing-read "Module: " (zossima-request "modules"))))
-  (let ((paths (zossima-request "class_locations" name (car (zossima-context)))))
+  (interactive `(,(ido-completing-read "Module: " (beet-request "modules"))))
+  (let ((paths (beet-request "class_locations" name (car (beet-context)))))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
-                  (let ((alist (zossima-to-abbr-paths paths)))
+                  (let ((alist (beet-to-abbr-paths paths)))
                     (cdr (assoc (ido-completing-read "File: " alist nil t)
                                 alist))))))
       (ring-insert find-tag-marker-ring (point-marker))
@@ -226,7 +224,7 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
                                    "\\_>")))
       (back-to-indentation))))
 
-(defun zossima-to-abbr-paths (list)
+(defun beet-to-abbr-paths (list)
   (let* ((sorted (sort (copy-sequence list) #'string-lessp))
          (first (first sorted))
          (last (car (last sorted)))
@@ -237,7 +235,7 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
     (while (/= (aref first (1- len)) ?/) (decf len))
     (mapcar (lambda (path) (cons (substring path len) path)) list)))
 
-(defun zossima-context ()
+(defun beet-context ()
   (let ((current-method (ruby-add-log-current-method)))
     (if current-method
         ;; Side-stepping the module methods bug in the above function.
@@ -253,69 +251,69 @@ If invoked with a prefix or no symbol at point, delegate to `zossima-ask'."
           (list module (when instance t) method-name))
       (list nil t nil))))
 
-(defun zossima-jump-to (info)
+(defun beet-jump-to (info)
   (let ((location (cdddr info)))
     (if (null location)
         (when (yes-or-no-p "Can't jump to a C method. Show documentation? ")
-          (zossima-show-doc info))
+          (beet-show-doc info))
       (ring-insert find-tag-marker-ring (point-marker))
       (find-file (nth 0 location))
       (goto-char (point-min))
       (forward-line (1- (nth 1 location)))
       (back-to-indentation))))
 
-(defun zossima-rails-refresh ()
+(defun beet-rails-refresh ()
   "Pick up changes in the loaded classes and detect new files.
 Only works with Rails, see e.g. `rinari-console'."
   (interactive)
-  (zossima-start)
-  (zossima-request "rails_refresh")
+  (beet-start)
+  (beet-request "rails_refresh")
   (message "Done"))
 
-(defun zossima-doc (arg)
+(defun beet-doc (arg)
   "Show docstring for the method at point."
   (interactive "P")
-  (zossima-start)
+  (beet-start)
   (let ((thing (thing-at-point 'symbol)))
-    (zossima-show-doc (if (or (not thing) arg)
-                          (zossima-ask-prompt)
-                        (zossima-jump-prompt thing)))))
+    (beet-show-doc (if (or (not thing) arg)
+                          (beet-ask-prompt)
+                        (beet-jump-prompt thing)))))
 
-(defvar zossima-code-face 'font-lock-preprocessor-face)
+(defvar beet-code-face 'font-lock-preprocessor-face)
 
-(defvar zossima-em-face 'font-lock-variable-name-face)
+(defvar beet-em-face 'font-lock-variable-name-face)
 
-(defvar zossima-doc-rules
-  '(("<\\(tt\\|code\\)>\\([^<]+\\)</\\1>" 2 zossima-code-face)
-    ("\\_<\\+\\([^[:space:]]+\\)\\+\\_>" 1 zossima-code-face)
-    ("<\\(i\\|em\\)>\\([^<]+\\)</\\1>" 2 zossima-em-face)
-    ("\\_<_\\([^[:space:]]*\\)_\\_>" 1 zossima-em-face)))
+(defvar beet-doc-rules
+  '(("<\\(tt\\|code\\)>\\([^<]+\\)</\\1>" 2 beet-code-face)
+    ("\\_<\\+\\([^[:space:]]+\\)\\+\\_>" 1 beet-code-face)
+    ("<\\(i\\|em\\)>\\([^<]+\\)</\\1>" 2 beet-em-face)
+    ("\\_<_\\([^[:space:]]*\\)_\\_>" 1 beet-em-face)))
 
-(defun zossima-show-doc (info)
+(defun beet-show-doc (info)
   (interactive)
-  (let ((doc (zossima-doc-for info))
-        (buffer (get-buffer-create "*zossima-doc*"))
+  (let ((doc (beet-doc-for info))
+        (buffer (get-buffer-create "*beet-doc*"))
         (inhibit-read-only t))
     (with-help-window buffer
       (princ (cdr (assoc 'signature doc)))
       (princ "\n\n")
       (princ (cdr (assoc 'comment doc))))
     (with-current-buffer buffer
-      (zossima-doc-apply-rules)
+      (beet-doc-apply-rules)
       (visual-line-mode 1))))
 
-(defun zossima-doc-apply-rules ()
-  (loop for (re n sym) in zossima-doc-rules do
+(defun beet-doc-apply-rules ()
+  (loop for (re n sym) in beet-doc-rules do
         (goto-char (point-min))
         (while (re-search-forward re nil t)
           (replace-match (format "\\%d" n))
           (put-text-property (match-beginning 0) (match-end 0)
                              'face (symbol-value sym)))))
 
-(defun zossima-doc-for (info)
-  (apply 'zossima-request "doc_for" (subseq info 0 3)))
+(defun beet-doc-for (info)
+  (apply 'beet-request "doc_for" (subseq info 0 3)))
 
-(defun zossima-call-at-point ()
+(defun beet-call-at-point ()
   (let ((state (syntax-ppss)) pt)
     (unless (nth 8 state)
       (when (and (not (ignore-errors (save-excursion
@@ -333,17 +331,17 @@ Only works with Rails, see e.g. `rinari-console'."
                                     font-lock-keyword-face)))))
           thing)))))
 
-(defun zossima-eldoc ()
+(defun beet-eldoc ()
   (save-excursion
-    (let ((thing (zossima-call-at-point))
+    (let ((thing (beet-call-at-point))
           (url-show-status nil)
-          (zossima-max-retries 0))
-      (when (and thing zossima-running (not (zossima-module-p thing)))
-        (let* ((zossima-jump-conservative t)
-               (list (loop for info in (zossima-jump-modules thing)
+          (beet-max-retries 0))
+      (when (and thing beet-running (not (beet-module-p thing)))
+        (let* ((beet-jump-conservative t)
+               (list (loop for info in (beet-jump-modules thing)
                            when (car info) collect info)))
           (when (consp list)
-            (let* ((doc (zossima-doc-for (car list)))
+            (let* ((doc (beet-doc-for (car list)))
                    (summary (with-temp-buffer
                               (insert (cdr (assoc 'comment doc)))
                               (unless (= (point) (point-min))
@@ -351,43 +349,43 @@ Only works with Rails, see e.g. `rinari-console'."
                                 (save-excursion
                                   (forward-sentence)
                                   (delete-region (point) (point-max))
-                                  (zossima-doc-apply-rules))
+                                  (beet-doc-apply-rules))
                                 (while (search-forward "\n" nil t)
                                   (replace-match " ")))
                               (buffer-string)))
                    (msg (format "%s %s" (cdr (assoc 'signature doc)) summary)))
               (substring msg 0 (min (frame-width) (length msg))))))))))
 
-(defun zossima-complete-at-point ()
+(defun beet-complete-at-point ()
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
     (when bounds
       (list (car bounds) (cdr bounds)
-            (completion-table-dynamic #'zossima-complete-thing)))))
+            (completion-table-dynamic #'beet-complete-thing)))))
 
-(defun zossima-complete-thing (thing)
-  (setq this-command 'zossima-complete-thing)
-  (zossima-start)
-  (if (zossima-module-p thing)
-      (zossima-request "complete_const" thing)
-    (destructuring-bind (target module instance _) (zossima-call-context)
-      (zossima-request "complete_method" thing target module instance))))
+(defun beet-complete-thing (thing)
+  (setq this-command 'beet-complete-thing)
+  (beet-start)
+  (if (beet-module-p thing)
+      (beet-request "complete_const" thing)
+    (destructuring-bind (target module instance _) (beet-call-context)
+      (beet-request "complete_method" thing target module instance))))
 
-(defvar zossima-mode-map
+(defvar beet-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "M-.") 'zossima-jump)
+    (define-key map (kbd "M-.") 'beet-jump)
     (define-key map (kbd "M-,") 'pop-tag-mark)
-    (define-key map (kbd "C-c C-d") 'zossima-doc)
-    (define-key map (kbd "C-c C-k") 'zossima-rails-refresh)
+    (define-key map (kbd "C-c C-d") 'beet-doc)
+    (define-key map (kbd "C-c C-k") 'beet-rails-refresh)
     map))
 
 ;;;###autoload
-(define-minor-mode zossima-mode
+(define-minor-mode beet-mode
   "Improved navigation for Ruby"
-  nil " zossima" zossima-mode-map
-  (add-to-list 'completion-at-point-functions 'zossima-complete-at-point)
-  (set (make-local-variable 'eldoc-documentation-function) 'zossima-eldoc)
-  (eldoc-add-command 'zossima-complete-thing)
+  nil " beet" beet-mode-map
+  (add-to-list 'completion-at-point-functions 'beet-complete-at-point)
+  (set (make-local-variable 'eldoc-documentation-function) 'beet-eldoc)
+  (eldoc-add-command 'beet-complete-thing)
   (turn-on-eldoc-mode))
 
-(provide 'zossima)
-;;; zossima.el ends here
+(provide 'beet)
+;;; beet.el ends here

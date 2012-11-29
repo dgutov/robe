@@ -8,11 +8,11 @@ rescue LoadError
   # no built-in docs for you
 end
 
-module Zossima
+module Beet
   class Handler < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
       _, endpoint, *args = req.path.split("/").map {|s| s == "_" ? nil : s }
-      value = Zossima.send(endpoint.to_sym, *args)
+      value = Beet.send(endpoint.to_sym, *args)
       res["Content-Type"] = "application/json"
       res.status = 200
       res.body = value.to_json
@@ -207,7 +207,7 @@ module Zossima
 
   def self.start(port)
     @server ||= WEBrick::HTTPServer.new({:Port => port}).tap do |s|
-      access_log = File.open("/tmp/zossima-access.log", "w")
+      access_log = File.open("/tmp/beet-access.log", "w")
       access_log.sync = true
       s.config[:AccessLog] = [[access_log, WEBrick::AccessLog::COMMON_LOG_FORMAT]]
       ['INT', 'TERM'].each {|signal| trap(signal) {s.shutdown; @server = nil} }
@@ -250,7 +250,7 @@ module Zossima
 
     def guess_target_type
       begin
-        @target_type = Zossima.resolve_context(@target, @mod)
+        @target_type = Beet.resolve_context(@target, @mod)
         unless @target_type.is_a? Module
           @target_type, @instance = @target_type.class, true
         end

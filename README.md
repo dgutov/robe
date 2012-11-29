@@ -1,11 +1,9 @@
-# Zossima
-
-Jump to definition in Emacs, driven by a live Ruby subprocess.
+# Beet
 
 This builds on `inf-ruby` to handle Ruby subprocesses from Emacs.
 
 Once you've loaded your inf-ruby process with the code for your project and its
-dependencies Ruby keeps track of where each method is defined.
+dependencies, Ruby keeps track of where each method is defined.
 
 You can jump to or read the documentation for the method, module (jump only),
 `super` or constructor definition at point.
@@ -23,19 +21,19 @@ ElDoc support and constant and method completion (triggered with
 
 Currently you should check it out from Git:
 
-`git clone https://github.com/dgutov/zossima.git ~/zossima`
+`git clone https://github.com/dgutov/beet.git ~/beet`
 
 Once it's installed:
 
 ```lisp
-(add-to-list 'load-path "~/zossima")
-(require 'zossima)
-(add-hook 'ruby-mode-hook 'zossima-mode)
+(add-to-list 'load-path "~/beet")
+(require 'beet)
+(add-hook 'ruby-mode-hook 'beet-mode)
 ```
 
 ## Notes
 
-* We can't jump to the methods defined in C (such as most of the core classes).
+* We can't jump to methods defined in C (such as most of the core classes).
   To read their docs, install `pry-doc` or add it to your Gemfile.
 * We can't jump to lazily defined methods, such as `model.column` or `find_by_`
   `ActiveRecord` methods, before they've been called. This is treatable, but low
