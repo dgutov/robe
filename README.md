@@ -40,6 +40,8 @@ Once it's installed:
   priority.
 * Jumping to methods defined with `Module#delegate` just brings us to the place
   where `delegate` is called, which is accurate, but often less than useful.
+* Having more than one `inf-ruby` buffer at the same time is not supported. If
+  you see unexpected "Method not found" errors, check if you have an older one.
 
 ## Todo
 
