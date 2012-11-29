@@ -13,11 +13,10 @@
 
 ;;; Commentary:
 
-;; Jump to definition, driven by a live Ruby subprocess.
-
-;;; Install
-
-;; See the README.
+;; You can jump to or read the documentation for the method, module (jump only),
+;; `super` or constructor definition at point.
+;;
+;; ElDoc support and constant and method completion are also provided.
 
 ;;; Usage
 
