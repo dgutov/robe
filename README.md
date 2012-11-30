@@ -19,15 +19,12 @@ ElDoc support and constant and method completion (triggered with
 
 ## Install
 
-Currently you should check it out from Git:
+Set up [Melpa](http://melpa.milkbox.net/#installing) if you haven't yet, then do
+`M-x package-install RET robe RET`.
 
-`git clone https://github.com/dgutov/robe.git ~/robe`
-
-Once it's installed:
+In the init file:
 
 ```lisp
-(add-to-list 'load-path "~/robe")
-(require 'robe)
 (add-hook 'ruby-mode-hook 'robe-mode)
 ```
 
