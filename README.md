@@ -19,8 +19,8 @@ ElDoc support and constant and method completion (triggered with
 
 ## Install
 
-Set up [Melpa](http://melpa.milkbox.net/#installing) if you haven't yet, then do
-`M-x package-install RET robe RET`.
+Set up [Melpa](http://melpa.milkbox.net/#installing) if you haven't already,
+then do `M-x package-install RET robe RET`.
 
 In the init file:
 
