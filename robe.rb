@@ -168,7 +168,8 @@ module Robe
       scanner.scan(ObjectSpace.each_object(Module), true, true)
     end
 
-    scanner.candidates.map {|(m, type)| method_info(m, type, sym)}
+    scanner.candidates.sort_by {|(m)| m.name ? m.name.scan(/::/).length : 99}
+      .map {|(m, type)| method_info(m, type, sym)}
   end
 
   def self.complete_method(prefix, target, mod, instance)
