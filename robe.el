@@ -179,7 +179,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 
 (defun robe-call-context ()
   (let* ((target (save-excursion
-                   (and (progn (beginning-of-thing 'symbol)
+                   (and (progn (ignore-errors (beginning-of-thing 'symbol))
                                (= ?. (char-before)))
                         (progn (forward-char -1)
                                (thing-at-point 'symbol)))))
@@ -357,10 +357,11 @@ Only works with Rails, see e.g. `rinari-console'."
               (substring msg 0 (min (frame-width) (length msg))))))))))
 
 (defun robe-complete-at-point ()
-  (let ((bounds (bounds-of-thing-at-point 'symbol)))
-    (when bounds
-      (list (car bounds) (cdr bounds)
-            (completion-table-dynamic #'robe-complete-thing)))))
+  (let ((bounds (bounds-of-thing-at-point 'symbol))
+        (fn (completion-table-dynamic #'robe-complete-thing)))
+    (if bounds
+        (list (car bounds) (cdr bounds) fn)
+      (list (point) (point) fn))))
 
 (defun robe-complete-thing (thing)
   (setq this-command 'robe-complete-thing)
