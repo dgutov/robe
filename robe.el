@@ -59,7 +59,7 @@
 
 (defvar robe-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
-    (concat (file-name-directory current) "robe.rb"))
+    (concat (file-name-directory current) "lib"))
   "Path to the backend Ruby code.")
 
 (defvar robe-port 24969)
@@ -74,11 +74,15 @@
   "Start Robe server if it isn't already running."
   (interactive "p")
   (when (or arg (not robe-running))
-    (comint-send-string (inf-ruby-proc)
-                        (format "load '%s' unless defined? Robe\n"
-                                robe-ruby-path))
-    (comint-send-string (inf-ruby-proc)
-                        (format "Robe.start(%s)\n" robe-port))
+    (let ((script (format (mapconcat #'identity
+                                     '("unless defined? Robe"
+                                       "  $:.unshift '%s'"
+                                       "  require 'robe'"
+                                       "end"
+                                       "Robe.start(%d)\n")
+                                     ";")
+                          robe-ruby-path robe-port)))
+      (comint-send-string (inf-ruby-proc) script))
     (if (robe-request "ping")
         (setq robe-running t)
       (error "Server doesn't respond"))))
