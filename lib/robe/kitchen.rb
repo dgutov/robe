@@ -22,7 +22,7 @@ module Robe
 
     def class_locations(name, mod)
       locations = {}
-      if (obj = resolve_context(name, mod) rescue nil) and obj.is_a? Module
+      if (obj = resolve_context(name, mod)) and obj.is_a? Module
         methods = obj.methods(false).map { |m| obj.method(m) } +
           obj.instance_methods(false).map { |m| obj.instance_method(m) }
         methods.each do |m|
@@ -130,7 +130,7 @@ module Robe
       unless name =~ /\A::/
         nesting = mod ? mod.split("::") : []
         while nesting.any?
-          if obj = resolve_const((nesting + [name]).join("::")) rescue nil
+          if obj = resolve_const((nesting + [name]).join("::"))
             return obj
           else
             nesting.pop
@@ -141,10 +141,14 @@ module Robe
     end
 
     def self.resolve_const(name)
+      return nil unless name
       return ARGF.class if name == "ARGF.class"
       nesting = name.split("::")
       nesting.shift if nesting[0].empty?
-      nesting.reduce(Object, :const_get)
+      begin
+        nesting.reduce(Object, :const_get)
+      rescue NameError
+      end
     end
 
     def method_targets(method, target, mod, instance, superc, conservative)

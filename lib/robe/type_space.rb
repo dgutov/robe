@@ -1,3 +1,5 @@
+require 'robe/kitchen'
+
 module Robe
   class TypeSpace
     attr_reader :object_space, :target_type, :instance
@@ -32,12 +34,10 @@ module Robe
     private
 
     def guess_target_type
-      begin
-        @target_type = Kitchen.resolve_context(@target, @mod)
-        unless @target_type.is_a? Module
-          @target_type, @instance = @target_type.class, true
-        end
-      end rescue nil
+      @target_type = Kitchen.resolve_context(@target, @mod)
+      if @target_type && !(@target_type.is_a? Module)
+        @target_type, @instance = @target_type.class, true
+      end
     end
   end
 end
