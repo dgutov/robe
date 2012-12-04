@@ -29,6 +29,6 @@ class MockSpace
   end
 
   def each_object(type)
-    @modules.select { |m| m.is_a?(type) }.each { |m| yield m if block_given? }
+    @modules.each { |m| yield m if block_given? }
   end
 end
