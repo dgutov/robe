@@ -40,7 +40,7 @@ module Robe
     end
 
     def modules
-      object_space.each_object(Module).map { |c| c.name }.compact!
+      object_space.each_object(Module).map { |c| c.name }.tap { |ms| ms.compact! }
     end
 
     def targets(obj)
