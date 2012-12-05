@@ -164,7 +164,7 @@ describe Robe::Kitchen do
           .to eq([["Kernel", :instance, :puts]])
       end
 
-      it "sorts results last" do
+      it "sorts results list" do
         extend ScannerHelper
 
         a = named_module("A", "a", "b", "c", "d")
