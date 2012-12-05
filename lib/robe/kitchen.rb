@@ -1,15 +1,18 @@
 require "robe/type_space"
 require "robe/scanners"
 
-begin
-  require "pry"
-  require "pry-doc"
-rescue LoadError
-  # no built-in docs for you
-end
-
 module Robe
   class Kitchen
+    begin
+      require "pry"
+      require "pry-doc"
+      require "robe/kitchen/pry_doc_info"
+      include PryDocInfo
+    rescue LoadError
+      require "robe/kitchen/pry_doc_fallback"
+      include PryDocFallback
+    end
+
     extend Forwardable
 
     delegate [:resolve_const, :resolve_context] => "self.class"
@@ -70,31 +73,8 @@ module Robe
     def doc_for(mod, type, sym)
       mod = resolve_const(mod)
       method = find_method(mod, type.to_sym, sym.to_sym)
-      if defined? Pry::MethodInfo.info_for
-        YARD::Registry.send :thread_local_store=, Thread.main[:__yard_registry__]
-        ym = Pry::MethodInfo.info_for(method)
-        comment = ym ? ym.docstring : ""
-      else
-        if method.source_location
-          buf = []
-          loc, n = method.source_location
-          File.open(loc) do |f|
-            f.each_line.with_index do |line, index|
-              break if index == n - 1
-              case line
-              when /\A[ \t]*#( (?<text>.*))?/
-                buf << $~[:text]
-              when /\A[ \t]*[^#]/
-                buf.clear
-              end
-            end
-          end
-          comment = buf.join("\n")
-        else
-          comment = "Docstring not found. For core classes, try installing 'pry-doc'."
-        end
-      end
-      {comment: comment,
+      info = method_struct(method)
+      {comment: info ? info.docstring : "",
        signature: signature(mod, type.to_sym, sym)}
     end
 
