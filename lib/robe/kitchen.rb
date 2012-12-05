@@ -53,7 +53,6 @@ module Robe
         instance_methods = (obj.instance_methods +
                             obj.private_instance_methods(false))
           .map { |m| method_info(obj, :instance, m) }
-        # XXX: Filter out methods defined only in Object and Module?
         [obj.name] + module_methods + instance_methods
       else
         self.targets(obj.class.to_s)
