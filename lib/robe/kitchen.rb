@@ -64,9 +64,9 @@ module Robe
     end
 
     def method_info(mod, type, sym)
-      # FIXME: For anonymous modules, substitute the name of the class.
-      # As long as it's just for ActiveModel::AttributeMethods, not worth it.
-      [mod.name, type, sym] + find_method(mod, type, sym).source_location.to_a
+      method, name = find_method(mod, type, sym), mod.name
+      name = method.inspect[/ ([^(]+)\(/, 1] unless name
+      [name, type, sym] + method.source_location.to_a
     end
 
     def doc_for(mod, type, sym)

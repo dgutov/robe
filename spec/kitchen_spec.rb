@@ -111,6 +111,16 @@ describe Robe::Kitchen do
       expect(k.method_info(m, :instance, :foo))
         .to eq([nil, :instance, :foo, __FILE__, __LINE__ - 2])
     end
+
+    it "subtitutes anonymous module with containing class name" do
+      c = Class.new do
+        Module.new do
+          def foo; end
+        end.tap { |m| include m }
+      end
+      expect(k.method_info(c, :instance, :foo))
+        .to eq([c.inspect, :instance, :foo, __FILE__, anything])
+    end
   end
 
   context "#method_targets" do
