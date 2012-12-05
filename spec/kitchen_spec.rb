@@ -170,10 +170,41 @@ describe Robe::Kitchen do
         a = named_module("A", "a", "b", "c", "d")
         b = named_module("A::B", "a", "b", "c", "d")
         c = new_module("a", "b", "c", "d")
-        d = named_module("B", "a", "b", "c", "d")
-        ospace = MockSpace.new(b, c, d, a)
+        ospace = MockSpace.new(*[b, c, a].shuffle)
         expect(k.method_targets("a", nil, nil, true, nil, nil).map { |(m)| m })
-          .to eq(["B", "A", "A::B", nil])
+          .to eq(["A", "A::B", nil])
+      end
+    end
+  end
+
+  context "#complete_method" do
+    let(:k) { klass.new }
+
+    it "completes instance methods" do
+      expect(k.complete_method("gs", nil, nil, true))
+        .to include(:gsub, :gsub!)
+    end
+
+    context "class methods" do
+      let(:k) { klass.new(MockSpace.new(Class)) }
+
+      it "completes public" do
+        expect(k.complete_method("su", nil, nil, nil)).to include(:superclass)
+      end
+
+      it "no private methods with explicit target" do
+        expect(k.complete_method("attr", "Object", nil, nil))
+          .not_to include(:attr_reader)
+      end
+
+      it "no private methods with no target at all" do
+        expect(k.complete_method("attr", "Object", nil, nil))
+          .not_to include(:attr_reader)
+      end
+
+      it "completes private methods with implicit target" do
+        expect(k.complete_method("attr", nil, "Object", nil))
+          .to include(:attr_reader, :attr_writer)
       end
     end
   end
