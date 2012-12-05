@@ -145,7 +145,7 @@ module Robe
         end
       elsif (target || !conservative) && !special_method
         unless target
-          scanner.scan_methods(Object, :private_instance_methods, :instance)
+          scanner.scan_methods(Kernel, :private_instance_methods, :instance)
         end
         scanner.check_private = false
         scanner.scan(object_space.each_object(Module), true, true)

@@ -112,4 +112,69 @@ describe Robe::Kitchen do
         .to eq([nil, :instance, :foo, __FILE__, __LINE__ - 2])
     end
   end
+
+  context "#method_targets" do
+    it "returns empty array when not found" do
+      k = klass.new(MockSpace.new)
+      klass.should_receive(:resolve_context).with("b", "c").and_return(nil)
+      expect(k.method_targets("a", "b", "c", true, nil, nil)).to be_empty
+    end
+
+    context "examples" do
+      let(:k) { klass.new }
+
+      it "returns class method candidate" do
+        expect(k.method_targets("open", "File", nil, nil, nil, nil))
+          .to eq([["IO", :module, :open]])
+      end
+
+      it "returns the constructor" do
+        expect(k.method_targets("initialize", "Object", nil, nil, nil, nil))
+          .to include(["Class", :module, :initialize])
+      end
+
+      it "doesn't return overridden method" do
+        expect(k.method_targets("to_s", "Hash", nil, true, nil, nil))
+          .to eq([["Hash", :instance, :to_s]])
+      end
+
+      it "returns instance method candidate" do
+        expect(k.method_targets("split", "s", nil, true, nil, nil))
+          .to include(["String", :instance, :split])
+      end
+
+      it "returns no candidates for target when conservative" do
+        expect(k.method_targets("split", nil, nil, true, nil, true))
+          .to be_empty
+      end
+
+      it "returns single instance method from superclass" do
+        expect(k.method_targets("map", nil, "Array", true, true, nil))
+          .to eq([["Enumerable", :instance, :map]])
+      end
+
+      it "returns single method from target class" do
+        expect(k.method_targets("map", nil, "Array", true, nil, nil))
+          .to eq([["Array", :instance, :map]])
+      end
+
+      it "checks private Kernel methods when no primary candidates" do
+        k = klass.new(MockSpace.new)
+        expect(k.method_targets("puts", nil, nil, true, nil, nil))
+          .to eq([["Kernel", :instance, :puts]])
+      end
+
+      it "sorts results last" do
+        extend ScannerHelper
+
+        a = named_module("A", "a", "b", "c", "d")
+        b = named_module("A::B", "a", "b", "c", "d")
+        c = new_module("a", "b", "c", "d")
+        d = named_module("B", "a", "b", "c", "d")
+        ospace = MockSpace.new(b, c, d, a)
+        expect(k.method_targets("a", nil, nil, true, nil, nil).map { |(m)| m })
+          .to eq(["B", "A", "A::B", nil])
+      end
+    end
+  end
 end
