@@ -25,7 +25,7 @@ describe Robe::TypeSpace do
       let(:c) { mod = m; Class.new { include mod } }
       let(:kids) { [Class.new(c), Class.new(c)] }
       let(:space) do
-        described_class.new(MockSpace.new(c, *kids), nil, nil, true, nil)
+        described_class.new(KindSpace.new(c, *kids), nil, nil, true, nil)
       end
 
       it "passes class and its ancestors" do
@@ -47,7 +47,7 @@ describe Robe::TypeSpace do
 
       context "super search" do
         let(:space) do
-          described_class.new(MockSpace.new(c, *kids), nil, nil, true, true)
+          described_class.new(KindSpace.new(c, *kids), nil, nil, true, true)
         end
 
         it "does not pass the descendants" do
@@ -73,7 +73,7 @@ describe Robe::TypeSpace do
       end
       let(:kids) { [Class.new(c), Class.new(c)] }
       let(:space) do
-        described_class.new(MockSpace.new(c, *kids), nil, nil, nil, nil)
+        described_class.new(KindSpace.new(c, *kids), nil, nil, nil, nil)
       end
 
       it "passes class and its ancestors, then metaclass ancestors" do

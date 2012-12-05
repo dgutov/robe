@@ -21,6 +21,14 @@ module ScannerHelper
       EOS
     end
   end
+
+  def named_module(name, *args)
+    new_module(*args).tap do |m|
+      def m.name
+        name
+      end
+    end
+  end
 end
 
 class MockSpace
@@ -28,7 +36,17 @@ class MockSpace
     @modules = modules
   end
 
+  def fits?(type, m)
+    true
+  end
+
   def each_object(type)
-    @modules.each { |m| yield m if block_given? }
+    @modules.select { |m| fits?(type, m) }.each { |m| yield m if block_given? }
+  end
+end
+
+class KindSpace < MockSpace
+  def fits?(type, m)
+    m.kind_of? type
   end
 end
