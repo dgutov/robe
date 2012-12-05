@@ -10,7 +10,7 @@ end
 
 module Robe
   class Kitchen
-    extend SingleForwardable
+    extend Forwardable
 
     delegate [:resolve_const, :resolve_context] => "self.class"
 
