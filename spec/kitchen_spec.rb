@@ -170,7 +170,7 @@ describe Robe::Kitchen do
         a = named_module("A", "a", "b", "c", "d")
         b = named_module("A::B", "a", "b", "c", "d")
         c = new_module("a", "b", "c", "d")
-        ospace = MockSpace.new(*[b, c, a].shuffle)
+        k = klass.new(MockSpace.new(*[b, c, a].shuffle))
         expect(k.method_targets("a", nil, nil, true, nil, nil).map { |(m)| m })
           .to eq(["A", "A::B", nil])
       end
@@ -206,6 +206,54 @@ describe Robe::Kitchen do
         expect(k.complete_method("attr", nil, "Object", nil))
           .to include(:attr_reader, :attr_writer)
       end
+    end
+  end
+
+  context "#complete_const" do
+    let(:k) { klass.new }
+    let(:m) do
+      Module.new do
+        def self.name
+          "Test"
+        end
+
+        self::ACONST = 1
+
+        module self::AMOD; end
+        module self::BMOD
+          def self.name
+            "BMOD"
+          end
+
+          module self::C; end
+        end
+
+        class self::ACLS; end
+      end
+    end
+
+    context "sandboxed" do
+      before(:each) do
+        klass.should_receive(:resolve_const).with("Test").and_return(m)
+      end
+
+      it "completes all constants" do
+        expect(k.complete_const("Test::A"))
+          .to eq(%w(Test::ACONST Test::AMOD Test::ACLS))
+      end
+
+      it "requires names to begin with prefix" do
+        expect(k.complete_const("Test::MOD")).to be_empty
+      end
+    end
+
+    it "completes with bigger nesting" do
+      klass.should_receive(:resolve_const).with("Test::BMOD").and_return(m::BMOD)
+      expect(k.complete_const("Test::BMOD::C")).to eq(["BMOD::C"])
+    end
+
+    it "completes global constants" do
+      expect(k.complete_const("Ob")).to include("Object", "ObjectSpace")
     end
   end
 end
