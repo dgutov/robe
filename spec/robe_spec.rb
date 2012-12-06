@@ -13,7 +13,7 @@ describe Robe do
   end
 
   it "has a server attribute" do
-    expect(Robe.server).to be_a_kind_of(Robe::Server)
+    expect(Robe.server).to be_a(Robe::Server)
   end
 
   it "has a stop method" do

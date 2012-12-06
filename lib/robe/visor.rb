@@ -1,3 +1,5 @@
+require 'forwardable'
+
 module Robe
   class Visor
     extend Forwardable
