@@ -1,6 +1,6 @@
-require "webrick"
-require "json"
-require "tmpdir"
+require 'webrick'
+require 'json'
+require 'tmpdir'
 
 module Robe
   class Server < WEBrick::HTTPServer

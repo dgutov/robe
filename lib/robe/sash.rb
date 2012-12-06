@@ -1,16 +1,16 @@
-require "robe/type_space"
-require "robe/scanners"
-require "robe/visor"
+require 'robe/type_space'
+require 'robe/scanners'
+require 'robe/visor'
 
 module Robe
   class Sash
     begin
-      require "pry"
-      require "pry-doc"
-      require "robe/sash/pry_doc_info"
+      require 'pry'
+      require 'pry-doc'
+      require 'robe/sash/pry_doc_info'
       include PryDocInfo
     rescue LoadError
-      require "robe/sash/pry_doc_fallback"
+      require 'robe/sash/pry_doc_fallback'
       include PryDocFallback
     end
 
