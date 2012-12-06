@@ -148,9 +148,16 @@ describe Robe::Kitchen do
           .to eq([["Hash", :instance, :to_s]])
       end
 
-      it "returns instance method candidate" do
-        expect(k.method_targets("split", "s", nil, true, nil, nil))
-          .to include(["String", :instance, :split])
+      context "unknown target" do
+        it "returns String method candidate" do
+          expect(k.method_targets("split", "s", nil, true, nil, nil))
+            .to include(["String", :instance, :split])
+        end
+
+        it "does not return wrong candidates" do
+          candidates = k.method_targets("split", "s", nil, true, nil, nil)
+          expect(candidates.all? { |c| c[2] == :split }).to be_true
+        end
       end
 
       it "returns no candidates for target when conservative" do
