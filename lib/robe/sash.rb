@@ -8,7 +8,7 @@ module Robe
       require "pry"
       require "pry-doc"
       require "robe/sash/pry_doc_info"
-      include PryDocInfod
+      include PryDocInfo
     rescue LoadError
       require "robe/sash/pry_doc_fallback"
       include PryDocFallback
