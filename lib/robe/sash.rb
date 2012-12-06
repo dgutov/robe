@@ -3,14 +3,14 @@ require "robe/scanners"
 require "robe/visor"
 
 module Robe
-  class Kitchen
+  class Sash
     begin
       require "pry"
       require "pry-doc"
-      require "robe/kitchen/pry_doc_info"
-      include PryDocInfo
+      require "robe/sash/pry_doc_info"
+      include PryDocInfod
     rescue LoadError
-      require "robe/kitchen/pry_doc_fallback"
+      require "robe/sash/pry_doc_fallback"
       include PryDocFallback
     end
 

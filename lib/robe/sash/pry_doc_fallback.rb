@@ -1,5 +1,5 @@
 module Robe
-  class Kitchen
+  class Sash
     module PryDocFallback
       def method_struct(method)
         if method.source_location

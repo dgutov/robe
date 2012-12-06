@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'robe/kitchen/pry_doc_fallback'
+require 'robe/sash/pry_doc_fallback'
 
-describe Robe::Kitchen::PryDocFallback do
+describe Robe::Sash::PryDocFallback do
   # Misleading comment.
   let(:o) { Object.new.extend(described_class) }
 

@@ -1,4 +1,4 @@
-require 'robe/kitchen'
+require 'robe/sash'
 
 module Robe
   class TypeSpace

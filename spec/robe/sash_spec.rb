@@ -1,8 +1,8 @@
 require 'spec_helper'
 require 'support/mocks'
-require 'robe/kitchen'
+require 'robe/sash'
 
-describe Robe::Kitchen do
+describe Robe::Sash do
   klass = described_class
 
   context "#modules" do

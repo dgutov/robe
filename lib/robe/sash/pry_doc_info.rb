@@ -1,5 +1,5 @@
 module Robe
-  class Kitchen
+  class Sash
     module PryDocInfo
       def method_struct(method)
         Thread.exclusive do

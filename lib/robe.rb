@@ -1,5 +1,5 @@
 require "robe/server"
-require "robe/kitchen"
+require "robe/sash"
 
 module Robe
   class << self
@@ -7,7 +7,7 @@ module Robe
 
     def start(port)
       return if @server
-      @server = Server.new(port, Kitchen.new)
+      @server = Server.new(port, Sash.new)
       ['INT', 'TERM'].each do |signal|
         trap(signal) { stop }
       end
