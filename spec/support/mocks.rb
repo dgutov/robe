@@ -14,7 +14,7 @@ class MockVisor < Robe::Visor
   end
 end
 
-class KindVisor < MockVisor
+class ScopedVisor < MockVisor
   def fits?(type, m)
     m.kind_of? type
   end
