@@ -17,23 +17,20 @@ describe Robe do
   end
 
   it "has a stop method" do
-    expect_stop do
-      Robe.stop
-    end
+    expect { Robe.stop }.to stop_it
   end
 
   %w(INT TERM).each do |signal|
     it "shuts down on #{signal}" do
-      expect_stop do
-        Process.kill(signal, Process.pid)
-      end
+      expect { Process.kill(signal, Process.pid) }.to stop_it
     end
   end
 
-  def expect_stop
-    server = Robe.server
-    yield
-    expect(Robe.server).to be_nil
-    expect(server.status).to eq(:Stop)
+  RSpec::Matchers.define :stop_it do
+    match do |proc|
+      server = Robe.server
+      proc.call
+      Robe.server.nil? && server.status == :Stop
+    end
   end
 end
