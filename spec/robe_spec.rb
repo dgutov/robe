@@ -5,6 +5,7 @@ describe Robe do
   before do
     $stderr = File.new(IO::NULL, "w")
     Robe.start(12345)
+    sleep 0.001
   end
 
   after do
@@ -14,6 +15,10 @@ describe Robe do
 
   it "has a server attribute" do
     expect(Robe.server).to be_a(Robe::Server)
+  end
+
+  it "has the server running" do
+    expect(Robe.server.status).to be(:Running)
   end
 
   it "has a stop method" do
@@ -30,7 +35,7 @@ describe Robe do
     match do |proc|
       server = Robe.server
       proc.call
-      Robe.server.nil? && server.status == :Stop
+      Robe.server.nil? && [:Shutdown, :Stop].include?(server.status)
     end
   end
 end
