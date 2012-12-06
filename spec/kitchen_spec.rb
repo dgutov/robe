@@ -156,7 +156,7 @@ describe Robe::Kitchen do
 
         it "does not return wrong candidates" do
           candidates = k.method_targets("split", "s", nil, true, nil, nil)
-          expect(candidates.all? { |c| c[2] == :split }).to be_true
+          expect(candidates).to be_all { |c| c[2] == :split }
         end
       end
 
