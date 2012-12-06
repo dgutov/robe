@@ -1,70 +1,25 @@
 require 'spec_helper'
+require 'support/mocks'
 require 'robe/kitchen'
 
 describe Robe::Kitchen do
   klass = described_class
 
-  context ".resolve_const" do
-    it "resolves ARGF.class" do
-      expect(klass.resolve_const("ARGF.class")).to be(ARGF.class)
-    end
-
-    it "silently fails on nil" do
-      expect(klass.resolve_const(nil)).to be_nil
-    end
-
-    it "resolves simple constant" do
-      expect(klass.resolve_const("Object")).to be(Object)
-    end
-
-    it "resolves explicit global scope" do
-      expect(klass.resolve_const("::String")).to be(String)
-    end
-
-    it "resolves nested class" do
-      expect(klass.resolve_const("File::Stat")).to be(File::Stat)
-    end
-
-    it "swallows NameError" do
-      expect(klass.resolve_const("Foo::Bar")).to be_nil
-    end
-  end
-
-  context ".resolve_context" do
-    it "defaults to the module if no name" do
-      expect(klass.resolve_context(nil, "File")).to be(File)
-    end
-
-    it "accepts explicit scope qualifier" do
-      expect(klass.resolve_context("::String", "File")).to be(String)
-    end
-
-    it "sees nested constants" do
-      expect(klass.resolve_context("Stat", "File")).to be(File::Stat)
-    end
-
-    it "sees constants in containing scopes" do
-      expect(klass.resolve_context("Stat", "File::Constants")).to be(File::Stat)
-    end
-  end
-
   context "#modules" do
     it "returns module names" do
-      mock_space = MockSpace.new(*%w(A B C).map { |n| OpenStruct.new(name: n) })
+      mock_space = MockVisor.new(*%w(A B C).map { |n| OpenStruct.new(name: n) })
       expect(klass.new(mock_space).modules).to eq %w(A B C)
     end
   end
 
   context "#class_locations" do
     it "shows location when class has methods" do
-      k = klass.new
-      k.stub(:resolve_context).and_return(Class.new { def foo; end })
+      k = klass.new(double(resolve_context: Class.new { def foo; end }))
       expect(k.class_locations(nil, nil)).to eq([__FILE__])
     end
 
     it "shows no location for class without methods" do
-      k = klass.new
-      k.stub(:resolve_context).and_return(Class.new)
+      k = klass.new(double(resolve_context: Class.new))
       expect(k.class_locations(nil, nil)).to be_empty
     end
   end
@@ -72,6 +27,9 @@ describe Robe::Kitchen do
   context "#targets" do
     let(:m) do
       Module.new do
+        def self.name
+          "M"
+        end
         def foo; end
         private
         def baz; end
@@ -80,9 +38,9 @@ describe Robe::Kitchen do
           private
           def tee; end
         end
-      end.tap { |m| m.stub(:name).and_return("M") }
+      end
     end
-    let(:k) { klass.new.tap { |k| k.stub(:resolve_const).and_return(m) } }
+    let(:k) { klass.new(double(resolve_const: m)) }
     subject { k.targets(nil)[1..-1] }
 
     specify { expect(k.targets(nil)[0]).to eq("M") }
@@ -125,8 +83,8 @@ describe Robe::Kitchen do
 
   context "#method_targets" do
     it "returns empty array when not found" do
-      k = klass.new(MockSpace.new)
-      klass.should_receive(:resolve_context).with("b", "c").and_return(nil)
+      k = klass.new(MockVisor.new)
+      k.visor.should_receive(:resolve_context).with("b", "c").and_return(nil)
       expect(k.method_targets("a", "b", "c", true, nil, nil)).to be_empty
     end
 
@@ -176,7 +134,7 @@ describe Robe::Kitchen do
       end
 
       it "checks private Kernel methods when no primary candidates" do
-        k = klass.new(MockSpace.new)
+        k = klass.new(MockVisor.new)
         expect(k.method_targets("puts", nil, nil, true, nil, nil))
           .to eq([["Kernel", :instance, :puts]])
       end
@@ -187,7 +145,7 @@ describe Robe::Kitchen do
         a = named_module("A", "a", "b", "c", "d")
         b = named_module("A::B", "a", "b", "c", "d")
         c = new_module("a", "b", "c", "d")
-        k = klass.new(MockSpace.new(*[b, c, a].shuffle))
+        k = klass.new(MockVisor.new(*[b, c, a].shuffle))
         expect(k.method_targets("a", nil, nil, true, nil, nil).map { |(m)| m })
           .to eq(["A", "A::B", nil])
       end
@@ -203,7 +161,7 @@ describe Robe::Kitchen do
     end
 
     context "class methods" do
-      let(:k) { klass.new(MockSpace.new(Class)) }
+      let(:k) { klass.new(MockVisor.new(Class)) }
 
       it "completes public" do
         expect(k.complete_method("su", nil, nil, nil)).to include(:superclass)
@@ -227,7 +185,8 @@ describe Robe::Kitchen do
   end
 
   context "#complete_const" do
-    let(:k) { klass.new }
+    let(:v) { double("visor")}
+    let(:k) { klass.new(v) }
     let(:m) do
       Module.new do
         def self.name
@@ -251,7 +210,7 @@ describe Robe::Kitchen do
 
     context "sandboxed" do
       before(:each) do
-        klass.should_receive(:resolve_const).with("Test").and_return(m)
+        v.should_receive(:resolve_const).with("Test").and_return(m)
       end
 
       it "completes all constants" do
@@ -265,7 +224,7 @@ describe Robe::Kitchen do
     end
 
     it "completes with bigger nesting" do
-      klass.should_receive(:resolve_const).with("Test::BMOD").and_return(m::BMOD)
+      v.should_receive(:resolve_const).with("Test::BMOD").and_return(m::BMOD)
       expect(k.complete_const("Test::BMOD::C")).to eq(["BMOD::C"])
     end
 

@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
+require 'support/mocks'
 require 'robe/type_space'
 
 describe Robe::TypeSpace do
   context "#guess_target_type" do
     it "resolves simple class" do
-      space = described_class.new(nil, "String", nil, nil, nil)
+      space = described_class.new(MockVisor.new, "String", nil, nil, nil)
       expect(space.target_type).to eq String
     end
 
     it "resolves constant to its type" do
-      space = described_class.new(nil, "E", "Math", nil, nil)
+      space = described_class.new(MockVisor.new, "E", "Math", nil, nil)
       expect(space.target_type).to eq Float
     end
   end
@@ -25,7 +26,7 @@ describe Robe::TypeSpace do
       let(:c) { mod = m; Class.new { include mod } }
       let(:kids) { [Class.new(c), Class.new(c)] }
       let(:space) do
-        described_class.new(KindSpace.new(c, *kids), nil, nil, true, nil)
+        described_class.new(KindVisor.new(c, *kids), nil, nil, true, nil)
       end
 
       it "passes class and its ancestors" do
@@ -47,7 +48,7 @@ describe Robe::TypeSpace do
 
       context "super search" do
         let(:space) do
-          described_class.new(KindSpace.new(c, *kids), nil, nil, true, true)
+          described_class.new(KindVisor.new(c, *kids), nil, nil, true, true)
         end
 
         it "does not pass the descendants" do
@@ -73,7 +74,7 @@ describe Robe::TypeSpace do
       end
       let(:kids) { [Class.new(c), Class.new(c)] }
       let(:space) do
-        described_class.new(KindSpace.new(c, *kids), nil, nil, nil, nil)
+        described_class.new(KindVisor.new(c, *kids), nil, nil, nil, nil)
       end
 
       it "passes class and its ancestors, then metaclass ancestors" do

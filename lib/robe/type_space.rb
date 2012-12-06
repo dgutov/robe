@@ -2,10 +2,10 @@ require 'robe/kitchen'
 
 module Robe
   class TypeSpace
-    attr_reader :object_space, :target_type, :instance
+    attr_reader :visor, :target_type, :instance
 
-    def initialize(object_space, target, mod, instance, superc)
-      @object_space = object_space
+    def initialize(visor, target, mod, instance, superc)
+      @visor = visor
       @target = target
       @mod = mod
       @instance = instance
@@ -18,7 +18,7 @@ module Robe
       modules = obj.ancestors - [obj]
       modules -= obj.included_modules unless instance
       modules +=
-        object_space.each_object(obj.singleton_class).to_a unless @superc
+        visor.each_object(obj.singleton_class).to_a unless @superc
 
       if instance
         if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)
@@ -34,7 +34,7 @@ module Robe
     private
 
     def guess_target_type
-      @target_type = Kitchen.resolve_context(@target, @mod)
+      @target_type = visor.resolve_context(@target, @mod)
       if @target_type && !(@target_type.is_a? Module)
         @target_type, @instance = @target_type.class, true
       end
