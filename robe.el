@@ -303,20 +303,40 @@ Only works with Rails, see e.g. `rinari-console'."
         (princ "\n\n")
         (princ docstring)))
     (with-current-buffer buffer
-      (robe-doc-apply-rules)
+      (robe-doc-fontify-regions)
       (goto-char (point-min))
       (save-excursion
         (insert (robe-signature info (cdr (assoc 'parameters doc)))))
       (visual-line-mode 1))))
 
-(defun robe-doc-apply-rules ()
-  (goto-char (point-min))
-  (loop for (re n sym) in robe-doc-rules do
-        (save-excursion
-          (while (re-search-forward re nil t)
-            (replace-match (format "\\%d" n))
-            (put-text-property (match-beginning 0) (match-end 0)
-                               'face (symbol-value sym))))))
+(defun robe-doc-fontify-regions ()
+  (let ((last-pos (point)))
+    (while (re-search-forward "[^[:space:]]\n *$" nil 'move)
+      (robe-doc-apply-rules last-pos (point))
+      (when (looking-at "\\(\n\\)+\\( +.*\n\\)+\\(\n\\|\\'\\)")
+        (robe-doc-fontify-code (match-beginning 0) (match-end 0))
+        (goto-char (match-end 0)))
+      (setq last-pos (point)))
+    (robe-doc-apply-rules last-pos (point))))
+
+(defun robe-doc-apply-rules (from to)
+  (save-excursion
+    (goto-char from)
+    (loop for (re n sym) in robe-doc-rules do
+          (save-excursion
+            (while (re-search-forward re to t)
+              (replace-match (format "\\%d" n))
+              (put-text-property (match-beginning 0) (match-end 0)
+                                 'face (symbol-value sym)))))))
+
+(defun robe-doc-fontify-code (from to)
+  (let ((syntax-propertize-function #'ruby-syntax-propertize-function)
+        (font-lock-defaults (list ruby-font-lock-keywords nil nil))
+        (font-lock-syntax-table ruby-font-lock-syntax-table)
+        (font-lock-dont-widen t))
+    (save-restriction
+      (narrow-to-region from to)
+      (font-lock-fontify-region from to))))
 
 (defun robe-signature (info params &optional arg-num)
   (destructuring-bind (mod instance method &rest) info
@@ -403,8 +423,8 @@ Only works with Rails, see e.g. `rinari-console'."
                                 (goto-char (point-min))
                                 (save-excursion
                                   (forward-sentence)
-                                  (delete-region (point) (point-max))
-                                  (robe-doc-apply-rules))
+                                  (delete-region (point) (point-max)))
+                                (robe-doc-apply-rules (point) (point-max))
                                 (while (search-forward "\n" nil t)
                                   (replace-match " ")))
                               (buffer-string)))
