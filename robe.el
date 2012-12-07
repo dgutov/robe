@@ -309,6 +309,15 @@ Only works with Rails, see e.g. `rinari-console'."
         (insert (robe-signature info (cdr (assoc 'parameters doc)))))
       (visual-line-mode 1))))
 
+(defun robe-doc-apply-rules ()
+  (goto-char (point-min))
+  (loop for (re n sym) in robe-doc-rules do
+        (save-excursion
+          (while (re-search-forward re nil t)
+            (replace-match (format "\\%d" n))
+            (put-text-property (match-beginning 0) (match-end 0)
+                               'face (symbol-value sym))))))
+
 (defun robe-signature (info params &optional arg-num)
   (destructuring-bind (mod instance method &rest) info
     (let ((cnt 0) args)
@@ -339,15 +348,6 @@ Only works with Rails, see e.g. `rinari-console'."
               (if instance "#" ".")
               (propertize method 'face font-lock-function-name-face)
               "(" (mapconcat #'identity (nreverse args) ", ") ")"))))
-
-(defun robe-doc-apply-rules ()
-  (goto-char (point-min))
-  (loop for (re n sym) in robe-doc-rules do
-        (save-excursion
-          (while (re-search-forward re nil t)
-            (replace-match (format "\\%d" n))
-            (put-text-property (match-beginning 0) (match-end 0)
-                               'face (symbol-value sym))))))
 
 (defun robe-doc-for (info)
   (apply 'robe-request "doc_for" (subseq info 0 3)))
