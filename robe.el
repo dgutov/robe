@@ -5,7 +5,7 @@
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
-;; Version: 0.5
+;; Version: 0.6
 ;; Keywords: ruby convenience rails
 ;; Package-Requires: ((inf-ruby "2.2.3"))
 
