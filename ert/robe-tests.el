@@ -12,6 +12,10 @@
   (should (string= (robe-signature '("C" t "foo") '(("block" "pred")))
                    "C#foo(&pred)")))
 
+(ert-deftest signature-for-opt ()
+  (should (string= (robe-signature '("C" t "foo") '(("req" "a") ("opt" "b")))
+                   "C#foo(a, [b])")))
+
 (ert-deftest signature-for-nameless-args ()
   (should (string= (robe-signature '("C" t "foo")
                                    '(("req") ("req") ("rest") ("block")))

@@ -325,6 +325,7 @@ Only works with Rails, see e.g. `rinari-console'."
           (push (propertize (format (case kind
                                       (rest "%s...")
                                       (block "&%s")
+                                      (opt "[%s]")
                                       (t "%s")) name)
                             'face (if (and arg-num
                                        (or (= arg-num cnt)
