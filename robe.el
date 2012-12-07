@@ -294,27 +294,28 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-show-doc (info)
   (interactive)
-  (let ((doc (robe-doc-for info))
-        (buffer (get-buffer-create "*robe-doc*"))
-        (inhibit-read-only t))
+  (let* ((doc (robe-doc-for info))
+         (buffer (get-buffer-create "*robe-doc*"))
+         (inhibit-read-only t)
+         (docstring (cdr (assoc 'docstring doc))))
     (with-help-window buffer
-      (princ (robe-signature info (cdr (assoc 'parameters doc))))
-      (princ "\n\n")
-      (princ (cdr (assoc 'docstring doc))))
+      (unless (zerop (length docstring))
+        (princ "\n\n")
+        (princ docstring)))
     (with-current-buffer buffer
       (robe-doc-apply-rules)
+      (goto-char (point-min))
+      (save-excursion
+        (insert (robe-signature info (cdr (assoc 'parameters doc)))))
       (visual-line-mode 1))))
 
 (defun robe-signature (info params)
   (destructuring-bind (mod instance method &rest) info
-    (let ((first t) (cnt 0) args)
+    (let ((cnt 0) args)
       (dolist (pair params)
         (let ((kind (intern (first pair)))
               (name (second pair)))
           (incf cnt)
-          (if first
-              (setq first nil)
-            (push ", " args))
           (unless name
             (setq name
                   (case kind
@@ -324,9 +325,14 @@ Only works with Rails, see e.g. `rinari-console'."
           (push (format (case kind
                           (rest "%s...")
                           (block "&%s")
-                          (t "%s")) name) args)))
-      (concat mod (if instance "#" ".") method
-              "(" (apply #'concat (nreverse args)) ")"))))
+                          (t "%s")) name)
+                args)))
+      (concat (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
+                         (split-string mod "::" t) "::")
+              (if instance "#" ".")
+              (propertize method 'face font-lock-function-name-face)
+              "(" (mapconcat (lambda (arg) (propertize arg 'face robe-em-face))
+                             (nreverse args) ", ") ")"))))
 
 (defun robe-doc-apply-rules ()
   (goto-char (point-min))
