@@ -288,9 +288,9 @@ Only works with Rails, see e.g. `rinari-console'."
 (defvar robe-em-face 'font-lock-variable-name-face)
 
 (defvar robe-doc-rules
-  '(("<\\(tt\\|code\\)>\\([^<]+\\)</\\1>" 2 robe-code-face)
+  '(("<\\(tt\\|code\\)>\\(.+?\\)</\\1>" 2 robe-code-face)
     ("\\_<\\+\\([^[:space:]]+\\)\\+\\_>" 1 robe-code-face)
-    ("<\\(i\\|em\\)>\\([^<]+\\)</\\1>" 2 robe-em-face)
+    ("<\\(i\\|em\\)>\\(.+?\\)</\\1>" 2 robe-em-face)
     ("\\_<_\\([^_][^[:space:]]*\\)_\\_>" 1 robe-em-face)))
 
 (defun robe-show-doc (info)
