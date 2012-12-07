@@ -56,6 +56,7 @@
 (require 'url-http)
 (require 'ido)
 (require 'cl)
+(require 'ruby-mode)
 
 (defvar robe-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
