@@ -236,7 +236,8 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                          (length last))
                     when (/= (aref first i) (aref last i))
                     return i)))
-    (while (/= (aref first (1- len)) ?/) (decf len))
+    (unless (zerop len)
+      (while (/= (aref first (1- len)) ?/) (decf len)))
     (mapcar (lambda (path) (cons (substring path len) path)) list)))
 
 (defun robe-context ()
