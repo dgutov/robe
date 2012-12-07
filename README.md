@@ -46,6 +46,7 @@ In the init file:
 * For methods defined through macros, optionally jump to where the macro was
   called, instead of its definition?
 * Apropos search for classes and methods.
+* Show source: info_for(...).source.
 * Type inference and local variable completion.
 
 ## Copying

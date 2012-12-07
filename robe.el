@@ -309,7 +309,7 @@ Only works with Rails, see e.g. `rinari-console'."
         (insert (robe-signature info (cdr (assoc 'parameters doc)))))
       (visual-line-mode 1))))
 
-(defun robe-signature (info params)
+(defun robe-signature (info params &optional arg-num)
   (destructuring-bind (mod instance method &rest) info
     (let ((cnt 0) args)
       (dolist (pair params)
@@ -322,17 +322,22 @@ Only works with Rails, see e.g. `rinari-console'."
                     (rest "args")
                     (block "block")
                     (t (format "arg%s" cnt)))))
-          (push (format (case kind
-                          (rest "%s...")
-                          (block "&%s")
-                          (t "%s")) name)
+          (push (propertize (format (case kind
+                                      (rest "%s...")
+                                      (block "&%s")
+                                      (t "%s")) name)
+                            'face (if (and arg-num
+                                       (or (= arg-num cnt)
+                                           (and (eq kind 'rest)
+                                                (> arg-num cnt))))
+                                      (list robe-em-face 'bold)
+                                    robe-em-face))
                 args)))
       (concat (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
                          (split-string mod "::" t) "::")
               (if instance "#" ".")
               (propertize method 'face font-lock-function-name-face)
-              "(" (mapconcat (lambda (arg) (propertize arg 'face robe-em-face))
-                             (nreverse args) ", ") ")"))))
+              "(" (mapconcat #'identity (nreverse args) ", ") ")"))))
 
 (defun robe-doc-apply-rules ()
   (goto-char (point-min))
@@ -347,28 +352,43 @@ Only works with Rails, see e.g. `rinari-console'."
   (apply 'robe-request "doc_for" (subseq info 0 3)))
 
 (defun robe-call-at-point ()
-  (let ((state (syntax-ppss)) pt)
+  (let ((state (syntax-ppss)) (start (point))
+        in-arglist)
     (unless (nth 8 state)
       (when (and (not (ignore-errors (save-excursion
                                        (eq ?. (char-before
                                                (beginning-of-thing 'symbol))))))
                  (plusp (nth 0 state))
                  (eq (char-after (nth 1 state)) ?\())
+        (setq in-arglist t)
         (goto-char (nth 1 state))
         (skip-chars-backward " "))
       (let ((thing (thing-at-point 'symbol)))
         (when (and thing
                    (or (string= thing "super")
                        (not (memq (get-text-property 0 'face thing)
-                                  '(font-lock-function-name-face
-                                    font-lock-keyword-face)))))
-          thing)))))
+                                  (list font-lock-function-name-face
+                                        font-lock-keyword-face)))))
+          (cons thing (when in-arglist
+                        (robe-call-arg-num (point) start))))))))
+
+(defun robe-call-arg-num (from point)
+  (save-excursion
+    (let ((depth (car (save-excursion (parse-partial-sexp from point))))
+          (n 1))
+      (while (re-search-forward "," point t)
+        (let ((state (parse-partial-sexp from (point))))
+          (when (and (= depth (car state)) (not (nth 8 state)))
+            (incf n))))
+      n)))
 
 (defun robe-eldoc ()
   (save-excursion
-    (let ((thing (robe-call-at-point))
-          (url-show-status nil)
-          (robe-max-retries 0))
+    (let* ((call (robe-call-at-point))
+           (thing (car call))
+           (arg-num (cdr call))
+           (url-show-status nil)
+           (robe-max-retries 0))
       (when (and thing robe-running (not (robe-module-p thing)))
         (let* ((robe-jump-conservative t)
                (list (loop for info in (robe-jump-modules thing)
@@ -387,7 +407,8 @@ Only works with Rails, see e.g. `rinari-console'."
                                 (while (search-forward "\n" nil t)
                                   (replace-match " ")))
                               (buffer-string)))
-                   (sig (robe-signature info (cdr (assoc 'parameters doc))))
+                   (sig (robe-signature info (cdr (assoc 'parameters doc))
+                                        arg-num))
                    (msg (format "%s %s" sig summary)))
               (substring msg 0 (min (frame-width) (length msg))))))))))
 
