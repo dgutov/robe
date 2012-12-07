@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'support/mocks'
 require 'robe/sash'
+require 'robe/sash/pry_doc_fallback'
 
 describe Robe::Sash do
   klass = described_class
@@ -78,6 +79,21 @@ describe Robe::Sash do
       end
       expect(k.method_info(c, :instance, :foo))
         .to eq([c.inspect, :instance, :foo, __FILE__, anything])
+    end
+  end
+
+  context "#doc_for" do
+    it "returns docstring and parameters" do
+      c = Class.new do
+        # Some words.
+        def quux(a, *b, &c); end
+      end
+      v = double()
+      v.should_receive(:resolve_const).with("C").and_return(c)
+      k = klass.new(v).extend(Robe::Sash::PryDocFallback) # YARD chokes on specs
+      expect(k.doc_for("C", "instance", "quux"))
+        .to eq({docstring: "Some words.",
+                parameters: [[:req, :a], [:rest, :b], [:block, :c]]})
     end
   end
 

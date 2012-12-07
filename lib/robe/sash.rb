@@ -70,35 +70,8 @@ module Robe
       mod = visor.resolve_const(mod)
       method = find_method(mod, type.to_sym, sym.to_sym)
       info = method_struct(method)
-      {comment: info ? info.docstring : "",
-       signature: signature(mod, type.to_sym, sym)}
-    end
-
-    def signature(mod, type, sym)
-      sig = "#{mod.name}#{type == :instance ? '#' : '.'}#{sym}("
-      dummy = "arg0"
-      parameters = find_method(mod, type, sym).parameters
-      parameters.each_with_index do |(kind, name), n|
-        unless name
-          case kind
-          when :rest
-            name = :args
-          when :block
-            name = :block
-          else
-            name = dummy.succ!
-          end
-        end
-        if kind == :opt
-          sig << "["
-          sig << ", " if n > 0
-          sig << name.to_s << "]"
-        else
-          sig << ", " if n > 0
-          sig << {req: "%s", rest: "%s...", block: "&%s"}[kind] % name
-        end
-      end
-      sig << ")"
+      {docstring: info ? info.docstring : "",
+       parameters: method.parameters}
     end
 
     def method_targets(method, target, mod, instance, superc, conservative)

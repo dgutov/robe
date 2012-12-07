@@ -298,12 +298,35 @@ Only works with Rails, see e.g. `rinari-console'."
         (buffer (get-buffer-create "*robe-doc*"))
         (inhibit-read-only t))
     (with-help-window buffer
-      (princ (cdr (assoc 'signature doc)))
+      (princ (robe-signature info (cdr (assoc 'parameters doc))))
       (princ "\n\n")
-      (princ (cdr (assoc 'comment doc))))
+      (princ (cdr (assoc 'docstring doc))))
     (with-current-buffer buffer
       (robe-doc-apply-rules)
       (visual-line-mode 1))))
+
+(defun robe-signature (info params)
+  (destructuring-bind (mod instance method &rest) info
+    (let ((first t) (cnt 0) args)
+      (dolist (pair params)
+        (let ((kind (intern (first pair)))
+              (name (second pair)))
+          (incf cnt)
+          (if first
+              (setq first nil)
+            (push ", " args))
+          (unless name
+            (setq name
+                  (case kind
+                    (rest "args")
+                    (block "block")
+                    (t (format "arg%s" cnt)))))
+          (push (format (case kind
+                          (rest "%s...")
+                          (block "&%s")
+                          (t "%s")) name) args)))
+      (concat mod (if instance "#" ".") method
+              "(" (apply #'concat (nreverse args)) ")"))))
 
 (defun robe-doc-apply-rules ()
   (goto-char (point-min))
@@ -345,9 +368,10 @@ Only works with Rails, see e.g. `rinari-console'."
                (list (loop for info in (robe-jump-modules thing)
                            when (car info) collect info)))
           (when (consp list)
-            (let* ((doc (robe-doc-for (car list)))
+            (let* ((info (car list))
+                   (doc (robe-doc-for info))
                    (summary (with-temp-buffer
-                              (insert (cdr (assoc 'comment doc)))
+                              (insert (cdr (assoc 'docstring doc)))
                               (unless (= (point) (point-min))
                                 (goto-char (point-min))
                                 (save-excursion
@@ -357,7 +381,8 @@ Only works with Rails, see e.g. `rinari-console'."
                                 (while (search-forward "\n" nil t)
                                   (replace-match " ")))
                               (buffer-string)))
-                   (msg (format "%s %s" (cdr (assoc 'signature doc)) summary)))
+                   (sig (robe-signature info (cdr (assoc 'parameters doc))))
+                   (msg (format "%s %s" sig summary)))
               (substring msg 0 (min (frame-width) (length msg))))))))))
 
 (defun robe-complete-at-point ()
