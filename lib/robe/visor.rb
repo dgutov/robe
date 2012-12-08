@@ -27,17 +27,13 @@ module Robe
       nesting = name.split("::")
       nesting.shift if nesting[0].empty?
       begin
-        nesting.reduce(Object, :const_get)
+        resolve_path_in(Object, nesting)
       rescue NameError
       end
     end
 
-    def guess_target_type(target, mod, instance)
-      target_type = resolve_context(target, mod)
-      if target_type && !(target_type.is_a? Module)
-        target_type, instance = target_type.class, true
-      end
-      [target_type, instance]
+    def resolve_path_in(base, nesting)
+      nesting.reduce(base, :const_get)
     end
   end
 end

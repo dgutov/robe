@@ -4,17 +4,35 @@ require 'support/mocks'
 require 'robe/type_space'
 
 describe Robe::TypeSpace do
+  context "#initialize" do
+    it "resolves simple class" do
+      space = described_class.new(Robe::Visor.new, "String", nil, true, nil)
+      expect(space.target_type).to eq String
+      expect(space.instance).to be_true
+    end
+
+    it "resolves nested class" do
+      space = described_class.new(Robe::Visor.new, "Stat", "File", nil, nil)
+      expect(space.target_type).to eq File::Stat
+      expect(space.instance).to be_nil
+    end
+
+    it "resolves constant to its type" do
+      space = described_class.new(Robe::Visor.new, "E", "Math", nil, nil)
+      expect(space.target_type).to eq Float
+      expect(space.instance).to be_true
+    end
+  end
+
   context "#scan_with" do
     let(:scanner) { double("scanner") }
     let(:m) { Module.new }
 
-    before(:each) { visor.stub(:guess_target_type) { |_, _, inst| [c, inst] } }
-
     context "instance search" do
       let(:c) { mod = m; Class.new { include mod } }
       let(:kids) { [Class.new(c), Class.new(c)] }
-      let(:visor) { ScopedVisor.new(c, *kids) }
-      let(:space) { described_class.new(visor, nil, nil, true, nil) }
+      let(:visor) { ScopedVisor.new(*kids, {"C" => c}) }
+      let(:space) { described_class.new(visor, "C", nil, true, nil) }
 
       it "passes class and its ancestors" do
         scanner.should_receive(:scan)
@@ -34,8 +52,8 @@ describe Robe::TypeSpace do
       end
 
       context "super search" do
-        let(:visor) { ScopedVisor.new(c, *kids) }
-        let(:space) { described_class.new(visor, nil, nil, true, true) }
+        let(:visor) { ScopedVisor.new(*kids, {"C" => c}) }
+        let(:space) { described_class.new(visor, "C", nil, true, true) }
 
         it "does not pass the descendants" do
           scanner.should_not_receive(:scan).with(include(*kids), true, false)
@@ -59,8 +77,8 @@ describe Robe::TypeSpace do
         end
       end
       let(:kids) { [Class.new(c), Class.new(c)] }
-      let(:visor) { ScopedVisor.new(c, *kids) }
-      let(:space) { described_class.new(visor, nil, nil, nil, nil) }
+      let(:visor) { ScopedVisor.new(*kids, {"C" => c}) }
+      let(:space) { described_class.new(visor, "C", nil, nil, nil) }
 
       it "passes class and its ancestors, then metaclass ancestors" do
         scanner.should_receive(:scan).with(include(c, Object), be_false, true)

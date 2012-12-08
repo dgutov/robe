@@ -8,7 +8,7 @@ describe Robe::Sash do
 
   context "#modules" do
     it "returns module names" do
-      mock_space = MockVisor.new(*%w(A B C).map { |n| OpenStruct.new(name: n) })
+      mock_space = BlindVisor.new(*%w(A B C).map { |n| OpenStruct.new(name: n) })
       expect(klass.new(mock_space).modules).to eq %w(A B C)
     end
   end
@@ -88,8 +88,7 @@ describe Robe::Sash do
         # Some words.
         def quux(a, *b, &c); end
       end
-      v = double()
-      v.should_receive(:resolve_const).with("C").and_return(c)
+      v = ScopedVisor.new({"C" => c})
       k = klass.new(v).extend(Robe::Sash::PryDocFallback) # YARD chokes on specs
       expect(k.doc_for("C", "instance", "quux"))
         .to eq({docstring: "Some words.",
@@ -99,8 +98,7 @@ describe Robe::Sash do
 
   context "#method_targets" do
     it "returns empty array when not found" do
-      k = klass.new(MockVisor.new)
-      k.visor.should_receive(:resolve_context).with("b", "c").and_return(nil)
+      k = klass.new(ScopedVisor.new)
       expect(k.method_targets("a", "b", "c", true, nil, nil)).to be_empty
     end
 
@@ -150,7 +148,7 @@ describe Robe::Sash do
       end
 
       it "checks private Kernel methods when no primary candidates" do
-        k = klass.new(MockVisor.new)
+        k = klass.new(BlindVisor.new)
         expect(k.method_targets("puts", nil, nil, true, nil, nil))
           .to eq([["Kernel", :instance, :puts]])
       end
@@ -161,7 +159,7 @@ describe Robe::Sash do
         a = named_module("A", "a", "b", "c", "d")
         b = named_module("A::B", "a", "b", "c", "d")
         c = new_module("a", "b", "c", "d")
-        k = klass.new(MockVisor.new(*[b, c, a].shuffle))
+        k = klass.new(ScopedVisor.new(*[b, c, a].shuffle))
         expect(k.method_targets("a", nil, nil, true, nil, nil).map { |(m)| m })
           .to eq(["A", "A::B", nil])
       end
@@ -177,7 +175,7 @@ describe Robe::Sash do
     end
 
     context "class methods" do
-      let(:k) { klass.new(MockVisor.new(Class)) }
+      let(:k) { klass.new(ScopedVisor.new(Class, {"Object" => Object})) }
 
       it "completes public" do
         expect(k.complete_method("su", nil, nil, nil)).to include(:superclass)
@@ -201,8 +199,6 @@ describe Robe::Sash do
   end
 
   context "#complete_const" do
-    let(:v) { double("visor")}
-    let(:k) { klass.new(v) }
     let(:m) do
       Module.new do
         def self.name
@@ -223,12 +219,10 @@ describe Robe::Sash do
         class self::ACLS; end
       end
     end
+    let(:v) { ScopedVisor.new({"Test" => m})}
+    let(:k) { klass.new(v) }
 
     context "sandboxed" do
-      before(:each) do
-        v.should_receive(:resolve_const).with("Test").and_return(m)
-      end
-
       it "completes all constants" do
         expect(k.complete_const("Test::A"))
           .to eq(%w(Test::ACONST Test::AMOD Test::ACLS))
@@ -240,7 +234,6 @@ describe Robe::Sash do
     end
 
     it "completes with bigger nesting" do
-      v.should_receive(:resolve_const).with("Test::BMOD").and_return(m::BMOD)
       expect(k.complete_const("Test::BMOD::C")).to eq(["BMOD::C"])
     end
 
