@@ -28,6 +28,11 @@ In the init file:
 (add-hook 'ruby-mode-hook 'robe-mode)
 ```
 
+## Compatibility
+
+* Tested in Emacs 24.3 (unreleased), with Ruby 1.9.3, on GNU/Linux.
+* Mostly works on MS Windows, with minor glitches.
+
 ## Notes
 
 * We can't jump to methods defined in C (such as most of the core classes).
