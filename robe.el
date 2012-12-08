@@ -219,8 +219,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                   (let ((alist (robe-to-abbr-paths paths)))
                     (cdr (assoc (ido-completing-read "File: " alist nil t)
                                 alist))))))
-      (ring-insert find-tag-marker-ring (point-marker))
-      (find-file file)
+      (robe-find-file file)
       (goto-char (point-min))
       (let* ((nesting (split-string name "::"))
              (cnt (1- (length nesting))))
@@ -264,11 +263,16 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (if (null location)
         (when (yes-or-no-p "Can't jump to a C method. Show documentation? ")
           (robe-show-doc info))
-      (ring-insert find-tag-marker-ring (point-marker))
-      (find-file (nth 0 location))
+      (robe-find-file (nth 0 location))
       (goto-char (point-min))
       (forward-line (1- (nth 1 location)))
       (back-to-indentation))))
+
+(defun robe-find-file (file)
+  (unless (file-exists-p file)
+    (error "'%s' does not exist" file))
+  (ring-insert find-tag-marker-ring (point-marker))
+  (find-file file))
 
 (defun robe-rails-refresh ()
   "Pick up changes in the loaded classes and detect new files.
