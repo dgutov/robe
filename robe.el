@@ -56,6 +56,8 @@
 (require 'url-http)
 (require 'ido)
 (require 'cl)
+(require 'thingatpt)
+(require 'eldoc)
 (require 'ruby-mode)
 
 (defvar robe-ruby-path
@@ -89,6 +91,7 @@
       (error "Server doesn't respond"))))
 
 (defun robe-request (endpoint &rest args)
+  (declare (special url-http-end-of-headers))
   (let* ((url (format "http://127.0.0.1:%s/%s/%s" robe-port endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
