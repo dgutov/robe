@@ -47,4 +47,18 @@ describe Robe::Visor do
       expect(v.resolve_context("Stat", "File::Constants")).to be(File::Stat)
     end
   end
+
+  context "#guess_target_type" do
+    it "resolves simple class" do
+      expect(v.guess_target_type("String", nil, true)).to eq [String, true]
+    end
+
+    it "resolves nested class" do
+      expect(v.guess_target_type("Stat", "File", nil)).to eq [File::Stat, nil]
+    end
+
+    it "resolves constant to its type" do
+      expect(v.guess_target_type("E", "Math", nil)).to eq [Float, true]
+    end
+  end
 end

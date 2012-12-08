@@ -31,5 +31,13 @@ module Robe
       rescue NameError
       end
     end
+
+    def guess_target_type(target, mod, instance)
+      target_type = resolve_context(target, mod)
+      if target_type && !(target_type.is_a? Module)
+        target_type, instance = target_type.class, true
+      end
+      [target_type, instance]
+    end
   end
 end

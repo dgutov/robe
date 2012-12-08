@@ -6,11 +6,8 @@ module Robe
 
     def initialize(visor, target, mod, instance, superc)
       @visor = visor
-      @target = target
-      @mod = mod
-      @instance = instance
       @superc = superc
-      guess_target_type
+      @target_type, @instance = visor.guess_target_type(target, mod, instance)
     end
 
     def scan_with(scanner)
@@ -29,15 +26,6 @@ module Robe
 
       scanner.scan(modules, instance, !instance)
       scanner.scan(obj.singleton_class.ancestors, true, false) unless instance
-    end
-
-    private
-
-    def guess_target_type
-      @target_type = visor.resolve_context(@target, @mod)
-      if @target_type && !(@target_type.is_a? Module)
-        @target_type, @instance = @target_type.class, true
-      end
     end
   end
 end
