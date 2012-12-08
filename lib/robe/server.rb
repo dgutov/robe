@@ -21,7 +21,7 @@ module Robe
       end
 
       def do_GET(req, res)
-        _, endpoint, *args = req.path.split("/").map { |s| s == "_" ? nil : s }
+        _, endpoint, *args = req.path.split("/").map { |s| s == "-" ? nil : s }
         value = sash.public_send(endpoint.to_sym, *args)
         res["Content-Type"] = "application/json"
         res.status = 200

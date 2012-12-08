@@ -94,7 +94,7 @@
                                    (cond ((eq arg t) "yes")
                                          ((plusp (length arg))
                                           (url-hexify-string arg))
-                                         (t "_")))
+                                         (t "-")))
                                  args "/")))
          (response-buffer (robe-retrieve url))
          (value (with-current-buffer response-buffer
