@@ -62,7 +62,7 @@
 
 (defvar robe-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
-    (concat (file-name-directory current) "lib"))
+    (expand-file-name "lib" (file-name-directory current)))
   "Path to the backend Ruby code.")
 
 (defvar robe-port 24969)
