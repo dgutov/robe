@@ -289,10 +289,12 @@ Only works with Rails, see e.g. `rinari-console'."
 (defvar robe-em-face 'font-lock-variable-name-face)
 
 (defvar robe-doc-rules
-  '(("<\\(tt\\|code\\)>\\(.+?\\)</\\1>" 2 robe-code-face)
-    ("\\_<\\+\\([^[:space:]]+\\)\\+\\_>" 1 robe-code-face)
-    ("<\\(i\\|em\\)>\\(.+?\\)</\\1>" 2 robe-em-face)
-    ("\\_<_\\([^_][^[:space:]]*\\)_\\_>" 1 robe-em-face)))
+  '(("<\\(tt\\|code\\)>\\(.+?\\)</\\1>" robe-doc-hl-text 2 robe-code-face)
+    ("\\_<\\+\\([^[:space:]]+\\)\\+\\_>" robe-doc-hl-text 1 robe-code-face)
+    ("<\\(i\\|em\\)>\\(.+?\\)</\\1>" robe-doc-hl-text 2 robe-em-face)
+    ("\\_<_\\([^_][^[:space:]]*\\)_\\_>" robe-doc-hl-text 1 robe-em-face)
+    ("\\(``\\).*?\\(''\\)" robe-doc-replace-text (1 . "\u201c") (2 . "\u201d"))
+    ("\\(`\\).*?\\('\\)" robe-doc-replace-text (1 . "\u2018") (2 . "\u2019"))))
 
 (defun robe-show-doc (info)
   (interactive)
@@ -328,12 +330,19 @@ Only works with Rails, see e.g. `rinari-console'."
     (with-syntax-table table
       (save-excursion
         (goto-char from)
-        (loop for (re n sym) in robe-doc-rules do
+        (loop for (re fn . args) in robe-doc-rules do
               (save-excursion
                 (while (re-search-forward re to t)
-                  (replace-match (format "\\%d" n))
-                  (put-text-property (match-beginning 0) (match-end 0)
-                                     'face (symbol-value sym)))))))))
+                  (apply fn args))))))))
+
+(defun robe-doc-hl-text (group face)
+  (replace-match (format "\\%d" group))
+  (put-text-property (match-beginning 0) (match-end 0)
+                     'face (symbol-value face)))
+
+(defun robe-doc-replace-text (&rest rules)
+  (loop for (group . replacement) in rules do
+        (replace-match replacement t nil nil group)))
 
 (defun robe-doc-fontify-code (from to)
   (let ((syntax-propertize-function #'ruby-syntax-propertize-function)
