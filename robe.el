@@ -323,14 +323,17 @@ Only works with Rails, see e.g. `rinari-console'."
     (robe-doc-apply-rules last-pos (point))))
 
 (defun robe-doc-apply-rules (from to)
-  (save-excursion
-    (goto-char from)
-    (loop for (re n sym) in robe-doc-rules do
-          (save-excursion
-            (while (re-search-forward re to t)
-              (replace-match (format "\\%d" n))
-              (put-text-property (match-beginning 0) (match-end 0)
-                                 'face (symbol-value sym)))))))
+  (let ((table (copy-syntax-table (syntax-table))))
+    (modify-syntax-entry ?- "." table)
+    (with-syntax-table table
+      (save-excursion
+        (goto-char from)
+        (loop for (re n sym) in robe-doc-rules do
+              (save-excursion
+                (while (re-search-forward re to t)
+                  (replace-match (format "\\%d" n))
+                  (put-text-property (match-beginning 0) (match-end 0)
+                                     'face (symbol-value sym)))))))))
 
 (defun robe-doc-fontify-code (from to)
   (let ((syntax-propertize-function #'ruby-syntax-propertize-function)
