@@ -18,7 +18,7 @@ class ScopedVisor < Robe::Visor
     @modules.select { |m| fits?(type, m) }.each { |m| yield m if block_given? }
   end
 
-  def resolve_path_in(base, nesting)
+  def resolve_path_in(_, nesting)
     super(@namespace[nesting.shift], nesting)
   end
 end
