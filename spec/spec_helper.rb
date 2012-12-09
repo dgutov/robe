@@ -1,7 +1,7 @@
 require 'pry'
 require 'simplecov'
 
-SimpleCov.start
+SimpleCov.start if RSpec.configuration.files_to_run.size > 1
 
 RSpec.configure do |config|
   config.expect_with :rspec do |c|
