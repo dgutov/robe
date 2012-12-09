@@ -26,30 +26,36 @@ describe Robe::Sash do
   end
 
   context "#targets" do
-    let(:m) do
-      Module.new do
-        def self.name
-          "M"
-        end
-        def foo; end
-        private
-        def baz; end
-        class << self
-          def oom; end
+    context "value is a module" do
+      let(:m) do
+        Module.new do
+          def self.name
+            "M"
+          end
+          def foo; end
           private
-          def tee; end
+          def baz; end
+          class << self
+            def oom; end
+            private
+            def tee; end
+          end
         end
       end
+      let(:k) { klass.new(double(resolve_const: m)) }
+      subject { k.targets(nil)[1..-1] }
+
+      specify { expect(k.targets(nil)[0]).to eq("M") }
+
+      it { should include(["M", :instance, :foo, __FILE__, __LINE__ - 15]) }
+      it { should include(["M", :instance, :baz, __FILE__, __LINE__ - 14]) }
+      it { should include(["M", :module, :oom, __FILE__, __LINE__ - 13]) }
+      it { expect(subject.select { |(_, _, m)| m == :tee }).to be_empty }
     end
-    let(:k) { klass.new(double(resolve_const: m)) }
-    subject { k.targets(nil)[1..-1] }
 
-    specify { expect(k.targets(nil)[0]).to eq("M") }
-
-    it { should include(["M", :instance, :foo, __FILE__, __LINE__ - 15]) }
-    it { should include(["M", :instance, :baz, __FILE__, __LINE__ - 14]) }
-    it { should include(["M", :module, :oom, __FILE__, __LINE__ - 13]) }
-    it { expect(subject.select { |(_, _, m)| m == :tee }).to be_empty }
+    it "looks at the class if the value is not a module" do
+      expect(klass.new.targets("Math::E")).to include(["Float", :instance, :ceil])
+    end
   end
 
   context "#find_method" do
@@ -93,6 +99,13 @@ describe Robe::Sash do
       expect(k.doc_for("C", "instance", "quux"))
         .to eq({docstring: "Some words.",
                 parameters: [[:req, :a], [:rest, :b], [:block, :c]]})
+    end
+
+    it "shows docs for built-in classes" do
+      k = klass.new(Robe::Visor.new)
+      hash = k.doc_for("String", "instance", "split")
+      expect(hash[:docstring]).to include("substrings")
+      expect(hash[:parameters]).to eq([[:rest]])
     end
   end
 
@@ -241,4 +254,6 @@ describe Robe::Sash do
       expect(k.complete_const("Ob")).to include("Object", "ObjectSpace")
     end
   end
+
+  it { expect(klass.new.ping).to be_true }
 end

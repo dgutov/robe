@@ -100,5 +100,20 @@ describe Robe::TypeSpace do
         space.scan_with(scanner)
       end
     end
+
+    context "search ActiveSupport::Concern deps" do
+      let(:asc) { Module.new }
+      let(:m) { mod = asc; Module.new { extend mod } }
+      let(:deps) { [Module.new, Module.new] }
+      let(:visor) { ScopedVisor.new("M" => m) }
+      let(:space) { described_class.new(visor, "M", nil, true, false) }
+
+      it "passes the dependencies" do
+        stub_const("ActiveSupport::Concern", asc)
+        m.instance_variable_set("@_dependencies", deps)
+        scanner.should_receive(:scan).with(include(*deps), true, false)
+        space.scan_with(scanner)
+      end
+    end
   end
 end
