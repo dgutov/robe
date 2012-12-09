@@ -325,7 +325,8 @@ Only works with Rails, see e.g. `rinari-console'."
     (while (not (eobp))
       (when last-pos (robe-doc-apply-rules last-pos (point)))
       (while (looking-at "\\(\n\\)+\\( +.*\n\\)+\\(\n\\|\\'\\)")
-        (robe-doc-fontify-code (match-beginning 0) (match-end 0))
+        (save-match-data
+          (robe-doc-fontify-code (match-beginning 0) (match-end 0)))
         (goto-char (match-end 2)))
       (setq last-pos (point))
       (re-search-forward "[^[:space:]]\n *$" nil 'move))
