@@ -475,17 +475,19 @@ Only works with Rails, see e.g. `rinari-console'."
   '(progn
      (defun robe-ac-doc (symbol)
        "Return popup documentation for auto-complete."
-       (let ((info (first (robe-jump-modules symbol))))
-         (when info
-           (cdr (assoc 'docstring (robe-doc-for info))))))
+       (when robe-running
+         (let ((info (first (robe-jump-modules symbol))))
+           (when info
+             (cdr (assoc 'docstring (robe-doc-for info)))))))
 
      (defun robe-ac-available ()
        "Return t if robe completions are available, otherwise nil."
-       (and robe-mode robe-running))
+       robe-mode)
 
      (defun robe-ac-candidates ()
        "Return completion candidates for ac-prefix."
-       (robe-complete-thing ac-prefix))
+       (when robe-running
+         (robe-complete-thing ac-prefix)))
 
      (defconst ac-source-robe
        '((available . robe-ac-available)
