@@ -17,6 +17,12 @@ If the result is ambiguous, you're prompted to pick the module/location.
 ElDoc support and constant and method completion (triggered with
 <kbd>C-M-i</kbd>) are also provided.
 
+Users of `auto-complete` can enable Robe completion with:
+
+```lisp
+(push 'ac-source-robe ac-sources)
+```
+
 ## Install
 
 Set up [Melpa](http://melpa.milkbox.net/#installing) if you haven't already,
