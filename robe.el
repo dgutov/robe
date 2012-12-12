@@ -471,6 +471,29 @@ Only works with Rails, see e.g. `rinari-console'."
     (destructuring-bind (target module instance _) (robe-call-context)
       (robe-request "complete_method" thing target module instance))))
 
+(eval-after-load 'auto-complete
+  '(progn
+     (defun robe-ac-doc (symbol)
+       "Return popup documentation for auto-complete."
+       (let ((info (first (robe-jump-modules symbol))))
+         (when info
+           (cdr (assoc 'docstring (robe-doc-for info))))))
+
+     (defun robe-ac-available ()
+       "Return t if robe completions are available, otherwise nil."
+       (and robe-mode robe-running))
+
+     (defun robe-ac-candidates ()
+       "Return completion candidates for ac-prefix."
+       (robe-complete-thing ac-prefix))
+
+     (defconst ac-source-robe
+       '((available . robe-ac-available)
+         (candidates . robe-ac-candidates)
+         (document . robe-ac-doc)
+         (symbol . "r"))
+       "Auto-complete completion source for ruby using robe.")))
+
 (defvar robe-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-.") 'robe-jump)
