@@ -478,7 +478,10 @@ Only works with Rails, see e.g. `rinari-console'."
        (when robe-running
          (let ((info (first (robe-jump-modules symbol))))
            (when info
-             (cdr (assoc 'docstring (robe-doc-for info)))))))
+             (let ((doc (robe-doc-for info)))
+               (concat (robe-signature info (cdr (assoc 'parameters doc)))
+                       "\n\n"
+                       (cdr (assoc 'docstring doc))))))))
 
      (defun robe-ac-available ()
        "Return t if robe completions are available, otherwise nil."
