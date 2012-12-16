@@ -183,7 +183,7 @@ describe Robe::Sash do
     let(:k) { klass.new }
 
     it "completes instance methods" do
-      expect(k.complete_method("gs", nil, nil, true))
+      expect(k.complete_method("gs", nil, nil, true).map(&:first))
         .to include(:gsub, :gsub!)
     end
 
@@ -191,21 +191,22 @@ describe Robe::Sash do
       let(:k) { klass.new(ScopedVisor.new(Class, {"Object" => Object})) }
 
       it "completes public" do
-        expect(k.complete_method("su", nil, nil, nil)).to include(:superclass)
+        expect(k.complete_method("su", nil, nil, nil).map(&:first))
+          .to include(:superclass)
       end
 
       it "no private methods with explicit target" do
-        expect(k.complete_method("attr", "Object", nil, nil))
+        expect(k.complete_method("attr", "Object", nil, nil).map(&:first))
           .not_to include(:attr_reader)
       end
 
       it "no private methods with no target at all" do
-        expect(k.complete_method("attr", "Object", nil, nil))
+        expect(k.complete_method("attr", "Object", nil, nil).map(&:first))
           .not_to include(:attr_reader)
       end
 
       it "completes private methods with implicit target" do
-        expect(k.complete_method("attr", nil, "Object", nil))
+        expect(k.complete_method("attr", nil, "Object", nil).map(&:first))
           .to include(:attr_reader, :attr_writer)
       end
     end

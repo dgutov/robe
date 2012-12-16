@@ -363,34 +363,37 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-signature (info params &optional arg-num)
   (destructuring-bind (mod instance method &rest) info
-    (let ((cnt 0) args)
-      (dolist (pair params)
-        (let ((kind (intern (first pair)))
-              (name (second pair)))
-          (incf cnt)
-          (unless name
-            (setq name
-                  (case kind
-                    (rest "args")
-                    (block "block")
-                    (t (format "arg%s" cnt)))))
-          (push (propertize (format (case kind
-                                      (rest "%s...")
-                                      (block "&%s")
-                                      (opt "[%s]")
-                                      (t "%s")) name)
-                            'face (if (and arg-num
-                                       (or (= arg-num cnt)
-                                           (and (eq kind 'rest)
-                                                (> arg-num cnt))))
-                                      (list robe-em-face 'bold)
-                                    robe-em-face))
-                args)))
-      (concat (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
-                         (split-string mod "::" t) "::")
-              (if instance "#" ".")
-              (propertize method 'face font-lock-function-name-face)
-              "(" (mapconcat #'identity (nreverse args) ", ") ")"))))
+    (concat (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
+                       (split-string mod "::" t) "::")
+            (if instance "#" ".")
+            (propertize method 'face font-lock-function-name-face)
+            (robe-signature-params params arg-num))))
+
+(defun robe-signature-params (params &optional arg-num)
+  (let ((cnt 0) args)
+    (dolist (pair params)
+      (let ((kind (intern (first pair)))
+            (name (second pair)))
+        (incf cnt)
+        (unless name
+          (setq name
+                (case kind
+                  (rest "args")
+                  (block "block")
+                  (t (format "arg%s" cnt)))))
+        (push (propertize (format (case kind
+                                    (rest "%s...")
+                                    (block "&%s")
+                                    (opt "[%s]")
+                                    (t "%s")) name)
+                          'face (if (and arg-num
+                                         (or (= arg-num cnt)
+                                             (and (eq kind 'rest)
+                                                  (> arg-num cnt))))
+                                    (list robe-em-face 'bold)
+                                  robe-em-face))
+              args)))
+    (concat "(" (mapconcat #'identity (nreverse args) ", ") ")")))
 
 (defun robe-doc-for (info)
   (apply 'robe-request "doc_for" (subseq info 0 3)))
@@ -460,16 +463,32 @@ Only works with Rails, see e.g. `rinari-console'."
   (let ((bounds (bounds-of-thing-at-point 'symbol))
         (fn (completion-table-dynamic #'robe-complete-thing)))
     (if bounds
-        (list (car bounds) (cdr bounds) fn)
+        (list (car bounds) (cdr bounds) fn
+              :annotation-function #'robe-complete-annotation
+              :exit-function #'robe-complete-exit)
       (list (point) (point) fn))))
+
+(defvar robe-annotations-cache nil)
+
+(defun robe-complete-annotation (thing)
+  (when robe-annotations-cache
+    (robe-signature-params (gethash thing robe-annotations-cache))))
+
+(defun robe-complete-exit (&rest _)
+  (setq robe-annotations-cache nil))
 
 (defun robe-complete-thing (thing)
   (setq this-command 'robe-complete-thing)
   (robe-start)
   (if (robe-module-p thing)
-      (robe-request "complete_const" thing)
+      (progn
+        (robe-complete-exit)
+        (robe-request "complete_const" thing))
     (destructuring-bind (target module instance _) (robe-call-context)
-      (robe-request "complete_method" thing target module instance))))
+      (setq robe-annotations-cache (make-hash-table :test 'equal))
+      (mapc (lambda (row)
+              (puthash (first row) (second row) robe-annotations-cache))
+            (robe-request "complete_method" thing target module instance)))))
 
 (eval-after-load 'auto-complete
   '(progn
@@ -490,7 +509,7 @@ Only works with Rails, see e.g. `rinari-console'."
      (defun robe-ac-candidates ()
        "Return completion candidates for ac-prefix."
        (when robe-running
-         (robe-complete-thing ac-prefix)))
+         (mapcar #'car (robe-complete-thing ac-prefix))))
 
      (defconst ac-source-robe
        '((available . robe-ac-available)

@@ -8,9 +8,7 @@ module Robe
       @sym = sym
       @check_private = check_private
     end
-  end
 
-  class ModuleScanner < Scanner
     def scan(modules, check_instance, check_module)
       modules.each do |m|
         if check_module
@@ -23,7 +21,9 @@ module Robe
         end
       end
     end
+  end
 
+  class ModuleScanner < Scanner
     def scan_methods(mod, method, type)
       candidates << [mod, type] if mod.send(method, false).include?(@sym)
     end
@@ -35,14 +35,11 @@ module Robe
       @re = /^#{Regexp.escape(@sym || "")}/
     end
 
-    def scan(modules, check_instance, check_module)
-      modules.each do |m|
-        methods = []
-        methods += m.instance_methods(false) if check_instance
-        methods += m.methods(false) if check_module
-        methods += m.private_instance_methods(false) if (check_instance &&
-                                                         check_private)
-        candidates.concat(methods.grep(@re))
+    def scan_methods(mod, method, type)
+      return if method == :private_methods
+      mod.send(method, false).grep(@re) do |sym|
+        method = type == :instance ? mod.instance_method(sym) : mod.method(sym)
+        candidates << [sym, method.parameters]
       end
     end
   end

@@ -15,19 +15,19 @@ describe Robe::MethodScanner do
   it "completes instance methods" do
     scanner = klass.new(:f, false)
     scanner.scan(modules, true, false)
-    expect(scanner.candidates).to eq [:f, :foo, :foo]
+    expect(scanner.candidates.map(&:first)).to eq [:f, :foo, :foo]
   end
 
   it "completes module methods" do
     scanner = klass.new(:b, false)
     scanner.scan(modules, false, true)
-    expect(scanner.candidates).to eq [:b, :bar, :bar]
+    expect(scanner.candidates.map(&:first)).to eq [:b, :bar, :bar]
   end
 
   it "completes private instance methods" do
     scanner = klass.new(:baz, true)
     scanner.scan(modules, true, false)
-    expect(scanner.candidates).to eq [:baz, :baz]
+    expect(scanner.candidates.map(&:first)).to eq [:baz, :baz]
   end
 
   it "doesn't complete private module methods" do
@@ -37,8 +37,18 @@ describe Robe::MethodScanner do
   end
 
   it "completes nothing when shouldn't" do
-    scanner  = klass.new(:foo, true)
+    scanner = klass.new(:foo, true)
     scanner.scan(modules, false, false)
     expect(scanner.candidates).to be_empty
+  end
+
+  it "returns method parameters" do
+    m = Module.new do
+      def foo(a, *b, &c); end
+    end
+    scanner = klass.new(:fo, false)
+    scanner.scan([m], true, false)
+    expect(scanner.candidates)
+      .to eq([[:foo, [[:req, :a], [:rest, :b], [:block, :c]]]])
   end
 end
