@@ -12,20 +12,20 @@ module Robe
     def scan(modules, check_instance, check_module)
       modules.each do |m|
         if check_module
-          scan_methods(m, :methods, :module)
-          scan_methods(m, :private_methods, :module) if check_private
+          scan_methods(m, :methods, :method)
+          scan_methods(m, :private_methods, :method) if check_private
         end
         if check_instance
-          scan_methods(m, :instance_methods, :instance)
-          scan_methods(m, :private_instance_methods, :instance) if check_private
+          scan_methods(m, :instance_methods, :instance_method)
+          scan_methods(m, :private_instance_methods, :instance_method) if check_private
         end
       end
     end
   end
 
   class ModuleScanner < Scanner
-    def scan_methods(mod, method, type)
-      candidates << [mod, type] if mod.send(method, false).include?(@sym)
+    def scan_methods(mod, coll, getter)
+      candidates << mod.send(getter, @sym) if mod.send(coll, false).include?(@sym)
     end
   end
 
@@ -35,11 +35,10 @@ module Robe
       @re = /^#{Regexp.escape(@sym || "")}/
     end
 
-    def scan_methods(mod, method, type)
-      return if method == :private_methods
-      mod.send(method, false).grep(@re) do |sym|
-        method = type == :instance ? mod.instance_method(sym) : mod.method(sym)
-        candidates << [sym, method.parameters]
+    def scan_methods(mod, coll, getter)
+      return if coll == :private_methods
+      mod.send(coll, false).grep(@re) do |sym|
+        candidates << [sym, mod.send(getter, sym).parameters]
       end
     end
   end

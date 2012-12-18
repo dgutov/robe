@@ -16,25 +16,25 @@ describe Robe::ModuleScanner do
   it "finds instance methods" do
     scanner = klass.new(:foo, false)
     scanner.scan(modules, true, false)
-    expect(scanner.candidates).to eq [a, c].map { |s| [s, :instance] }
+    expect(scanner.candidates).to eq [a, c].map { |s| s.instance_method(:foo) }
   end
 
   it "finds module methods" do
     scanner = klass.new(:foo, false)
     scanner.scan(modules, false, true)
-    expect(scanner.candidates).to eq [b, d].map { |s| [s, :module] }
+    expect(scanner.candidates).to eq [b, d].map { |s| s.method(:foo) }
   end
 
   it "find private instance methods" do
     scanner = klass.new(:baz, true)
     scanner.scan(modules, true, false)
-    expect(scanner.candidates).to eq [a, b].map { |s| [s, :instance] }
+    expect(scanner.candidates).to eq [a, b].map { |s| s.instance_method(:baz) }
   end
 
   it "finds private module methods" do
     scanner = klass.new(:tee, true)
     scanner.scan(modules, false, true)
-    expect(scanner.candidates).to eq [a, b].map { |s| [s, :module] }
+    expect(scanner.candidates).to eq [a, b].map { |s| s.method(:tee) }
   end
 
   it "finds nothing when shouldn't" do
@@ -46,7 +46,7 @@ describe Robe::ModuleScanner do
   it "finds both types when should" do
     scanner = klass.new(:foo, false)
     scanner.scan(modules, true, true)
-    expect(scanner.candidates).to eq [[a, :instance], [b, :module],
-      [c, :instance], [d, :module]]
+    expect(scanner.candidates).to eq [a.instance_method(:foo), b.method(:foo),
+      c.instance_method(:foo), d.method(:foo)]
   end
 end

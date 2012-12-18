@@ -46,10 +46,10 @@ module Robe
     def targets(obj)
       obj = visor.resolve_const(obj)
       if obj.is_a? Module
-        module_methods = obj.methods.map { |m| method_info(obj, :module, m) }
+        module_methods = obj.methods.map { |m| method_info(obj.method(m)) }
         instance_methods = (obj.instance_methods +
                             obj.private_instance_methods(false))
-          .map { |m| method_info(obj, :instance, m) }
+          .map { |m| method_info(obj.instance_method(m)) }
         [obj.name] + module_methods + instance_methods
       else
         self.targets(obj.class.to_s)
@@ -60,10 +60,17 @@ module Robe
       mod.send(type == :instance ? :instance_method : :method, sym)
     end
 
-    def method_info(mod, type, sym)
-      method, name = find_method(mod, type, sym), mod.name
+    def method_info(method)
+      case method
+      when Method
+        type = :module
+        name = method.receiver.name
+      when UnboundMethod
+        type = :instance
+        name = method.owner.name
+      end
       name = method.inspect[/ ([^(]+)\(/, 1] unless name
-      [name, type, sym] + method.source_location.to_a
+      [name, type, method.name] + method.source_location.to_a
     end
 
     def doc_for(mod, type, sym)
@@ -74,8 +81,8 @@ module Robe
        parameters: method.parameters}
     end
 
-    def method_targets(method, target, mod, instance, superc, conservative)
-      sym = method.to_sym
+    def method_targets(name, target, mod, instance, superc, conservative)
+      sym = name.to_sym
       space = TypeSpace.new(visor, target, mod, instance, superc)
       special_method = sym == :initialize || superc
       scanner = ModuleScanner.new(sym, special_method || !target)
@@ -83,20 +90,20 @@ module Robe
       space.scan_with(scanner)
 
       if (targets = scanner.candidates).any?
-        targets.reject! do |(m, _)|
-          !(m <= space.target_type) && targets.find { |(t, _)| t < m }
+        targets.reject! do |method|
+          !(method.owner <= space.target_type) &&
+            targets.find { |other| other.owner < method.owner }
         end
       elsif (target || !conservative) && !special_method
         unless target
-          scanner.scan_methods(Kernel, :private_instance_methods, :instance)
+          scanner.scan_methods(Kernel, :private_instance_methods, :instance_method)
         end
         scanner.check_private = false
         scanner.scan(visor.each_object(Module), true, true)
       end
 
-      scanner.candidates
-        .sort_by { |(m)| m.name ? m.name.scan(/::/).length : 99 }
-        .map { |(m, type)| method_info(m, type, sym) }
+      scanner.candidates.map { |method| method_info(method) }
+        .sort_by { |(mname)| mname ? mname.scan(/::/).length : 99 }
     end
 
     def complete_method(prefix, target, mod, instance)

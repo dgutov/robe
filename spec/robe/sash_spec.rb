@@ -68,12 +68,12 @@ describe Robe::Sash do
   context "#method_info" do
     let(:k) { klass.new }
 
-    it { expect(k.method_info(String, :instance, :gsub))
+    it { expect(k.method_info(String.instance_method(:gsub)))
          .to eq(["String", :instance, :gsub]) }
 
     it "includes method location" do
       m = Module.new { def foo; end }
-      expect(k.method_info(m, :instance, :foo))
+      expect(k.method_info(m.instance_method(:foo)))
         .to eq([nil, :instance, :foo, __FILE__, __LINE__ - 2])
     end
 
@@ -83,7 +83,7 @@ describe Robe::Sash do
           def foo; end
         end.tap { |m| include m }
       end
-      expect(k.method_info(c, :instance, :foo))
+      expect(k.method_info(c.instance_method(:foo)))
         .to eq([c.inspect, :instance, :foo, __FILE__, anything])
     end
   end
