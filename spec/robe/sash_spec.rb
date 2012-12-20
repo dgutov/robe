@@ -195,7 +195,7 @@ describe Robe::Sash do
       it "checks for instance Kernel methods when the target is a module" do
         # Not 100% accurate: the including class may derive from BasicObject
         stub_const("M", Module.new)
-        expect(k.method_targets("puts", nil, "M", true, nil, nil))
+        expect(k.method_targets("puts", nil, "M", true, nil, true))
           .to eq([["Kernel", :instance, :puts]])
       end
 
