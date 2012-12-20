@@ -38,6 +38,8 @@ In the init file:
 
 * Tested in Emacs 24.3 (unreleased), with Ruby 1.9.3, on GNU/Linux.
 * Mostly works on MS Windows, with minor glitches.
+* Using Emacs trunk is currently recommended (24.3.50), due to better
+  recognition of context at point.
 
 ## Notes
 
@@ -48,8 +50,8 @@ In the init file:
   priority.
 * Jumping to methods defined with `Module#delegate` just brings us to the place
   where `delegate` is called, which is accurate, but often less than useful.
-* Having more than one `inf-ruby` buffer at the same time is not supported. If
-  you see unexpected "Method not found" errors, check if you have an older one.
+* Having more than one `inf-ruby` buffer at a time is not supported. If you see
+  unexpected "Method not found" errors, check if you have an older one.
 
 ## Todo
 
