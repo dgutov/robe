@@ -66,6 +66,13 @@ describe Robe::Sash do
     it { expect(k.find_method(String, :module, :freeze).name).to eq(:freeze) }
   end
 
+  context "#find_method_owner" do
+    let(:k) { klass.new }
+    it { expect(k.find_method_owner(File, :module, :open)).to eq(IO.singleton_class)}
+    it { expect(k.find_method_owner(String, :instance, :split)).to eq(String)}
+    it { expect(k.find_method_owner(Class.new, :module, :boo)).to be_nil}
+  end
+
   context "#method_info" do
     let(:k) { klass.new }
 
@@ -148,7 +155,6 @@ describe Robe::Sash do
       end
 
       it "returns the non-overridden method" do
-        pending
         expect(k.method_targets("initialize", "Object", nil, true, nil, nil))
           .to include(["BasicObject", :instance, :initialize])
       end

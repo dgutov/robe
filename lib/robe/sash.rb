@@ -60,6 +60,13 @@ module Robe
       mod.send(type == :instance ? :instance_method : :method, sym)
     end
 
+    def find_method_owner(mod, type, sym)
+      begin
+        find_method(mod, type, sym).owner
+      rescue NameError
+      end
+    end
+
     def method_info(method)
       owner = method.owner
       if Class == owner || owner.ancestors.first == owner
@@ -98,7 +105,8 @@ module Robe
 
       if (targets = scanner.candidates).any?
         targets.reject! do |method|
-          !(method.owner <= space.target_type) &&
+          owner = find_method_owner(space.target_type, instance && :instance, sym)
+          !(method.owner <= owner) &&
             targets.find { |other| other.owner < method.owner }
         end
       elsif (target || !conservative) && !special_method
