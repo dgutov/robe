@@ -140,7 +140,7 @@
                   row))
           list))
 
-(defun robe-module-p (thing)
+(defun robe-const-p (thing)
   (let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing)))
 
 (defun robe-jump (arg)
@@ -152,7 +152,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (cond
      ((or (not thing) arg)
       (robe-ask))
-     ((robe-module-p thing)
+     ((robe-const-p thing)
       (robe-jump-to-module thing))
      (t
       (robe-jump-to (robe-jump-prompt thing))))))
@@ -436,7 +436,7 @@ Only works with Rails, see e.g. `rinari-console'."
            (arg-num (cdr call))
            (url-show-status nil)
            (robe-max-retries 0))
-      (when (and thing robe-running (not (robe-module-p thing)))
+      (when (and thing robe-running (not (robe-const-p thing)))
         (let* ((robe-jump-conservative t)
                (list (loop for info in (robe-jump-modules thing)
                            when (car info) collect info)))
@@ -480,7 +480,7 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-complete-thing (thing)
   (setq this-command 'robe-complete-thing)
   (robe-start)
-  (if (robe-module-p thing)
+  (if (robe-const-p thing)
       (progn
         (robe-complete-exit)
         (robe-request "complete_const" thing))
