@@ -69,8 +69,10 @@ describe Robe::Sash do
   context "#method_info" do
     let(:k) { klass.new }
 
-    it { expect(k.method_info(String.instance_method(:gsub)))
-         .to eq(["String", :instance, :gsub]) }
+    it "works on String#gsub" do
+      expect(k.method_info(String.instance_method(:gsub)))
+        .to eq(["String", :instance, :gsub])
+    end
 
     it "includes method location" do
       m = Module.new { def foo; end }
@@ -89,14 +91,19 @@ describe Robe::Sash do
         .to eq(["M::C", :module, :foo, __FILE__, anything])
     end
 
-    it "subtitutes anonymous module with containing class name" do
-      c = Class.new do
-        Module.new do
-          def foo; end
-        end.tap { |m| include m }
+    context "anonymous owner" do
+      let(:m) { Module.new { def foo; end} }
+
+      it "returns nil first element" do
+        expect(k.method_info(m.instance_method(:foo)))
+          .to eq([nil, :instance, :foo, __FILE__, anything])
       end
-      expect(k.method_info(c.instance_method(:foo)))
-        .to eq([c.inspect, :instance, :foo, __FILE__, anything])
+
+      it "substitutes anonymous module with including class name" do
+        stub_const("C", Class.new.send(:include, m) )
+        expect(k.method_info(m.instance_method(:foo)))
+          .to eq(["C", :instance, :foo, __FILE__, anything])
+      end
     end
   end
 

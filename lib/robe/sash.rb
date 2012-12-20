@@ -64,12 +64,20 @@ module Robe
       owner = method.owner
       if Class == owner || owner.ancestors.first == owner
         type = :instance
-        name = owner.name || method.inspect[/ ([^(]+)\(/, 1]
+        name = method_owner_name(owner)
       else
         type = :module # defined in an eigenclass
         name = owner.to_s[/Class:(.*)>\Z/, 1]
       end
       [name, type, method.name] + method.source_location.to_a
+    end
+
+    def method_owner_name(owner)
+      owner.name or
+        unless owner.is_a?(Class)
+          klass = ObjectSpace.each_object(Class).find { |c| c.include?(owner) }
+          klass && klass.name
+        end
     end
 
     def doc_for(mod, type, sym)
