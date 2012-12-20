@@ -17,6 +17,7 @@ module Robe
       modules -= obj.included_modules unless instance
       modules +=
         visor.each_object(obj.singleton_class).to_a unless @superc
+      modules.push(Kernel) if instance && !obj.is_a?(Class)
 
       if instance
         if defined? ActiveSupport::Concern and obj.is_a?(ActiveSupport::Concern)

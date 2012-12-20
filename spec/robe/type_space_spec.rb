@@ -51,6 +51,13 @@ describe Robe::TypeSpace do
         space.scan_with(scanner)
       end
 
+      it "passes Kernel even when scanning a module" do
+        visor = ScopedVisor.new(m, {"M" => m})
+        space = described_class.new(visor, "M", nil, true, nil)
+        scanner.should_receive(:scan).with(include(Kernel), true, false)
+        space.scan_with(scanner)
+      end
+
       context "super search" do
         let(:visor) { ScopedVisor.new(*kids, {"C" => c}) }
         let(:space) { described_class.new(visor, "C", nil, true, true) }

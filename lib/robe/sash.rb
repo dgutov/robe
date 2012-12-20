@@ -105,9 +105,11 @@ module Robe
 
       if (targets = scanner.candidates).any?
         owner = find_method_owner(space.target_type, instance && :instance, sym)
-        targets.reject! do |method|
-          !(method.owner <= owner) &&
-            targets.find { |other| other.owner < method.owner }
+        if owner
+          targets.reject! do |method|
+            !(method.owner <= owner) &&
+              targets.find { |other| other.owner < method.owner }
+          end
         end
       elsif (target || !conservative) && !special_method
         unless target

@@ -68,6 +68,7 @@ describe Robe::Sash do
 
   context "#find_method_owner" do
     let(:k) { klass.new }
+
     it { expect(k.find_method_owner(File, :module, :open)).to eq(IO.singleton_class)}
     it { expect(k.find_method_owner(String, :instance, :split)).to eq(String)}
     it { expect(k.find_method_owner(Class.new, :module, :boo)).to be_nil}
@@ -189,6 +190,13 @@ describe Robe::Sash do
       it "returns single method from target class" do
         expect(k.method_targets("map", nil, "Array", true, nil, nil))
           .to eq([["Array", :instance, :map]])
+      end
+
+      it "checks for instance Kernel methods when the target is a module" do
+        # Not 100% accurate: the including class may derive from BasicObject
+        stub_const("M", Module.new)
+        expect(k.method_targets("puts", nil, "M", true, nil, nil))
+          .to eq([["Kernel", :instance, :puts]])
       end
 
       it "checks private Kernel methods when no primary candidates" do
