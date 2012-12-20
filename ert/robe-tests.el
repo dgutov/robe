@@ -95,3 +95,77 @@
                    (insert "bar(")
                    (robe-call-at-point))
                  '("bar" . 1))))
+
+(ert-deftest call-at-point-parenless-first-arg ()
+  (should (equal (with-temp-buffer
+                   (insert "bar foo")
+                   (robe-call-at-point))
+                 '("bar" . 1))))
+
+(ert-deftest call-at-point-parenless-complex-arg ()
+  (should (equal (with-temp-buffer
+                   (insert "bar foo, tee(1, 2), pea")
+                   (robe-call-at-point))
+                 '("bar" . 3))))
+
+(ert-deftest call-at-point-parenless-at-paren ()
+  (should (equal (with-temp-buffer
+                   (insert "bar {a: 1, b: 2}")
+                   (search-backward "{")
+                   (robe-call-at-point))
+                 '("bar" . 1))))
+
+(ert-deftest call-at-point-parenless-semicolon ()
+  (should (equal (with-temp-buffer
+                   (insert "bar; foo")
+                   (robe-call-at-point))
+                 '("foo"))))
+
+(ert-deftest call-at-point-parenless-assign ()
+  (should (equal (with-temp-buffer
+                   (insert "bar = foo")
+                   (robe-call-at-point))
+                 '("foo"))))
+
+(ert-deftest call-at-point-parenless-newline ()
+  (should (equal (with-temp-buffer
+                   (insert "bar\nfoo")
+                   (robe-call-at-point))
+                 '("foo"))))
+
+(ert-deftest call-at-point-parenless-newline-and-comma ()
+  (should (equal (with-temp-buffer
+                   (insert "bar foo,\n  baz")
+                   (robe-call-at-point))
+                 '("bar" . 2))))
+
+(ert-deftest call-at-point-parenless-operator ()
+  (should (equal (with-temp-buffer
+                   (insert "bar 1 + 1,\n  baz")
+                   (ruby-mode)
+                   (robe-call-at-point))
+                 '("bar" . 2))))
+
+(ert-deftest call-at-point-parenless-js-hash ()
+  (should (equal (with-temp-buffer
+                   (insert "bar :foo, a: 1, b: 2")
+                   (ruby-mode)
+                   (robe-call-at-point))
+                 ;; should be 2, but meh
+                 '("bar" . 3))))
+
+(ert-deftest call-at-point-parenless-hash-rocket ()
+  (should (equal (with-temp-buffer
+                   (insert "bar :foo, :a => 1, :b => 2")
+                   (ruby-mode)
+                   (robe-call-at-point))
+                 ;; should be 2, but meh
+                 '("bar" . 3))))
+
+(ert-deftest call-at-point-inside-a-string ()
+  (should (equal (with-temp-buffer
+                   (insert "bar :foo, \"baz 1, (2 + 3)\"")
+                   (ruby-mode)
+                   (search-backward "3")
+                   (robe-call-at-point))
+                 '("bar" . 2))))

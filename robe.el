@@ -401,15 +401,14 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-call-at-point ()
   (let ((state (syntax-ppss)) (start (point))
         in-arglist)
-    (unless (nth 8 state)
-      (when (and (not (ignore-errors (save-excursion
-                                       (eq ?. (char-before
-                                               (beginning-of-thing 'symbol))))))
-                 (plusp (nth 0 state))
-                 (eq (char-after (nth 1 state)) ?\())
-        (setq in-arglist t)
-        (goto-char (nth 1 state))
-        (skip-chars-backward " "))
+    (unless (nth 4 state)
+      (when (nth 3 state) (goto-char (nth 8 state)))
+      (unless (ignore-errors (save-excursion
+                               (eq ?. (char-before
+                                       (beginning-of-thing 'symbol)))))
+        (when (or (robe-call-goto-paren state)
+                  (robe-call-goto-parenless))
+          (setq in-arglist t)))
       (let ((thing (thing-at-point 'symbol)))
         (when (and thing
                    (or (string= thing "super")
@@ -418,6 +417,40 @@ Only works with Rails, see e.g. `rinari-console'."
                                         font-lock-keyword-face)))))
           (cons thing (when in-arglist
                         (robe-call-arg-num (point) start))))))))
+
+(defun robe-call-goto-paren (state)
+  (when (and (plusp (nth 0 state))
+             (eq (char-after (nth 1 state)) ?\())
+    (goto-char (nth 1 state))
+    (skip-chars-backward " ")))
+
+(defun robe-call-goto-parenless ()
+  (let ((table (copy-syntax-table (syntax-table)))
+        (punct (string-to-syntax "."))
+        (start (point))
+        point)
+    (modify-syntax-entry ?! "_" table)
+    (modify-syntax-entry ?@ "_" table)
+    (with-syntax-table table
+      (save-excursion
+        (catch 'stop
+          (unless (eobp) (forward-char 1))
+          (while (re-search-backward "\\S-\\([ ]+\\)\\S-" nil t)
+            (let ((state (parse-partial-sexp start (match-beginning 1))))
+              (goto-char (match-beginning 1))
+              (when (and (zerop (nth 0 state)) (not (nth 8 state)))
+                (cond
+                 ((save-match-data (string-match-p ";\\|=[^>]" (match-string 0)))
+                  (throw 'stop t))
+                 ((eq (char-after (match-beginning 0)) ?\n)
+                  (unless (eq (char-before (match-beginning 0)) ?,)
+                    (throw 'stop t)))
+                 ((eq (char-after (match-beginning 0)) ?:) nil)
+                 ((not (or (eq (syntax-after (match-beginning 0)) punct)
+                           (eq (syntax-after (match-end 1)) punct)))
+                  (setq point (match-beginning 1))
+                  (throw 'stop t))))))))
+      (when point (goto-char point)))))
 
 (defun robe-call-arg-num (from point)
   (save-excursion
