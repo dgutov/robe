@@ -30,10 +30,10 @@ describe Robe::MethodScanner do
     expect(scanner.candidates.map(&:first)).to eq [:baz, :baz]
   end
 
-  it "doesn't complete private module methods" do
+  it "completes private module methods" do
     scanner = klass.new(:tee, true)
     scanner.scan(modules, false, true)
-    expect(scanner.candidates).to be_empty
+    expect(scanner.candidates.map(&:first)).to eq([:tee, :tee])
   end
 
   it "completes nothing when shouldn't" do

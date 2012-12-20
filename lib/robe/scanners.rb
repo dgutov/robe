@@ -11,21 +11,22 @@ module Robe
 
     def scan(modules, check_instance, check_module)
       modules.each do |m|
-        if check_module
-          scan_methods(m, :methods, :method)
-          scan_methods(m, :private_methods, :method) if check_private
+        if check_module && m.respond_to?(:singleton_class)
+          sc = m.singleton_class
+          scan_methods(sc, :instance_methods)
+          scan_methods(sc, :private_instance_methods) if check_private
         end
         if check_instance
-          scan_methods(m, :instance_methods, :instance_method)
-          scan_methods(m, :private_instance_methods, :instance_method) if check_private
+          scan_methods(m, :instance_methods)
+          scan_methods(m, :private_instance_methods) if check_private
         end
       end
     end
   end
 
   class ModuleScanner < Scanner
-    def scan_methods(mod, coll, getter)
-      candidates << mod.send(getter, @sym) if mod.send(coll, false).include?(@sym)
+    def scan_methods(mod, coll)
+      candidates << mod.instance_method(@sym) if mod.send(coll, false).include?(@sym)
     end
   end
 
@@ -35,10 +36,9 @@ module Robe
       @re = /^#{Regexp.escape(@sym || "")}/
     end
 
-    def scan_methods(mod, coll, getter)
-      return if coll == :private_methods
+    def scan_methods(mod, coll)
       mod.send(coll, false).grep(@re) do |sym|
-        candidates << [sym, mod.send(getter, sym).parameters]
+        candidates << [sym, mod.instance_method(sym).parameters]
       end
     end
   end

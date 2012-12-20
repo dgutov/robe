@@ -61,15 +61,14 @@ module Robe
     end
 
     def method_info(method)
-      case method
-      when Method
-        type = :module
-        name = method.receiver.name
-      when UnboundMethod
+      owner = method.owner
+      if Class == owner || owner.ancestors.first == owner
         type = :instance
-        name = method.owner.name
+        name = owner.name || method.inspect[/ ([^(]+)\(/, 1]
+      else
+        type = :module # defined in an eigenclass
+        name = owner.to_s[/Class:(.*)>\Z/, 1]
       end
-      name = method.inspect[/ ([^(]+)\(/, 1] unless name
       [name, type, method.name] + method.source_location.to_a
     end
 
@@ -96,7 +95,7 @@ module Robe
         end
       elsif (target || !conservative) && !special_method
         unless target
-          scanner.scan_methods(Kernel, :private_instance_methods, :instance_method)
+          scanner.scan_methods(Kernel, :private_instance_methods)
         end
         scanner.check_private = false
         scanner.scan(visor.each_object(Module), true, true)

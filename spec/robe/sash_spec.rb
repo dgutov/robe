@@ -29,13 +29,14 @@ describe Robe::Sash do
     context "value is a module" do
       let(:m) do
         Module.new do
-          def self.name
-            "M"
-          end
           def foo; end
           private
           def baz; end
           class << self
+            def name
+              "M"
+            end
+            alias_method :inspect, :name
             def oom; end
             private
             def tee; end
@@ -47,9 +48,9 @@ describe Robe::Sash do
 
       specify { expect(k.targets(nil)[0]).to eq("M") }
 
-      it { should include(["M", :instance, :foo, __FILE__, __LINE__ - 15]) }
-      it { should include(["M", :instance, :baz, __FILE__, __LINE__ - 14]) }
-      it { should include(["M", :module, :oom, __FILE__, __LINE__ - 13]) }
+      it { should include(["M", :instance, :foo, __FILE__, anything]) }
+      it { should include(["M", :instance, :baz, __FILE__, anything]) }
+      it { should include(["M", :module, :oom, __FILE__, anything]) }
       it { expect(subject.select { |(_, _, m)| m == :tee }).to be_empty }
     end
 
@@ -75,6 +76,17 @@ describe Robe::Sash do
       m = Module.new { def foo; end }
       expect(k.method_info(m.instance_method(:foo)))
         .to eq([nil, :instance, :foo, __FILE__, __LINE__ - 2])
+    end
+
+    it "substitutes eigenclass with the actual class name" do
+      c = Class.new do
+        class << self
+          def foo; end
+        end
+      end
+      stub_const("M::C", c)
+      expect(k.method_info(c.singleton_class.instance_method(:foo)))
+        .to eq(["M::C", :module, :foo, __FILE__, anything])
     end
 
     it "subtitutes anonymous module with containing class name" do
@@ -123,9 +135,15 @@ describe Robe::Sash do
           .to eq([["IO", :module, :open]])
       end
 
-      it "returns the constructor" do
-        expect(k.method_targets("initialize", "Object", nil, nil, nil, nil))
-          .to include(["Class", :module, :initialize])
+      it "returns the method on Class" do
+        expect(k.method_targets("allocate", "Object", nil, nil, nil, nil))
+          .to eq([["Class", :instance, :allocate]])
+      end
+
+      it "returns the non-overridden method" do
+        pending
+        expect(k.method_targets("initialize", "Object", nil, true, nil, nil))
+          .to include(["BasicObject", :instance, :initialize])
       end
 
       it "doesn't return overridden method" do

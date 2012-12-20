@@ -93,7 +93,7 @@ describe Robe::TypeSpace do
         space.scan_with(scanner)
       end
 
-      it "dosn't pass the included modules" do
+      it "doesn't pass the included modules" do
         scanner.should_not_receive(:scan).with(include(m), be_false, true)
         scanner.should_receive(:scan).with(anything, be_false, true)
         scanner.should_receive(:scan).with(anything, true, be_false)
