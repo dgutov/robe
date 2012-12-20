@@ -38,8 +38,8 @@ In the init file:
 
 * Tested in Emacs 24.3 (unreleased), with Ruby 1.9.3, on GNU/Linux.
 * Mostly works on MS Windows, with minor glitches.
-* Using Emacs trunk is currently recommended (24.3.50), due to better
-  recognition of context at point.
+* Using Emacs trunk is currently recommended (24.3.50) for better recognition
+  of context at point.
 
 ## Notes
 
