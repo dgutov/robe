@@ -258,21 +258,23 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
           (list module (when instance t) method-name))
       (list nil t nil))))
 
-(defun robe-jump-to (info)
+(defun robe-jump-to (info &optional pop-to-buffer)
   (let ((location (cdddr info)))
     (if (null location)
         (when (yes-or-no-p "Can't jump to a C method. Show documentation? ")
           (robe-show-doc info))
-      (robe-find-file (nth 0 location))
+      (robe-find-file (nth 0 location) pop-to-buffer)
       (goto-char (point-min))
       (forward-line (1- (nth 1 location)))
       (back-to-indentation))))
 
-(defun robe-find-file (file)
+(defun robe-find-file (file &optional pop-to-buffer)
   (unless (file-exists-p file)
     (error "'%s' does not exist" file))
-  (ring-insert find-tag-marker-ring (point-marker))
-  (find-file file))
+  (if pop-to-buffer
+      (pop-to-buffer (find-file-noselect file))
+    (ring-insert find-tag-marker-ring (point-marker))
+    (find-file file)))
 
 (defun robe-rails-refresh ()
   "Pick up changes in the loaded classes and detect new files.
@@ -303,6 +305,11 @@ Only works with Rails, see e.g. `rinari-console'."
     ("\\(``\\).*?\\(''\\)" robe-doc-replace-text (1 . "\u201c") (2 . "\u201d"))
     ("\\(`\\).*?\\('\\)" robe-doc-replace-text (1 . "\u2018") (2 . "\u2019"))))
 
+(define-button-type 'robe-method-def
+  :supertype 'help-xref
+  'help-function #'robe-jump-to
+  'help-echo "mouse-2, RET: find method's definition")
+
 (defun robe-show-doc (info)
   (interactive)
   (let* ((doc (robe-doc-for info))
@@ -317,7 +324,13 @@ Only works with Rails, see e.g. `rinari-console'."
       (robe-doc-fontify-regions)
       (goto-char (point-min))
       (save-excursion
-        (insert (robe-signature info (cdr (assoc 'parameters doc)))))
+        (insert (robe-signature info (cdr (assoc 'parameters doc))))
+        (let ((location (cdddr info)))
+          (when location
+            (insert " is defined in ")
+            (insert-text-button (file-name-nondirectory (car location))
+                                'type 'robe-method-def
+                                'help-args (list info t)))))
       (visual-line-mode 1))))
 
 (defun robe-doc-fontify-regions ()
