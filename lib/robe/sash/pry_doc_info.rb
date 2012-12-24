@@ -10,9 +10,18 @@ module Robe
         Thread.exclusive do
           Thread.current[:__yard_registry__] = Thread.main[:__yard_registry__]
           info = Pry::MethodInfo.info_for(method)
-          OpenStruct.new(docstring: info ? info.docstring : "",
-                         source: info && strip_comments_from_c_code(info.source))
+          source = info && info.source
+          OpenStruct.new(docstring: info.docstring.to_s,
+                         source: source && strip_comments_from_c_code(info.source),
+                         aliases: method_aliases(info))
         end
+      end
+
+      private
+
+      def method_aliases(info)
+        overloads = info.tags.select { |t| t.tag_name == "overload" }
+        overloads.map(&:name).uniq - [info.name]
       end
     end
   end

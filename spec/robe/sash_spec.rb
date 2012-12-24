@@ -126,14 +126,17 @@ describe Robe::Sash do
       expect(k.doc_for("C", "instance", "quux"))
         .to eq({docstring: "Some words.",
                 parameters: [[:req, :a], [:rest, :b], [:block, :c]],
-                source: "def quux(a, *b, &c); end\n"})
+                source: "def quux(a, *b, &c); end\n",
+                aliases: []})
     end
 
     it "shows docs for built-in classes" do
       k = klass.new(Robe::Visor.new)
-      hash = k.doc_for("String", "instance", "split")
-      expect(hash[:docstring]).to include("substrings")
-      expect(hash[:parameters]).to eq([[:rest]])
+      hash = k.doc_for("Hash", "instance", "update")
+      expect(hash[:docstring]).to include("Adds the contents")
+      expect(hash[:parameters]).to eq([[:req]])
+      expect(hash[:source]).to include("rb_hash_foreach")
+      expect(hash[:aliases]).to eq([:merge!])
     end
   end
 

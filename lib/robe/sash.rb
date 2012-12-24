@@ -91,6 +91,7 @@ module Robe
       info = method_struct(method)
       {docstring: info ? info.docstring : "",
        source: info.source,
+       aliases: info.aliases,
        parameters: method.parameters}
     end
 

@@ -11,13 +11,17 @@ describe Robe::Sash::PryDocFallback do
     def quux(n)
     end
 
-    it "should return the docstring" do
+    it "has the docstring" do
       expect(o.method_struct(method(:quux)).docstring).to eq("First line,\n" +
                                                              "second line.")
     end
 
-    it "should return the source" do
+    it "has the source" do
       expect(o.method_struct(method(:quux)).source).to eq("def quux(n)\nend\n")
+    end
+
+    it "has no aliases" do
+      expect(o.method_struct(method(:quux)).aliases).to eq([])
     end
   end
 

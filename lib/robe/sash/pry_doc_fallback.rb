@@ -32,7 +32,7 @@ module Robe
         else
           comment = "Docstring not found. For core classes, try installing 'pry-doc'."
         end
-        OpenStruct.new(docstring: comment, source: source)
+        OpenStruct.new(docstring: comment, source: source, aliases: [])
       end
     end
   end
