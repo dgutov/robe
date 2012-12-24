@@ -5,25 +5,39 @@ describe Robe::Sash::PryDocFallback do
   # Misleading comment.
   let(:o) { Object.new.extend(described_class) }
 
-  it "should return docstring" do
+  context "method quux defined" do
     # First line,
     # second line.
     def quux(n)
     end
 
-    expect(o.method_struct(method(:quux)).docstring).to eq("First line,\n" +
-                                                           "second line.")
+    it "should return the docstring" do
+      expect(o.method_struct(method(:quux)).docstring).to eq("First line,\n" +
+                                                             "second line.")
+    end
+
+    it "should return the source" do
+      expect(o.method_struct(method(:quux)).source).to eq("def quux(n)\nend\n")
+    end
+  end
+
+  it "should return the source for one-line methods" do
+    def xuuq(); end
+    expect(o.method_struct(method(:xuuq)).source).to eq("def xuuq(); end\n")
   end
 
   it "should return empty docstring when none" do
     def xuuq(m)
     end
 
-    expect(o.method_struct(method(:xuuq)).docstring).to eq("")
+    struct = o.method_struct(method(:xuuq))
+    expect(struct.docstring).to eq("")
+    expect(struct.source).not_to be_empty
   end
 
   it "should mention pry-doc when method has no location" do
-    expect(o.method_struct(String.instance_method(:gsub)).docstring)
-      .to match(/pry-doc/)
+    struct = o.method_struct(String.instance_method(:gsub))
+    expect(struct.docstring).to match(/pry-doc/)
+    expect(struct.source).to be_nil
   end
 end

@@ -5,8 +5,6 @@ require 'robe/visor'
 module Robe
   class Sash
     begin
-      require 'pry'
-      require 'pry-doc'
       require 'robe/sash/pry_doc_info'
       include PryDocInfo
     rescue LoadError
@@ -92,6 +90,7 @@ module Robe
       method = find_method(mod, type.to_sym, sym.to_sym)
       info = method_struct(method)
       {docstring: info ? info.docstring : "",
+       source: info.source,
        parameters: method.parameters}
     end
 

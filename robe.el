@@ -310,27 +310,43 @@ Only works with Rails, see e.g. `rinari-console'."
   'help-function #'robe-jump-to
   'help-echo "mouse-2, RET: find method's definition")
 
+(define-button-type 'robe-toggle-source
+  'action 'robe-toggle-source
+  'help-echo "mouse-2, RET: toggle source")
+
 (defun robe-show-doc (info)
   (interactive)
   (let* ((doc (robe-doc-for info))
          (buffer (get-buffer-create "*robe-doc*"))
          (inhibit-read-only t)
-         (docstring (cdr (assoc 'docstring doc))))
+         (docstring (cdr (assoc 'docstring doc)))
+         (source (cdr (assoc 'source doc)))
+         (location (cdddr info)))
     (with-help-window buffer
       (unless (zerop (length docstring))
         (princ "\n\n")
         (princ docstring)))
     (with-current-buffer buffer
       (robe-doc-fontify-regions)
+      (when source
+        (insert "\n")
+        (let ((button (insert-text-button "Source"
+                                          'type 'robe-toggle-source)))
+          (insert "\n\n")
+          (if location
+              (let ((beg (point)))
+                (insert source)
+                (robe-doc-fontify-ruby beg (point)))
+            (insert (robe-doc-fontify-c-string source)))
+          (robe-toggle-source button)))
       (goto-char (point-min))
       (save-excursion
         (insert (robe-signature info (cdr (assoc 'parameters doc))))
-        (let ((location (cdddr info)))
-          (when location
-            (insert " is defined in ")
-            (insert-text-button (file-name-nondirectory (car location))
-                                'type 'robe-method-def
-                                'help-args (list info t)))))
+        (when location
+          (insert " is defined in ")
+          (insert-text-button (file-name-nondirectory (car location))
+                              'type 'robe-method-def
+                              'help-args (list info t))))
       (visual-line-mode 1))))
 
 (defun robe-doc-fontify-regions ()
@@ -339,7 +355,7 @@ Only works with Rails, see e.g. `rinari-console'."
       (when last-pos (robe-doc-apply-rules last-pos (point)))
       (while (looking-at "\\(\n\\)+\\( +.*\n\\)+\\(\n\\|\\'\\)")
         (save-match-data
-          (robe-doc-fontify-code (match-beginning 0) (match-end 0)))
+          (robe-doc-fontify-ruby (match-beginning 0) (match-end 0)))
         (goto-char (match-end 2)))
       (setq last-pos (point))
       (re-search-forward "[^[:space:]]\n *$" nil 'move))
@@ -365,7 +381,7 @@ Only works with Rails, see e.g. `rinari-console'."
   (loop for (group . replacement) in rules do
         (replace-match replacement t nil nil group)))
 
-(defun robe-doc-fontify-code (from to)
+(defun robe-doc-fontify-ruby (from to)
   (let ((syntax-propertize-function #'ruby-syntax-propertize-function)
         (font-lock-defaults (list ruby-font-lock-keywords nil nil))
         (font-lock-syntax-table ruby-font-lock-syntax-table)
@@ -373,6 +389,19 @@ Only works with Rails, see e.g. `rinari-console'."
     (save-restriction
       (narrow-to-region from to)
       (font-lock-fontify-region from to))))
+
+(defun robe-doc-fontify-c-string (string)
+  (with-temp-buffer
+    (insert string)
+    (c-mode)
+    (font-lock-fontify-buffer)
+    (buffer-string)))
+
+(defun robe-toggle-source (button)
+  (let* ((end (button-end button))
+         (value (get-text-property end 'invisible))
+         (inhibit-read-only t))
+    (put-text-property end (point-max) 'invisible (not value))))
 
 (defun robe-signature (info params &optional arg-num)
   (destructuring-bind (mod instance method &rest) info

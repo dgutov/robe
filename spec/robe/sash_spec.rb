@@ -116,7 +116,7 @@ describe Robe::Sash do
   end
 
   context "#doc_for" do
-    it "returns docstring and parameters" do
+    it "returns docstring, parameters and source" do
       c = Class.new do
         # Some words.
         def quux(a, *b, &c); end
@@ -125,7 +125,8 @@ describe Robe::Sash do
       k = klass.new(v).extend(Robe::Sash::PryDocFallback) # YARD chokes on specs
       expect(k.doc_for("C", "instance", "quux"))
         .to eq({docstring: "Some words.",
-                parameters: [[:req, :a], [:rest, :b], [:block, :c]]})
+                parameters: [[:req, :a], [:rest, :b], [:block, :c]],
+                source: "def quux(a, *b, &c); end\n"})
     end
 
     it "shows docs for built-in classes" do
