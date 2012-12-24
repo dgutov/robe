@@ -89,7 +89,7 @@ module Robe
       mod = visor.resolve_const(mod)
       method = find_method(mod, type.to_sym, sym.to_sym)
       info = method_struct(method)
-      {docstring: info ? info.docstring : "",
+      {docstring: info.docstring,
        source: info.source,
        aliases: info.aliases,
        parameters: method.parameters}
