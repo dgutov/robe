@@ -10,7 +10,7 @@ module Robe
         Thread.exclusive do
           Thread.current[:__yard_registry__] = Thread.main[:__yard_registry__]
           info = Pry::MethodInfo.info_for(method)
-          return OpenStruct.new(docstring: "", source: nil, aliases: []) unless info
+          return OpenStruct.new(docstring: "") unless info
           source = info.source
           OpenStruct.new(docstring: info.docstring.to_s,
                          source: source && strip_comments_from_c_code(source),

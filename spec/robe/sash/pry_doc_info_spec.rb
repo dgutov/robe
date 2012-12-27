@@ -23,7 +23,8 @@ describe Robe::Sash::PryDocInfo do
   context "Know nothing about Kernel#is_a?" do
     let(:struct) { o.method_struct(Kernel.instance_method(:is_a?)) }
     it { expect(struct.docstring).to be_empty }
-    it { expect(struct.aliases).to be_empty }
-    it { expect(struct.source).to be_nil }
+    [:aliases, :source, :visibility].each do |prop|
+      it { expect(struct.send prop).to be_nil }
+    end
   end
 end

@@ -21,7 +21,7 @@ describe Robe::Sash::PryDocFallback do
     end
 
     it "has no aliases" do
-      expect(o.method_struct(method(:quux)).aliases).to eq([])
+      expect(o.method_struct(method(:quux)).aliases).to be_nil
     end
   end
 
