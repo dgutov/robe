@@ -322,6 +322,7 @@ Only works with Rails, see e.g. `rinari-console'."
          (docstring (cdr (assoc 'docstring doc)))
          (source (cdr (assoc 'source doc)))
          (aliases (cdr (assoc 'aliases doc)))
+         (visibility (cdr (assoc 'visibility doc)))
          (location (cdddr info)))
     (with-help-window buffer
       (unless (zerop (length docstring))
@@ -348,8 +349,14 @@ Only works with Rails, see e.g. `rinari-console'."
           (insert-text-button (file-name-nondirectory (car location))
                               'type 'robe-method-def
                               'help-args (list info t)))
+        (when (equal visibility "public")
+          (setq visibility nil))
+        (when (or aliases visibility)
+          (insert "\n"))
         (when aliases
-          (insert "\n\nAliases: " (mapconcat #'identity aliases ", "))))
+          (insert "\nAliases: " (mapconcat #'identity aliases ", ")))
+        (when visibility
+          (insert "\nVisibility: " visibility)))
       (visual-line-mode 1))))
 
 (defun robe-doc-fontify-regions ()

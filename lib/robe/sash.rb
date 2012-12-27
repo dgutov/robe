@@ -1,18 +1,11 @@
 require 'robe/type_space'
 require 'robe/scanners'
 require 'robe/visor'
+require 'robe/sash/doc_for'
 
 module Robe
   class Sash
-    begin
-      require 'robe/sash/pry_doc_info'
-      include PryDocInfo
-    rescue LoadError
-      require 'robe/sash/pry_doc_fallback'
-      include PryDocFallback
-    end
-
-    attr_reader :visor
+    attr_accessor :visor
 
     def initialize(visor = Visor.new)
       @visor = visor
@@ -87,12 +80,7 @@ module Robe
 
     def doc_for(mod, type, sym)
       mod = visor.resolve_const(mod)
-      method = find_method(mod, type.to_sym, sym.to_sym)
-      info = method_struct(method)
-      {docstring: info.docstring,
-       source: info.source,
-       aliases: info.aliases,
-       parameters: method.parameters}
+      DocFor.new(find_method(mod, type.to_sym, sym.to_sym)).format
     end
 
     def method_targets(name, target, mod, instance, superc, conservative)

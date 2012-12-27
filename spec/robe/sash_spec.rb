@@ -116,27 +116,16 @@ describe Robe::Sash do
   end
 
   context "#doc_for" do
-    it "returns docstring, parameters and source" do
-      c = Class.new do
-        # Some words.
-        def quux(a, *b, &c); end
-      end
-      v = ScopedVisor.new({"C" => c})
-      k = klass.new(v).extend(Robe::Sash::PryDocFallback) # YARD chokes on specs
-      expect(k.doc_for("C", "instance", "quux"))
-        .to eq({docstring: "Some words.",
-                parameters: [[:req, :a], [:rest, :b], [:block, :c]],
-                source: "def quux(a, *b, &c); end\n",
-                aliases: []})
-    end
-
-    it "shows docs for built-in classes" do
+    it "returns doc hash for instance method" do
       k = klass.new(Robe::Visor.new)
       hash = k.doc_for("Hash", "instance", "update")
       expect(hash[:docstring]).to include("Adds the contents")
-      expect(hash[:parameters]).to eq([[:req]])
-      expect(hash[:source]).to include("rb_hash_foreach")
-      expect(hash[:aliases]).to eq([:merge!])
+    end
+
+    it "returns doc hash for module method" do
+      k = klass.new(Robe::Visor.new)
+      hash = k.doc_for("Enumerable", "module", "attr_accessor")
+      expect(hash[:docstring]).to include("Defines a named attribute")
     end
   end
 
