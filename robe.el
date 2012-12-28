@@ -575,34 +575,7 @@ Only works with Rails, see e.g. `rinari-console'."
                 (let ((method (robe-spec-method spec)))
                   (puthash method spec robe-specs-cache)
                   method))
-            (robe-request "complete_method" thing target module instance)))))
-
-(eval-after-load 'auto-complete
-  '(progn
-     (defun robe-ac-doc (symbol)
-       "Return popup documentation for auto-complete."
-       (when (and robe-running robe-specs-cache)
-         (let ((spec (gethash symbol robe-specs-cache)))
-           (when spec
-             (concat (robe-signature spec)
-                     "\n\n"
-                     (cdr (assoc 'docstring (robe-doc-for spec))))))))
-
-     (defun robe-ac-available ()
-       "Return t if robe completions are available, otherwise nil."
-       robe-mode)
-
-     (defun robe-ac-candidates ()
-       "Return completion candidates for ac-prefix."
-       (when robe-running
-         (mapcar #'car (robe-complete-thing ac-prefix))))
-
-     (defconst ac-source-robe
-       '((available . robe-ac-available)
-         (candidates . robe-ac-candidates)
-         (document . robe-ac-doc)
-         (symbol . "r"))
-       "Auto-complete completion source for ruby using robe.")))
+              (robe-request "complete_method" thing target module instance)))))
 
 (defvar robe-mode-map
   (let ((map (make-sparse-keymap)))
