@@ -18,7 +18,6 @@ module Robe
         {docstring: info.docstring,
          source: info.source,
          aliases: info.aliases,
-         parameters: @method.parameters,
          visibility: visibility}
       end
 

@@ -47,27 +47,26 @@ module Robe
       end
     end
 
-    def find_method(mod, type, sym)
-      mod.send(type == :instance ? :instance_method : :method, sym)
+    def find_method(mod, inst, sym)
+      mod.send(inst ? :instance_method : :method, sym)
     end
 
-    def find_method_owner(mod, type, sym)
+    def find_method_owner(mod, inst, sym)
       begin
-        find_method(mod, type, sym).owner
+        find_method(mod, inst, sym).owner
       rescue NameError
       end
     end
 
     def method_spec(method)
-      owner = method.owner
+      owner, inst = method.owner, nil
       if Class == owner || owner.ancestors.first == owner
-        type = :instance
+        inst = true
         name = method_owner_name(owner)
       else
-        type = :module # defined in an eigenclass
-        name = owner.to_s[/Class:(.*)>\Z/, 1]
+        name = owner.to_s[/Class:(.*)>\Z/, 1] # defined in an eigenclass
       end
-      [name, type, method.name] + method.source_location.to_a
+      [name, inst, method.name, method.parameters] + method.source_location.to_a
     end
 
     def method_owner_name(owner)
@@ -80,7 +79,7 @@ module Robe
 
     def doc_for(mod, type, sym)
       mod = visor.resolve_const(mod)
-      DocFor.new(find_method(mod, type.to_sym, sym.to_sym)).format
+      DocFor.new(find_method(mod, type, sym.to_sym)).format
     end
 
     def method_targets(name, target, mod, instance, superc, conservative)
@@ -92,7 +91,7 @@ module Robe
       space.scan_with(scanner)
 
       if (targets = scanner.candidates).any?
-        owner = find_method_owner(space.target_type, instance && :instance, sym)
+        owner = find_method_owner(space.target_type, instance, sym)
         if owner
           targets.reject! do |method|
             !(method.owner <= owner) &&
@@ -122,7 +121,7 @@ module Robe
         scanner.scan(visor.each_object(Module), true, true)
       end
 
-      scanner.candidates
+      scanner.candidates.map { |m| method_spec(m) }
     end
 
     def complete_const(prefix)

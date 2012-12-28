@@ -38,7 +38,7 @@ module Robe
 
     def scan_methods(mod, coll)
       mod.send(coll, false).grep(@re) do |sym|
-        candidates << [sym, mod.instance_method(sym).parameters]
+        candidates << mod.instance_method(sym)
       end
     end
   end

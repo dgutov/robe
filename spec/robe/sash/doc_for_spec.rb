@@ -12,7 +12,6 @@ describe Robe::Sash::DocFor do
     # YARD chokes on specs
     k = klass.new(c.instance_method(:quux)).extend(Robe::Sash::PryDocFallback)
     expect(k.format).to eq({docstring: "Some words.",
-                            parameters: [[:req, :a], [:rest, :b], [:block, :c]],
                             source: "def quux(a, *b, &c); end\n",
                             aliases: [],
                             visibility: :public})
@@ -21,7 +20,6 @@ describe Robe::Sash::DocFor do
   it "shows docs for built-in classes" do
     hash = klass.new(Hash.instance_method(:update)).format
     expect(hash[:docstring]).to include("Adds the contents")
-    expect(hash[:parameters]).to eq([[:req]])
     expect(hash[:source]).to include("rb_hash_foreach")
     expect(hash[:aliases]).to eq([:merge!])
   end

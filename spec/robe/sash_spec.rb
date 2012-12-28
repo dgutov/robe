@@ -48,30 +48,30 @@ describe Robe::Sash do
 
       specify { expect(k.targets(nil)[0]).to eq("M") }
 
-      it { should include(["M", :instance, :foo, __FILE__, anything]) }
-      it { should include(["M", :instance, :baz, __FILE__, anything]) }
-      it { should include(["M", :module, :oom, __FILE__, anything]) }
+      it { should include_spec("M#foo") }
+      it { should include_spec("M#baz") }
+      it { should include_spec("M.oom") }
       it { expect(subject.select { |(_, _, m)| m == :tee }).to be_empty }
     end
 
     it "looks at the class if the value is not a module" do
-      expect(klass.new.targets("Math::E")).to include(["Float", :instance, :ceil])
+      expect(klass.new.targets("Math::E")).to include_spec("Float#ceil")
     end
   end
 
   context "#find_method" do
     let(:k) { klass.new }
 
-    it { expect(k.find_method(String, :instance, :gsub).name).to eq(:gsub) }
-    it { expect(k.find_method(String, :module, :freeze).name).to eq(:freeze) }
+    it { expect(k.find_method(String, true, :gsub).name).to eq(:gsub) }
+    it { expect(k.find_method(String, nil, :freeze).name).to eq(:freeze) }
   end
 
   context "#find_method_owner" do
     let(:k) { klass.new }
 
-    it { expect(k.find_method_owner(File, :module, :open)).to eq(IO.singleton_class)}
-    it { expect(k.find_method_owner(String, :instance, :split)).to eq(String)}
-    it { expect(k.find_method_owner(Class.new, :module, :boo)).to be_nil}
+    it { expect(k.find_method_owner(File, nil, :open)).to eq(IO.singleton_class)}
+    it { expect(k.find_method_owner(String, true, :split)).to eq(String)}
+    it { expect(k.find_method_owner(Class.new, nil, :boo)).to be_nil}
   end
 
   context "#method_spec" do
@@ -79,13 +79,20 @@ describe Robe::Sash do
 
     it "works on String#gsub" do
       expect(k.method_spec(String.instance_method(:gsub)))
-        .to eq(["String", :instance, :gsub])
+        .to eq(["String", true, :gsub, [[:rest]]])
     end
 
     it "includes method location" do
       m = Module.new { def foo; end }
+      expect(k.method_spec(m.instance_method(:foo))[4..5])
+        .to eq([__FILE__, __LINE__ - 2])
+    end
+
+    it "includes method parameters" do
+      m = Module.new { def foo(a, *b, &c); end }
       expect(k.method_spec(m.instance_method(:foo)))
-        .to eq([nil, :instance, :foo, __FILE__, __LINE__ - 2])
+        .to eq([nil, true, :foo, [[:req, :a], [:rest, :b], [:block, :c]],
+          __FILE__, anything])
     end
 
     it "substitutes eigenclass with the actual class name" do
@@ -95,22 +102,20 @@ describe Robe::Sash do
         end
       end
       stub_const("M::C", c)
-      expect(k.method_spec(c.singleton_class.instance_method(:foo)))
-        .to eq(["M::C", :module, :foo, __FILE__, anything])
+      expect(k.method_spec(c.singleton_class.instance_method(:foo))[0])
+        .to eq("M::C")
     end
 
     context "anonymous owner" do
       let(:m) { Module.new { def foo; end} }
 
       it "returns nil first element" do
-        expect(k.method_spec(m.instance_method(:foo)))
-          .to eq([nil, :instance, :foo, __FILE__, anything])
+        expect(k.method_spec(m.instance_method(:foo))[0]).to be_nil
       end
 
       it "substitutes anonymous module with including class name" do
         stub_const("C", Class.new.send(:include, m) )
-        expect(k.method_spec(m.instance_method(:foo)))
-          .to eq(["C", :instance, :foo, __FILE__, anything])
+        expect(k.method_spec(m.instance_method(:foo))[0]).to eq("C")
       end
     end
   end
@@ -118,13 +123,13 @@ describe Robe::Sash do
   context "#doc_for" do
     it "returns doc hash for instance method" do
       k = klass.new(Robe::Visor.new)
-      hash = k.doc_for("Hash", "instance", "update")
+      hash = k.doc_for("Hash", true, "update")
       expect(hash[:docstring]).to include("Adds the contents")
     end
 
     it "returns doc hash for module method" do
       k = klass.new(Robe::Visor.new)
-      hash = k.doc_for("Enumerable", "module", "attr_accessor")
+      hash = k.doc_for("Enumerable", nil, "attr_accessor")
       expect(hash[:docstring]).to include("Defines a named attribute")
     end
   end
@@ -140,28 +145,28 @@ describe Robe::Sash do
 
       it "returns class method candidate" do
         expect(k.method_targets("open", "File", nil, nil, nil, nil))
-          .to eq([["IO", :module, :open]])
+          .to have_one_spec("IO.open")
       end
 
       it "returns the method on Class" do
         expect(k.method_targets("allocate", "Object", nil, nil, nil, nil))
-          .to eq([["Class", :instance, :allocate]])
+          .to have_one_spec("Class#allocate")
       end
 
       it "returns the non-overridden method" do
         expect(k.method_targets("initialize", "Object", nil, true, nil, nil))
-          .to include(["BasicObject", :instance, :initialize])
+          .to include_spec("BasicObject#initialize")
       end
 
       it "doesn't return overridden method" do
         expect(k.method_targets("to_s", "Hash", nil, true, nil, nil))
-          .to eq([["Hash", :instance, :to_s]])
+          .to have_one_spec("Hash#to_s")
       end
 
       context "unknown target" do
         it "returns String method candidate" do
           expect(k.method_targets("split", "s", nil, true, nil, nil))
-            .to include(["String", :instance, :split])
+            .to include_spec("String#split")
         end
 
         it "does not return wrong candidates" do
@@ -177,25 +182,25 @@ describe Robe::Sash do
 
       it "returns single instance method from superclass" do
         expect(k.method_targets("map", nil, "Array", true, true, nil))
-          .to eq([["Enumerable", :instance, :map]])
+          .to have_one_spec("Enumerable#map")
       end
 
       it "returns single method from target class" do
         expect(k.method_targets("map", nil, "Array", true, nil, nil))
-          .to eq([["Array", :instance, :map]])
+          .to have_one_spec("Array#map")
       end
 
       it "checks for instance Kernel methods when the target is a module" do
         # Not 100% accurate: the including class may derive from BasicObject
         stub_const("M", Module.new)
         expect(k.method_targets("puts", nil, "M", true, nil, true))
-          .to eq([["Kernel", :instance, :puts]])
+          .to have_one_spec("Kernel#puts")
       end
 
       it "checks private Kernel methods when no primary candidates" do
         k = klass.new(BlindVisor.new)
         expect(k.method_targets("puts", nil, nil, true, nil, nil))
-          .to eq([["Kernel", :instance, :puts]])
+          .to have_one_spec("Kernel#puts")
       end
 
       it "sorts results list" do
@@ -205,7 +210,7 @@ describe Robe::Sash do
         b = named_module("A::B", "a", "b", "c", "d")
         c = new_module("a", "b", "c", "d")
         k = klass.new(ScopedVisor.new(*[b, c, a].shuffle))
-        expect(k.method_targets("a", nil, nil, true, nil, nil).map { |(m)| m })
+        expect(k.method_targets("a", nil, nil, true, nil, nil).map(&:first))
           .to eq(["A", "A::B", nil])
       end
     end
@@ -215,31 +220,31 @@ describe Robe::Sash do
     let(:k) { klass.new }
 
     it "completes instance methods" do
-      expect(k.complete_method("gs", nil, nil, true).map(&:first))
-        .to include(:gsub, :gsub!)
+      expect(k.complete_method("gs", nil, nil, true))
+        .to include_spec("String#gsub", "String#gsub!")
     end
 
     context "class methods" do
       let(:k) { klass.new(ScopedVisor.new(Class, {"Object" => Object})) }
 
       it "completes public" do
-        expect(k.complete_method("su", nil, nil, nil).map(&:first))
-          .to include(:superclass)
+        expect(k.complete_method("su", nil, nil, nil))
+          .to include_spec("Class#superclass")
       end
 
       it "no private methods with explicit target" do
-        expect(k.complete_method("attr", "Object", nil, nil).map(&:first))
-          .not_to include(:attr_reader)
+        expect(k.complete_method("attr", "Object", nil, nil))
+          .not_to include_spec("Module#attr_reader")
       end
 
       it "no private methods with no target at all" do
-        expect(k.complete_method("attr", "Object", nil, nil).map(&:first))
-          .not_to include(:attr_reader)
+        expect(k.complete_method("attr", "Object", nil, nil))
+          .not_to include_spec("Module#attr_reader")
       end
 
       it "completes private methods with implicit target" do
-        expect(k.complete_method("attr", nil, "Object", nil).map(&:first))
-          .to include(:attr_reader, :attr_writer)
+        expect(k.complete_method("attr", nil, "Object", nil))
+          .to include_spec("Module#attr_reader", "Module#attr_writer")
       end
     end
   end
@@ -289,4 +294,35 @@ describe Robe::Sash do
   end
 
   it { expect(klass.new.ping).to be_true }
+
+  RSpec::Matchers.define :include_spec do |*specs|
+    match do |candidates|
+      actual = candidates.map { |mod, instance, sym|
+        MethodSpec.to_str(mod, instance, sym)
+      }
+      RSpec::Matchers::BuiltIn::Include.new(*specs).matches?(actual)
+    end
+  end
+
+  RSpec::Matchers.define :have_one_spec do |spec|
+    match do |candidates|
+      candidates.length == 1 and
+        MethodSpec.new(spec) == candidates[0]
+    end
+  end
+
+  class MethodSpec
+    def initialize(str)
+      @str = str
+    end
+
+    def self.to_str(mod, inst, sym)
+      "#{mod}#{inst ? '#' : '.'}#{sym}"
+    end
+
+    def ==(other)
+      other.is_a?(Array) && other.length > 2 &&
+        self.class.to_str(*other[0..2]) == @str
+    end
+  end
 end

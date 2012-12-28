@@ -119,6 +119,8 @@
          (robe-retrieve url (1- (or retries robe-max-retries))))))
     (current-buffer)))
 
+(defstruct (robe-spec (:type list)) module inst-p method params file line)
+
 (defun robe-ask ()
   "Prompt for module, method, and jump to its definition."
   (interactive)
@@ -134,10 +136,10 @@
                 alist))))
 
 (defun robe-decorate-methods (list)
-  (mapcar (lambda (row)
-            (cons (concat (if (string= "instance" (second row)) "#" ".")
-                          (third row))
-                  row))
+  (mapcar (lambda (spec)
+            (cons (concat (if (robe-spec-inst-p spec) "#" ".")
+                          (robe-spec-method spec))
+                  spec))
           list))
 
 (defun robe-const-p (thing)
@@ -198,16 +200,15 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (list target module instance ctx)))
 
 (defun robe-decorate-modules (list)
-  (loop for row in list
-        for name = (cond ((first row) (first row))
-                         ((nth 3 row)
-                          (format "<%s>" (file-name-nondirectory (nth 3 row)))))
+  (loop for spec in list
+        for name = (cond ((robe-spec-module spec))
+                         ((robe-spec-file spec)
+                          (format "<%s>" (file-name-nondirectory
+                                          (robe-spec-file spec)))))
         when name
         collect (cons (concat name
-                              (if (string= "instance"
-                                           (second row))
-                                  "#" "."))
-                      (cons name (cdr row)))))
+                              (if (robe-spec-inst-p spec) "#" "."))
+                      (cons name (cdr spec)))))
 
 (defun robe-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
@@ -258,14 +259,14 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
           (list module (when instance t) method-name))
       (list nil t nil))))
 
-(defun robe-jump-to (info &optional pop-to-buffer)
-  (let ((location (cdddr info)))
-    (if (null location)
+(defun robe-jump-to (spec &optional pop-to-buffer)
+  (let ((file (robe-spec-file spec)))
+    (if (null file)
         (when (yes-or-no-p "Can't jump to a C method. Show documentation? ")
-          (robe-show-doc info))
-      (robe-find-file (nth 0 location) pop-to-buffer)
+          (robe-show-doc spec))
+      (robe-find-file file pop-to-buffer)
       (goto-char (point-min))
-      (forward-line (1- (nth 1 location)))
+      (forward-line (1- (robe-spec-line spec)))
       (back-to-indentation))))
 
 (defun robe-find-file (file &optional pop-to-buffer)
@@ -314,16 +315,16 @@ Only works with Rails, see e.g. `rinari-console'."
   'action 'robe-toggle-source
   'help-echo "mouse-2, RET: toggle source")
 
-(defun robe-show-doc (info)
+(defun robe-show-doc (spec)
   (interactive)
-  (let* ((doc (robe-doc-for info))
+  (let* ((doc (robe-doc-for spec))
          (buffer (get-buffer-create "*robe-doc*"))
          (inhibit-read-only t)
          (docstring (cdr (assoc 'docstring doc)))
          (source (cdr (assoc 'source doc)))
          (aliases (cdr (assoc 'aliases doc)))
          (visibility (cdr (assoc 'visibility doc)))
-         (location (cdddr info)))
+         (file (robe-spec-file spec)))
     (with-help-window buffer
       (unless (zerop (length docstring))
         (princ "\n\n")
@@ -335,7 +336,7 @@ Only works with Rails, see e.g. `rinari-console'."
         (let ((button (insert-text-button "Source"
                                           'type 'robe-toggle-source)))
           (insert "\n\n")
-          (if location
+          (if file
               (let ((beg (point)))
                 (insert source)
                 (robe-doc-fontify-ruby beg (point)))
@@ -343,12 +344,12 @@ Only works with Rails, see e.g. `rinari-console'."
           (robe-toggle-source button)))
       (goto-char (point-min))
       (save-excursion
-        (insert (robe-signature info (cdr (assoc 'parameters doc))))
-        (when location
+        (insert (robe-signature spec))
+        (when file
           (insert " is defined in ")
-          (insert-text-button (file-name-nondirectory (car location))
+          (insert-text-button (file-name-nondirectory file)
                               'type 'robe-method-def
-                              'help-args (list info t)))
+                              'help-args (list spec t)))
         (when (equal visibility "public")
           (setq visibility nil))
         (when (or aliases visibility)
@@ -413,13 +414,13 @@ Only works with Rails, see e.g. `rinari-console'."
          (inhibit-read-only t))
     (put-text-property end (point-max) 'invisible (not value))))
 
-(defun robe-signature (info params &optional arg-num)
-  (destructuring-bind (mod instance method &rest) info
-    (concat (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
-                       (split-string mod "::" t) "::")
-            (if instance "#" ".")
-            (propertize method 'face font-lock-function-name-face)
-            (robe-signature-params params arg-num))))
+(defun robe-signature (spec &optional arg-num)
+  (concat
+   (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
+              (split-string (robe-spec-module spec) "::" t) "::")
+   (if (robe-spec-inst-p spec) "#" ".")
+   (propertize (robe-spec-method spec) 'face font-lock-function-name-face)
+   (robe-signature-params (robe-spec-params spec) arg-num)))
 
 (defun robe-signature-params (params &optional arg-num)
   (let ((cnt 0) args)
@@ -447,8 +448,8 @@ Only works with Rails, see e.g. `rinari-console'."
               args)))
     (concat "(" (mapconcat #'identity (nreverse args) ", ") ")")))
 
-(defun robe-doc-for (info)
-  (apply 'robe-request "doc_for" (subseq info 0 3)))
+(defun robe-doc-for (spec)
+  (apply 'robe-request "doc_for" (subseq spec 0 3)))
 
 (defun robe-call-at-point ()
   (let ((state (syntax-ppss)) (start (point))
@@ -523,11 +524,11 @@ Only works with Rails, see e.g. `rinari-console'."
            (robe-max-retries 0))
       (when (and thing robe-running (not (robe-const-p thing)))
         (let* ((robe-jump-conservative t)
-               (list (loop for info in (robe-jump-modules thing)
-                           when (car info) collect info)))
+               (list (loop for spec in (robe-jump-modules thing)
+                           when (robe-spec-module spec) collect spec)))
           (when (consp list)
-            (let* ((info (car list))
-                   (doc (robe-doc-for info))
+            (let* ((spec (car list))
+                   (doc (robe-doc-for spec))
                    (summary (with-temp-buffer
                               (insert (cdr (assoc 'docstring doc)))
                               (unless (= (point) (point-min))
@@ -539,8 +540,7 @@ Only works with Rails, see e.g. `rinari-console'."
                                 (while (search-forward "\n" nil t)
                                   (replace-match " ")))
                               (buffer-string)))
-                   (sig (robe-signature info (cdr (assoc 'parameters doc))
-                                        arg-num))
+                   (sig (robe-signature spec arg-num))
                    (msg (format "%s %s" sig summary)))
               (substring msg 0 (min (frame-width) (length msg))))))))))
 
@@ -553,14 +553,14 @@ Only works with Rails, see e.g. `rinari-console'."
               :exit-function #'robe-complete-exit)
       (list (point) (point) fn))))
 
-(defvar robe-annotations-cache nil)
+(defvar robe-specs-cache nil)
 
 (defun robe-complete-annotation (thing)
-  (when robe-annotations-cache
-    (robe-signature-params (gethash thing robe-annotations-cache))))
+  (when robe-specs-cache
+    (robe-signature-params (robe-spec-params (gethash thing robe-specs-cache)))))
 
 (defun robe-complete-exit (&rest _)
-  (setq robe-annotations-cache nil))
+  (setq robe-specs-cache nil))
 
 (defun robe-complete-thing (thing)
   (setq this-command 'robe-complete-thing)
@@ -570,22 +570,23 @@ Only works with Rails, see e.g. `rinari-console'."
         (robe-complete-exit)
         (robe-request "complete_const" thing))
     (destructuring-bind (target module instance _) (robe-call-context)
-      (setq robe-annotations-cache (make-hash-table :test 'equal))
-      (mapc (lambda (row)
-              (puthash (first row) (second row) robe-annotations-cache))
+      (setq robe-specs-cache (make-hash-table :test 'equal))
+      (mapcar (lambda (spec)
+                (let ((method (robe-spec-method spec)))
+                  (puthash method spec robe-specs-cache)
+                  method))
             (robe-request "complete_method" thing target module instance)))))
 
 (eval-after-load 'auto-complete
   '(progn
      (defun robe-ac-doc (symbol)
        "Return popup documentation for auto-complete."
-       (when robe-running
-         (let ((info (first (robe-jump-modules symbol))))
-           (when info
-             (let ((doc (robe-doc-for info)))
-               (concat (robe-signature info (cdr (assoc 'parameters doc)))
-                       "\n\n"
-                       (cdr (assoc 'docstring doc))))))))
+       (when (and robe-running robe-specs-cache)
+         (let ((spec (gethash symbol robe-specs-cache)))
+           (when spec
+             (concat (robe-signature spec)
+                     "\n\n"
+                     (cdr (assoc 'docstring (robe-doc-for spec))))))))
 
      (defun robe-ac-available ()
        "Return t if robe completions are available, otherwise nil."
