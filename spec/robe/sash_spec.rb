@@ -74,17 +74,17 @@ describe Robe::Sash do
     it { expect(k.find_method_owner(Class.new, :module, :boo)).to be_nil}
   end
 
-  context "#method_info" do
+  context "#method_spec" do
     let(:k) { klass.new }
 
     it "works on String#gsub" do
-      expect(k.method_info(String.instance_method(:gsub)))
+      expect(k.method_spec(String.instance_method(:gsub)))
         .to eq(["String", :instance, :gsub])
     end
 
     it "includes method location" do
       m = Module.new { def foo; end }
-      expect(k.method_info(m.instance_method(:foo)))
+      expect(k.method_spec(m.instance_method(:foo)))
         .to eq([nil, :instance, :foo, __FILE__, __LINE__ - 2])
     end
 
@@ -95,7 +95,7 @@ describe Robe::Sash do
         end
       end
       stub_const("M::C", c)
-      expect(k.method_info(c.singleton_class.instance_method(:foo)))
+      expect(k.method_spec(c.singleton_class.instance_method(:foo)))
         .to eq(["M::C", :module, :foo, __FILE__, anything])
     end
 
@@ -103,13 +103,13 @@ describe Robe::Sash do
       let(:m) { Module.new { def foo; end} }
 
       it "returns nil first element" do
-        expect(k.method_info(m.instance_method(:foo)))
+        expect(k.method_spec(m.instance_method(:foo)))
           .to eq([nil, :instance, :foo, __FILE__, anything])
       end
 
       it "substitutes anonymous module with including class name" do
         stub_const("C", Class.new.send(:include, m) )
-        expect(k.method_info(m.instance_method(:foo)))
+        expect(k.method_spec(m.instance_method(:foo)))
           .to eq(["C", :instance, :foo, __FILE__, anything])
       end
     end

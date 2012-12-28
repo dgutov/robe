@@ -37,10 +37,10 @@ module Robe
     def targets(obj)
       obj = visor.resolve_const(obj)
       if obj.is_a? Module
-        module_methods = obj.methods.map { |m| method_info(obj.method(m)) }
+        module_methods = obj.methods.map { |m| method_spec(obj.method(m)) }
         instance_methods = (obj.instance_methods +
                             obj.private_instance_methods(false))
-          .map { |m| method_info(obj.instance_method(m)) }
+          .map { |m| method_spec(obj.instance_method(m)) }
         [obj.name] + module_methods + instance_methods
       else
         self.targets(obj.class.to_s)
@@ -58,7 +58,7 @@ module Robe
       end
     end
 
-    def method_info(method)
+    def method_spec(method)
       owner = method.owner
       if Class == owner || owner.ancestors.first == owner
         type = :instance
@@ -107,7 +107,7 @@ module Robe
         scanner.scan(visor.each_object(Module), true, true)
       end
 
-      scanner.candidates.map { |method| method_info(method) }
+      scanner.candidates.map { |method| method_spec(method) }
         .sort_by { |(mname)| mname ? mname.scan(/::/).length : 99 }
     end
 
