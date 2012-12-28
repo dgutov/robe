@@ -575,7 +575,8 @@ Only works with Rails, see e.g. `rinari-console'."
                 (let ((method (robe-spec-method spec)))
                   (puthash method spec robe-specs-cache)
                   method))
-              (robe-request "complete_method" thing target module instance)))))
+              (reverse
+               (robe-request "complete_method" thing target module instance))))))
 
 (defvar robe-mode-map
   (let ((map (make-sparse-keymap)))
