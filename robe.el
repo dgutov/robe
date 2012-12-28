@@ -555,9 +555,16 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defvar robe-specs-cache nil)
 
+(defmacro robe-with-cached-spec (method &rest body)
+  (declare (indent 1) (debug t))
+  `(when robe-specs-cache
+     (let ((spec (gethash ,method robe-specs-cache)))
+       (when spec
+         ,@body))))
+
 (defun robe-complete-annotation (thing)
-  (when robe-specs-cache
-    (robe-signature-params (robe-spec-params (gethash thing robe-specs-cache)))))
+  (robe-with-cached-spec thing
+    (robe-signature-params (robe-spec-params spec))))
 
 (defun robe-complete-exit (&rest _)
   (setq robe-specs-cache nil))

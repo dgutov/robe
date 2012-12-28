@@ -14,14 +14,7 @@ superclasses, descendants and included modules as appropriate.
 
 If the result is ambiguous, you're prompted to pick the module/location.
 
-ElDoc support and constant and method completion (triggered with
-<kbd>C-M-i</kbd>) are also provided.
-
-Users of `auto-complete` can enable Robe completion with:
-
-```lisp
-(push 'ac-source-robe ac-sources)
-```
+ElDoc support and constant and method completion are also provided.
 
 ## Install
 
@@ -33,6 +26,22 @@ In the init file:
 ```lisp
 (add-hook 'ruby-mode-hook 'robe-mode)
 ```
+
+## Completion
+
+* [company-mode](http://www.emacswiki.org/CompanyMode):
+
+```lisp
+(push 'company-robe company-backends)
+```
+
+* [auto-complete](http://cx4a.org/software/auto-complete/):
+
+```lisp
+(push 'ac-source-robe ac-sources)
+```
+
+Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
 
 ## Compatibility
 
