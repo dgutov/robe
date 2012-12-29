@@ -1,4 +1,4 @@
-;;; robe.el --- Code navigation, documentation and completion for Ruby
+;;; robe.el --- Code navigation, documentation lookup and completion for Ruby
 
 ;; Copyright © 2012 Phil Hagelberg
 ;; Copyright © 2012 Dmitry Gutov
