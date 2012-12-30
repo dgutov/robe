@@ -1,4 +1,4 @@
-(require 'robe)
+(eval-when-compile (require 'robe))
 
 (defun robe-ac-doc (symbol)
   "Return popup documentation for `auto-complete'."
@@ -11,10 +11,11 @@
 ;;;###autoload
 (defun robe-ac-available ()
   "Return t if `robe-mode' completions are available, otherwise nil."
-  robe-mode)
+  (and (boundp 'robe-mode) robe-mode))
 
 (defun robe-ac-candidates ()
   "Return completion candidates for `ac-prefix'."
+  (require 'robe)
   (when robe-running
     (robe-complete-thing ac-prefix)))
 
