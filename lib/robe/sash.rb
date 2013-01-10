@@ -126,11 +126,15 @@ module Robe
 
     def complete_const(prefix)
       colons = prefix.rindex("::")
-      if !colons || colons == 0
-        base, base_name = Object, ""
+      if !colons
+        base_name = ""
       else
-        base = visor.resolve_const(prefix[0..colons - 1])
-        base_name = base.name + "::"
+        base_name = prefix[0..colons + 1]
+      end
+      if !colons || colons == 0
+        base = Object
+      else
+        base = visor.resolve_const(base_name)
       end
       tail = colons ? prefix[colons + 2..-1] : prefix
       base.constants.grep(/^#{Regexp.escape(tail)}/)

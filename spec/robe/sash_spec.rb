@@ -252,18 +252,10 @@ describe Robe::Sash do
   context "#complete_const" do
     let(:m) do
       Module.new do
-        def self.name
-          "Test"
-        end
-
         self::ACONST = 1
 
         module self::AMOD; end
         module self::BMOD
-          def self.name
-            "BMOD"
-          end
-
           module self::C; end
         end
 
@@ -285,11 +277,21 @@ describe Robe::Sash do
     end
 
     it "completes with bigger nesting" do
-      expect(k.complete_const("Test::BMOD::C")).to eq(["BMOD::C"])
+      expect(k.complete_const("Test::BMOD::C")).to eq(["Test::BMOD::C"])
     end
 
     it "completes global constants" do
       expect(k.complete_const("Ob")).to include("Object", "ObjectSpace")
+    end
+
+    it "uses the full access path from the request" do
+      k = klass.new
+      expect(k.complete_const("Object::File::S")).to include("Object::File::Stat")
+    end
+
+    it "keeps the global qualifier" do
+      k = klass.new
+      expect(k.complete_const("::Obj")).to eq(["::Object", "::ObjectSpace"])
     end
   end
 
