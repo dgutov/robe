@@ -1,32 +1,32 @@
 (require 'ert-x)
 
 (ert-deftest signature-for-simple-args ()
-  (should (string= (robe-signature '("C" t "foo") '(("req" "a") ("req" "b")))
+  (should (string= (robe-signature '("C" t "foo" (("req" "a") ("req" "b"))))
                    "C#foo(a, b)")))
 
 (ert-deftest signature-for-rest ()
-  (should (string= (robe-signature '("C" t "foo") '(("rest" "items")))
+  (should (string= (robe-signature '("C" t "foo" (("rest" "items"))))
                    "C#foo(items...)")))
 
 (ert-deftest signature-for-block ()
-  (should (string= (robe-signature '("C" t "foo") '(("block" "pred")))
+  (should (string= (robe-signature '("C" t "foo" (("block" "pred"))))
                    "C#foo(&pred)")))
 
 (ert-deftest signature-for-opt ()
-  (should (string= (robe-signature '("C" t "foo") '(("req" "a") ("opt" "b")))
+  (should (string= (robe-signature '("C" t "foo" (("req" "a") ("opt" "b"))))
                    "C#foo(a, [b])")))
 
 (ert-deftest signature-for-nameless-args ()
-  (should (string= (robe-signature '("C" t "foo")
-                                   '(("req") ("req") ("rest") ("block")))
+  (should (string= (robe-signature '("C" t "foo"
+                                     (("req") ("req") ("rest") ("block"))))
                    "C#foo(arg1, arg2, args..., &block)")))
 
 (ert-deftest signature-for-class-method ()
-  (should (string= (robe-signature '("A::B" nil "bar") nil) "A::B.bar()")))
+  (should (string= (robe-signature '("A::B" nil "bar" nil)) "A::B.bar()")))
 
 (ert-deftest signature-font-lock ()
   (should (equal-including-properties
-           (robe-signature '("A::B" t "foo") '(("req" "a") ("rest" "b")))
+           (robe-signature '("A::B" t "foo" (("req" "a") ("rest" "b"))))
            (ert-propertized-string
             `(face ,font-lock-type-face) "A" nil "::"
             `(face ,font-lock-type-face) "B" nil "#"
@@ -35,14 +35,14 @@
             `(face ,robe-em-face) "b..." nil ")"))))
 
 (ert-deftest signature-current-arg-in-bold ()
-  (let* ((sig (robe-signature '("C" nil "foo")
-                              '(("req" "a") ("req" "b") ("req" "c")) 2))
+  (let* ((sig (robe-signature '("C" nil "foo"
+                                (("req" "a") ("req" "b") ("req" "c"))) 2))
          (value (get-text-property 9 'face sig)))
     (should (consp value))
     (should (memq 'bold value))))
 
 (ert-deftest signature-rest-arg-in-bold ()
-  (let* ((sig (robe-signature '("C" nil "foo") '(("req" "a") ("rest" "b")) 4))
+  (let* ((sig (robe-signature '("C" nil "foo" (("req" "a") ("rest" "b"))) 4))
          (value (get-text-property 9 'face sig)))
     (should (consp value))
     (should (memq 'bold value))))
