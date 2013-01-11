@@ -42,4 +42,6 @@
         (write-region (point-min) (point-max)
                       (format "%s/%s-pkg.el" dir name)))
       (call-process "tar" nil "*robe-build*" nil "-cvf"
-                    (format "%s.tar" dir) dir))))
+                    (format "%s.tar" dir) dir)
+      (with-current-buffer "*robe-build*"
+        (princ (buffer-string))))))
