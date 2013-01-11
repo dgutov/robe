@@ -6,4 +6,15 @@ RSpec::Core::RakeTask.new do |t|
   t.fail_on_error = false
 end
 
-task :default => :spec
+RSpec::Core::RakeTask.new(:spec_for_build)
+
+task :default => :build
+
+task :ert do
+  system("emacs --batch --eval \"(package-initialize)\" -l robe.el\
+         -l ert/robe-tests.el -f ert-run-tests-batch-and-exit") or exit
+end
+
+task :build => [:spec_for_build, :ert] do
+  system("emacs -Q --batch -l build.el -f build")
+end

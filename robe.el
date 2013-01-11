@@ -58,6 +58,7 @@
 (require 'cl)
 (require 'thingatpt)
 (require 'eldoc)
+(require 'help-mode)
 (require 'ruby-mode)
 
 (defvar robe-ruby-path
