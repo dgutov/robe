@@ -46,6 +46,10 @@ describe Robe::Visor do
     it "sees constants in containing scopes" do
       expect(v.resolve_context("Stat", "File::Constants")).to be(File::Stat)
     end
+
+    it "returns nil when not found" do
+      expect(v.resolve_context("Boo", "File::Constants")).to be_nil
+    end
   end
 
   context ".resolve_path_elems" do
