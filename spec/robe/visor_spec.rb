@@ -47,4 +47,10 @@ describe Robe::Visor do
       expect(v.resolve_context("Stat", "File::Constants")).to be(File::Stat)
     end
   end
+
+  context ".resolve_path_elems" do
+    it "returns an array" do
+      expect(v.resolve_path_elems(["File", "Stat"])).to eq([File, File::Stat])
+    end
+  end
 end
