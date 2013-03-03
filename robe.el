@@ -576,7 +576,7 @@ Only works with Rails, see e.g. `rinari-console'."
   (if (robe-const-p thing)
       (progn
         (robe-complete-exit)
-        (robe-request "complete_const" thing))
+        (robe-request "complete_const" thing (car (robe-context))))
     (destructuring-bind (target module instance _) (robe-call-context)
       (setq robe-specs-cache (make-hash-table :test 'equal))
       (mapcar (lambda (spec)
