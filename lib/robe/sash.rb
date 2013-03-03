@@ -137,7 +137,7 @@ module Robe
         base_name = prefix[0..colons + 1]
         base = unless colons == 0
                  if mod
-                   visor.resolve_context(base_name, mod)
+                   visor.resolve_context(base_name[0..-3], mod)
                  else
                    visor.resolve_const(base_name)
                  end

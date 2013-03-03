@@ -281,7 +281,7 @@ describe Robe::Sash do
     end
 
     it "completes with bigger nesting" do
-      expect(k.complete_const("Test::BMOD::C", nil)).to eq(["Test::BMOD::C"])
+      expect(k.complete_const("BMOD::C", "Test")).to eq(["BMOD::C"])
     end
 
     it "completes global constants" do
