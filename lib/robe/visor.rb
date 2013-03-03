@@ -10,7 +10,7 @@ module Robe
       return resolve_const(mod) unless name
       unless name =~ /\A::/
         nesting = mod ? mod.split("::") : []
-        resolve_path_elems(nesting).each do |elem|
+        resolve_path_elems(nesting).reverse.each do |elem|
           begin
             return elem.const_get(name)
           rescue NameError

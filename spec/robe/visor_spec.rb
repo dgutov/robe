@@ -50,6 +50,18 @@ describe Robe::Visor do
     it "returns nil when not found" do
       expect(v.resolve_context("Boo", "File::Constants")).to be_nil
     end
+
+    it "prioritizes deeper nesting" do
+      m = Module.new do
+        module self::A; end
+        module self::N
+          module self::A
+          end
+        end
+      end
+      stub_const("M", m)
+      expect(v.resolve_context("A", "M::N")).to be(m::N::A)
+    end
   end
 
   context ".resolve_path_elems" do
