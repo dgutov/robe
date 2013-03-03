@@ -122,13 +122,13 @@ describe Robe::Sash do
 
   context "#doc_for" do
     it "returns doc hash for instance method" do
-      k = klass.new(Robe::Visor.new)
+      k = klass.new
       hash = k.doc_for("Hash", true, "update")
       expect(hash[:docstring]).to include("Adds the contents")
     end
 
     it "returns doc hash for module method" do
-      k = klass.new(Robe::Visor.new)
+      k = klass.new
       hash = k.doc_for("Enumerable", nil, "attr_accessor")
       expect(hash[:docstring]).to include("Defines a named attribute")
     end
@@ -267,31 +267,35 @@ describe Robe::Sash do
 
     context "sandboxed" do
       it "completes all constants" do
-        expect(k.complete_const("Test::A"))
+        expect(k.complete_const("Test::A", nil))
           .to eq(%w(Test::ACONST Test::AMOD Test::ACLS))
       end
 
       it "requires names to begin with prefix" do
-        expect(k.complete_const("Test::MOD")).to be_empty
+        expect(k.complete_const("Test::MOD", nil)).to be_empty
+      end
+
+      it "completes the constant in the nesting" do
+        expect(k.complete_const("A", "Test")).to include("ACONST")
       end
     end
 
     it "completes with bigger nesting" do
-      expect(k.complete_const("Test::BMOD::C")).to eq(["Test::BMOD::C"])
+      expect(k.complete_const("Test::BMOD::C", nil)).to eq(["Test::BMOD::C"])
     end
 
     it "completes global constants" do
-      expect(k.complete_const("Ob")).to include("Object", "ObjectSpace")
+      expect(k.complete_const("Ob", nil)).to include("Object", "ObjectSpace")
     end
 
     it "uses the full access path from the request" do
       k = klass.new
-      expect(k.complete_const("Object::File::S")).to include("Object::File::Stat")
+      expect(k.complete_const("Object::File::S", nil)).to include("Object::File::Stat")
     end
 
     it "keeps the global qualifier" do
       k = klass.new
-      expect(k.complete_const("::Obj")).to eq(["::Object", "::ObjectSpace"])
+      expect(k.complete_const("::Obj", nil)).to eq(["::Object", "::ObjectSpace"])
     end
   end
 

@@ -124,20 +124,22 @@ module Robe
       scanner.candidates.map { |m| method_spec(m) }
     end
 
-    def complete_const(prefix)
+    def complete_const(prefix, mod)
       colons = prefix.rindex("::")
       if !colons
-        base_name = ""
+        base_name = nil
       else
         base_name = prefix[0..colons + 1]
       end
-      if !colons || colons == 0
-        base = Object
-      else
-        base = visor.resolve_const(base_name)
-      end
+      base = unless colons == 0
+               if mod
+                 visor.resolve_context(base_name, mod)
+               else
+                 visor.resolve_const(base_name)
+               end
+             end
       tail = colons ? prefix[colons + 2..-1] : prefix
-      base.constants.grep(/^#{Regexp.escape(tail)}/)
+      (base || Object).constants.grep(/^#{Regexp.escape(tail)}/)
         .map { |c| "#{base_name}#{c}" }
     end
 
