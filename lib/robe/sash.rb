@@ -126,21 +126,28 @@ module Robe
 
     def complete_const(prefix, mod)
       colons = prefix.rindex("::")
+      tail = colons ? prefix[colons + 2..-1] : prefix
       if !colons
-        base_name = nil
+        path = [Object]
+        path += visor.resolve_path(mod) if mod
+        path.flat_map do |m|
+          complete_const_in_module(tail, m)
+        end
       else
         base_name = prefix[0..colons + 1]
-      end
-      base = unless colons == 0
-               if mod
-                 visor.resolve_context(base_name, mod)
-               else
-                 visor.resolve_const(base_name)
+        base = unless colons == 0
+                 if mod
+                   visor.resolve_context(base_name, mod)
+                 else
+                   visor.resolve_const(base_name)
+                 end
                end
-             end
-      tail = colons ? prefix[colons + 2..-1] : prefix
-      (base || Object).constants.grep(/^#{Regexp.escape(tail)}/)
-        .map { |c| "#{base_name}#{c}" }
+        complete_const_in_module(tail, base || Object)
+      end.map { |c| "#{base_name}#{c}" }
+    end
+
+    def complete_const_in_module(tail, base)
+      base.constants.grep(/^#{Regexp.escape(tail)}/)
     end
 
     def rails_refresh

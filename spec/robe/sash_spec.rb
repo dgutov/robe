@@ -288,6 +288,12 @@ describe Robe::Sash do
       expect(k.complete_const("Ob", nil)).to include("Object", "ObjectSpace")
     end
 
+    it "completes the constants in all containing scopes" do
+      k = klass.new
+      expect(k.complete_const("C", "Encoding"))
+        .to include("Converter", "Class", "Complex")
+    end
+
     it "uses the full access path from the request" do
       k = klass.new
       expect(k.complete_const("Object::File::S", nil)).to include("Object::File::Stat")
