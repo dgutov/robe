@@ -120,15 +120,18 @@ have constants, methods and arguments highlighted in color."
 
 (defun robe-retrieve (url &optional retries)
   (declare (special url-http-response-status))
-  (with-current-buffer (url-retrieve-synchronously url)
-    (unless (memq url-http-response-status '(200 500))
+  (let ((buffer (condition-case nil (url-retrieve-synchronously url)
+                  (file-error nil))))
+    (if (and buffer
+             (with-current-buffer buffer
+               (memq url-http-response-status '(200 500))))
+        buffer
       (if (and retries (not (plusp retries)))
           (setq robe-running nil)
-        (kill-buffer)
+        (when buffer
+          (kill-buffer))
         (sleep-for 0.3)
-        (set-buffer
-         (robe-retrieve url (1- (or retries robe-max-retries))))))
-    (current-buffer)))
+        (robe-retrieve url (1- (or retries robe-max-retries)))))))
 
 (defstruct (robe-spec (:type list)) module inst-p method params file line)
 
