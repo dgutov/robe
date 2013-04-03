@@ -5,7 +5,7 @@
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
-;; Version: 0.7
+;; Version: 0.7.1
 ;; Keywords: ruby convenience rails
 ;; Package-Requires: ((inf-ruby "2.2.4"))
 
@@ -60,6 +60,16 @@
 (require 'eldoc)
 (require 'help-mode)
 (require 'ruby-mode)
+
+(defgroup robe nil
+  "Code navigation, documentation lookup and completion for Ruby"
+  :group 'languages
+  :group 'convenience)
+
+(defcustom robe-highlight-capf-candidates (version< "24.3.50" emacs-version)
+  "When non-nil, `completion-at-point' candidates buffer will
+have constants, methods and arguments highlighted in color."
+  :group 'robe)
 
 (defvar robe-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
@@ -565,7 +575,10 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-complete-annotation (thing)
   (robe-with-cached-spec thing
-    (robe-signature-params (robe-spec-params spec))))
+    (let ((params (robe-signature-params (robe-spec-params spec))))
+      (if robe-highlight-capf-candidates
+          params
+        (substring-no-properties params)))))
 
 (defun robe-complete-exit (&rest _)
   (setq robe-specs-cache nil))
@@ -580,9 +593,15 @@ Only works with Rails, see e.g. `rinari-console'."
     (destructuring-bind (target module instance _) (robe-call-context)
       (setq robe-specs-cache (make-hash-table :test 'equal))
       (mapcar (lambda (spec)
-                (let ((method (robe-spec-method spec)))
+                (let ((method (robe-spec-method spec))
+                      case-fold-search)
                   (puthash method spec robe-specs-cache)
-                  method))
+                  (if robe-highlight-capf-candidates
+                      (propertize method 'face
+                                  (if (string-match "\\`[A-Z]" method)
+                                      'font-lock-type-face
+                                    'font-lock-function-name-face))
+                    method)))
               (reverse
                (robe-request "complete_method" thing target module instance))))))
 
