@@ -8,8 +8,7 @@
     (interactive (company-begin-backend 'company-robe))
     (prefix (and (boundp 'robe-mode)
                  robe-mode robe-running
-                 (or (thing-at-point 'symbol)
-                     "")))
+                 (company-grab-symbol)))
     (candidates (robe-complete-thing arg))
     (duplicates t)
     (meta (robe-with-cached-spec arg
