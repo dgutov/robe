@@ -129,7 +129,7 @@ have constants, methods and arguments highlighted in color."
       (if (and retries (not (plusp retries)))
           (setq robe-running nil)
         (when buffer
-          (kill-buffer))
+          (kill-buffer buffer))
         (sleep-for 0.3)
         (robe-retrieve url (1- (or retries robe-max-retries)))))))
 
