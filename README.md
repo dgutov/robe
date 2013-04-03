@@ -29,17 +29,21 @@ In the init file:
 
 ## Completion
 
-* [company-mode](http://www.emacswiki.org/CompanyMode):
+* [company-mode](http://company-mode.github.com/):
 
 ```lisp
 (push 'company-robe company-backends)
 ```
 
-* [auto-complete](http://cx4a.org/software/auto-complete/):
+* [auto-complete](http://auto-complete.org/):
 
 ```lisp
 (push 'ac-source-robe ac-sources)
 ```
+
+Both of the above work only when the connection to the `inf-ruby` process has
+been established. To do that, either use one of the core `robe` commands, or
+type <kbd>M-x robe-start</kbd>.
 
 Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
 
