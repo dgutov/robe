@@ -49,7 +49,7 @@ Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
 
 ## Compatibility
 
-* Tested in Emacs 24.3 (unreleased), with Ruby 1.9.3, on GNU/Linux.
+* Tested in Emacs 24.3+, with Ruby 1.9.3, on GNU/Linux.
 * Mostly works on MS Windows, with minor glitches.
 * Using Emacs trunk is currently recommended (24.3.50) for better recognition
   of context at point.
