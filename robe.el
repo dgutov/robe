@@ -97,9 +97,8 @@ have constants, methods and arguments highlighted in color."
                                      ";")
                           robe-ruby-path robe-port)))
       (comint-send-string (inf-ruby-proc) script))
-    (if (robe-request "ping")
-        (setq robe-running t)
-      (error "Server doesn't respond"))))
+    (when (robe-request "ping") ;; Should be always t when no error, though.
+      (setq robe-running t))))
 
 (defun robe-request (endpoint &rest args)
   (declare (special url-http-end-of-headers))
@@ -110,13 +109,15 @@ have constants, methods and arguments highlighted in color."
                                           (url-hexify-string arg))
                                          (t "-")))
                                  args "/")))
-         (response-buffer (robe-retrieve url))
-         (value (with-current-buffer response-buffer
-                  (goto-char url-http-end-of-headers)
-                  (let ((json-array-type 'list))
-                    (json-read)))))
-    (kill-buffer response-buffer)
-    value))
+         (response-buffer (robe-retrieve url)))
+    (if response-buffer
+        (prog1
+            (with-current-buffer response-buffer
+              (goto-char url-http-end-of-headers)
+              (let ((json-array-type 'list))
+                (json-read)))
+          (kill-buffer response-buffer))
+      (error "Server doesn't respond"))))
 
 (defun robe-retrieve (url &optional retries)
   (declare (special url-http-response-status))
