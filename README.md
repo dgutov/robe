@@ -19,7 +19,7 @@ ElDoc support and constant and method completion are also provided.
 ## Install
 
 Set up [Melpa](http://melpa.milkbox.net/#installing) if you haven't already,
-then do `M-x package-install RET robe RET`.
+then type <kbd>M-x package-install RET robe RET</kbd>.
 
 In the init file:
 
