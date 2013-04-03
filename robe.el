@@ -418,7 +418,9 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-doc-fontify-c-string (string)
   (with-temp-buffer
     (insert string)
-    (c-mode)
+    (let ((delay-mode-hooks t))
+      (c-mode))
+    (run-hooks 'font-lock-mode-hook)
     (font-lock-fontify-buffer)
     (buffer-string)))
 
