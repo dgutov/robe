@@ -29,13 +29,17 @@ In the init file:
 
 ## Completion
 
-* [company-mode](http://company-mode.github.com/):
+<div style="float: right">
+  <img src="robe-company.png" width="256" title="robe with company-mode" />
+</div>
+
+### [company-mode](http://company-mode.github.com/):
 
 ```lisp
 (push 'company-robe company-backends)
 ```
 
-* [auto-complete](http://auto-complete.org/):
+### [auto-complete](http://auto-complete.org/):
 
 ```lisp
 (push 'ac-source-robe ac-sources)
