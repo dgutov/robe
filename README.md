@@ -29,9 +29,7 @@ In the init file:
 
 ## Completion
 
-<div style="float: right; width: 256px">
-  <img src="robe-company.png" title="robe with company-mode" />
-</div>
+<img src="robe-company.png" title="robe with company-mode" style="float: right; width: 256px" />
 
 ### [company-mode](http://company-mode.github.com/):
 
