@@ -29,13 +29,11 @@ In the init file:
 
 ## Completion
 
-### [company-mode](http://company-mode.github.com/):
+### [company-mode](http://company-mode.github.com/) ([screenshot](robe-company.png)):
 
 ```lisp
 (push 'company-robe company-backends)
 ```
-
-[(screenshot)](robe-company.png)
 
 ### [auto-complete](http://auto-complete.org/):
 
