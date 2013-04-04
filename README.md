@@ -29,10 +29,7 @@ In the init file:
 
 ## Completion
 
-<table>
-
-<tr>
-<td>
+[(screenshot)](master/robe-company.png)
 
 ### [company-mode](http://company-mode.github.com/):
 
@@ -51,16 +48,6 @@ been established. To do that, either use one of the core `robe` commands, or
 type <kbd>M-x robe-start</kbd>.
 
 Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
-
-</td>
-<td>
-
-  <img src="robe-company.png" title="robe with company-mode" width="256" />
-
-</td>
-</tr>
-
-</table>
 
 ## Compatibility
 
