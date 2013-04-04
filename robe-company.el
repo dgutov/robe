@@ -19,6 +19,7 @@
     (doc-buffer (robe-with-cached-spec arg
                   (save-window-excursion
                     (robe-show-doc spec)
+                    (message nil)
                     (get-buffer "*robe-doc*"))))))
 
 (provide 'robe-company)
