@@ -78,7 +78,7 @@ Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
 
 Copyright © 2012 Phil Hagelberg
 
-Copyright © 2012 Dmitry Gutov
+Copyright © 2012, 2013 Dmitry Gutov
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
