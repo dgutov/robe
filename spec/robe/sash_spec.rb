@@ -11,6 +11,20 @@ describe Robe::Sash do
       mock_space = BlindVisor.new(*%w(A B C).map { |n| OpenStruct.new(name: n) })
       expect(klass.new(mock_space).modules).to eq %w(A B C)
     end
+
+    it "ignores misbehaving ones" do
+      m = Module.new do
+        def self.name
+          raise :hell
+        end
+      end
+      n = Module.new do
+        def self.name
+          "dilbert"
+        end
+      end
+      expect(klass.new(BlindVisor.new(m, n)).modules).to eq ["dilbert"]
+    end
   end
 
   context "#class_locations" do
