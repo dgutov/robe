@@ -623,7 +623,7 @@ Only works with Rails, see e.g. `rinari-console'."
 (define-minor-mode robe-mode
   "Improved navigation for Ruby"
   nil " robe" robe-mode-map
-  (add-to-list 'completion-at-point-functions 'robe-complete-at-point)
+  (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
   (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)
   (eldoc-add-command 'robe-complete-thing)
   (turn-on-eldoc-mode))
