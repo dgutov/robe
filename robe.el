@@ -563,7 +563,7 @@ Only works with Rails, see e.g. `rinari-console'."
                 (substring msg 0 (min (frame-width) (length msg)))))))))))
 
 (defun robe-complete-at-point ()
-  (when (inf-ruby-proc)
+  (when (get-buffer-process inf-ruby-buffer)
     (let ((bounds (bounds-of-thing-at-point 'symbol))
           (fn (completion-table-dynamic #'robe-complete-thing)))
       (if bounds
