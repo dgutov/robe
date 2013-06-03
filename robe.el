@@ -563,13 +563,14 @@ Only works with Rails, see e.g. `rinari-console'."
                 (substring msg 0 (min (frame-width) (length msg)))))))))))
 
 (defun robe-complete-at-point ()
-  (let ((bounds (bounds-of-thing-at-point 'symbol))
-        (fn (completion-table-dynamic #'robe-complete-thing)))
-    (if bounds
-        (list (car bounds) (cdr bounds) fn
-              :annotation-function #'robe-complete-annotation
-              :exit-function #'robe-complete-exit)
-      (list (point) (point) fn))))
+  (when (inf-ruby-proc)
+    (let ((bounds (bounds-of-thing-at-point 'symbol))
+          (fn (completion-table-dynamic #'robe-complete-thing)))
+      (if bounds
+          (list (car bounds) (cdr bounds) fn
+                :annotation-function #'robe-complete-annotation
+                :exit-function #'robe-complete-exit)
+        (list (point) (point) fn)))))
 
 (defvar robe-specs-cache nil)
 
