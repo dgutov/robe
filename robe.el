@@ -205,7 +205,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 (defun robe-call-context ()
   (let* ((target (save-excursion
                    (and (progn (ignore-errors (beginning-of-thing 'symbol))
-                               (= ?. (char-before)))
+                               (eq ?. (char-before)))
                         (progn (forward-char -1)
                                (thing-at-point 'symbol)))))
          (ctx (robe-context))
