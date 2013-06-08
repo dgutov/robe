@@ -1,5 +1,6 @@
 require 'robe/sash/doc_for'
 require 'robe/sash/pry_doc_fallback'
+require 'uri'
 
 describe Robe::Sash::DocFor do
   klass = described_class
@@ -22,6 +23,11 @@ describe Robe::Sash::DocFor do
     expect(hash[:docstring]).to include("Adds the contents")
     expect(hash[:source]).to include("rb_hash_foreach")
     expect(hash[:aliases]).to eq([:merge!])
+  end
+
+  it "shows docs for stdlib classes" do
+    hash = klass.new(URI.method(:parse)).format
+    expect(hash[:docstring]).to include("one of the URI's subclasses")
   end
 
   it "returns private visibility for Kernel#puts" do

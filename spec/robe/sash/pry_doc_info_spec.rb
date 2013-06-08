@@ -17,7 +17,7 @@ describe Robe::Sash::PryDocInfo do
 
   context "Ignore non-overload tags" do
     let(:struct) { o.method_struct(Set.instance_method(:include?)) }
-    it { expect(struct.aliases).to eq([])}
+    it { expect(struct.aliases).to eq([:member?])}
   end
 
   context "Know nothing about Kernel#is_a?" do
