@@ -3,7 +3,7 @@
 (defun robe-ac-doc (symbol)
   "Return popup documentation for `auto-complete'."
   (when robe-running
-    (robe-with-cached-spec symbol
+    (let ((spec (car (robe-cached-specs symbol))))
       (concat (robe-signature spec)
               "\n\n"
               (cdr (assoc 'docstring (robe-doc-for spec)))))))

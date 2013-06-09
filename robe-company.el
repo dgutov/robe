@@ -11,15 +11,25 @@
                  (company-grab-symbol)))
     (candidates (robe-complete-thing arg))
     (duplicates t)
-    (meta (robe-with-cached-spec arg
-            (robe-signature spec)))
-    (location (robe-with-cached-spec arg
+    (meta (robe-signature (car (robe-cached-specs arg))))
+    (location (let ((spec (company-robe-choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
-    (doc-buffer (robe-with-cached-spec arg
+    (doc-buffer (let ((spec (company-robe-choose-spec arg)))
                   (save-window-excursion
                     (robe-show-doc spec)
                     (message nil)
                     (get-buffer "*robe-doc*"))))))
+
+(defun company-robe-choose-spec (thing)
+  (let ((specs (robe-cached-specs thing)))
+    (when specs
+      (if (cdr specs)
+          (let ((alist (loop for spec in specs
+                             for module = (robe-spec-module spec)
+                             when module
+                             collect (cons module spec))))
+            (cdr (assoc (ido-completing-read "Module: " alist nil t) alist)))
+        (car specs)))))
 
 (provide 'robe-company)

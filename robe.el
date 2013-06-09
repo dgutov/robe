@@ -576,19 +576,16 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defvar robe-specs-cache nil)
 
-(defmacro robe-with-cached-spec (method &rest body)
-  (declare (indent 1) (debug t))
-  `(when robe-specs-cache
-     (let ((spec (gethash ,method robe-specs-cache)))
-       (when spec
-         ,@body))))
+(defun robe-cached-specs (method)
+  (when robe-specs-cache
+    (gethash method robe-specs-cache)))
 
 (defun robe-complete-annotation (thing)
-  (robe-with-cached-spec thing
-    (let ((params (robe-signature-params (robe-spec-params spec))))
-      (if robe-highlight-capf-candidates
-          params
-        (substring-no-properties params)))))
+  (let ((params (robe-signature-params (robe-spec-params
+                                        (car (robe-cached-specs (thing)))))))
+    (if robe-highlight-capf-candidates
+        params
+      (substring-no-properties params))))
 
 (defun robe-complete-exit (&rest _)
   (setq robe-specs-cache nil))
@@ -603,9 +600,10 @@ Only works with Rails, see e.g. `rinari-console'."
     (destructuring-bind (target module instance _) (robe-call-context)
       (setq robe-specs-cache (make-hash-table :test 'equal))
       (mapcar (lambda (spec)
-                (let ((method (robe-spec-method spec))
-                      case-fold-search)
-                  (puthash method spec robe-specs-cache)
+                (let* ((method (robe-spec-method spec))
+                       (value (gethash method robe-specs-cache))
+                       case-fold-search)
+                  (puthash method (cons spec value) robe-specs-cache)
                   (if robe-highlight-capf-candidates
                       (propertize method 'face
                                   (if (string-match "\\`[A-Z]" method)
