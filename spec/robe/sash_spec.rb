@@ -109,15 +109,25 @@ describe Robe::Sash do
           __FILE__, anything])
     end
 
-    it "substitutes eigenclass with the actual class name" do
-      c = Class.new do
-        class << self
-          def foo; end
+    context "eigenclass" do
+      let(:c) do
+        Class.new do
+          class << self
+            def foo; end
+          end
         end
       end
-      stub_const("M::C", c)
-      expect(k.method_spec(c.singleton_class.instance_method(:foo))[0])
-        .to eq("M::C")
+
+      it "substitutes eigenclass with the actual class name" do
+        stub_const("M::C", c)
+        expect(k.method_spec(c.singleton_class.instance_method(:foo))[0])
+          .to eq("M::C")
+      end
+
+      it "skips anonymous one" do
+        expect(k.method_spec(c.singleton_class.instance_method(:foo))[0])
+          .to be_nil
+      end
     end
 
     context "anonymous owner" do
