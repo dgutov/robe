@@ -169,3 +169,32 @@
                    (search-backward "3")
                    (robe-call-at-point))
                  '("bar" . 2))))
+
+(ert-deftest call-context-simple ()
+  (let ((ctx (with-temp-buffer
+               (insert "class C
+  def foo
+    bar.tee
+  end
+end")
+               (search-backward "tee")
+               (robe-call-context))))
+    (should (equal "bar" (car ctx)))
+    (should (equal "C" (nth 1 ctx)))
+    (should (null (nth 2 ctx)))
+    (should (equal '("C" t "foo") (nth 3 ctx)))))
+
+(ert-deftest call-context-self ()
+  (should (null (with-temp-buffer
+                  (insert "self.qux")
+                  (car (robe-call-context))))))
+
+(ert-deftest call-context-self-with-spaces ()
+  (should (null (with-temp-buffer
+                  (insert "self\n  .qux")
+                  (car (robe-call-context))))))
+
+(ert-deftest call-context-complex ()
+  (should (equal "!" (with-temp-buffer
+                       (insert "(bar + tee).qux")
+                       (car (robe-call-context))))))
