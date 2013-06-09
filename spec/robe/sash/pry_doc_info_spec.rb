@@ -15,7 +15,7 @@ describe Robe::Sash::PryDocInfo do
     it { expect(struct.aliases).to eq([:collect])}
   end
 
-  context "Ignore non-overload tags" do
+  context "Set#include? has an alias" do
     let(:struct) { o.method_struct(Set.instance_method(:include?)) }
     it { expect(struct.aliases).to eq([:member?])}
   end
