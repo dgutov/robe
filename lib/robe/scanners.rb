@@ -26,7 +26,9 @@ module Robe
 
   class ModuleScanner < Scanner
     def scan_methods(mod, coll)
-      candidates << mod.instance_method(@sym) if mod.send(coll, false).include?(@sym)
+      if mod.__send__(coll, false).include?(@sym)
+        candidates << mod.instance_method(@sym)
+      end
     end
   end
 
@@ -37,7 +39,7 @@ module Robe
     end
 
     def scan_methods(mod, coll)
-      mod.send(coll, false).grep(@re) do |sym|
+      mod.__send__(coll, false).grep(@re) do |sym|
         candidates << mod.instance_method(sym)
       end
     end

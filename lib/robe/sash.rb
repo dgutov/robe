@@ -50,7 +50,7 @@ module Robe
     end
 
     def find_method(mod, inst, sym)
-      mod.send(inst ? :instance_method : :method, sym)
+      mod.__send__(inst ? :instance_method : :method, sym)
     end
 
     def find_method_owner(mod, inst, sym)
