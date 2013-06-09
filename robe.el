@@ -5,7 +5,7 @@
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
-;; Version: 0.7.2
+;; Version: 0.7.3
 ;; Keywords: ruby convenience rails
 ;; Package-Requires: ((inf-ruby "2.2.4"))
 
@@ -582,7 +582,7 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-complete-annotation (thing)
   (let ((params (robe-signature-params (robe-spec-params
-                                        (car (robe-cached-specs (thing)))))))
+                                        (car (robe-cached-specs thing))))))
     (if robe-highlight-capf-candidates
         params
       (substring-no-properties params))))
