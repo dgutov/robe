@@ -128,6 +128,19 @@ describe Robe::Sash do
         expect(k.method_spec(c.singleton_class.instance_method(:foo))[0])
           .to be_nil
       end
+
+      it "recognizes ActiveRecord classes" do
+        arc = Class.new do
+          class << self
+            def bar; end
+            def inspect
+              "Record(id: integer)"
+            end
+          end
+        end
+
+        expect(k.method_spec(arc.singleton_class.instance_method(:bar))[0]).to eq("Record")
+      end
     end
 
     context "anonymous owner" do
