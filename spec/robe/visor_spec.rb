@@ -62,11 +62,19 @@ describe Robe::Visor do
       stub_const("M", m)
       expect(v.resolve_context("A", "M::N")).to be(m::N::A)
     end
+
+    it "swallows NameError" do
+      expect(v.resolve_context("String", "Foo::Bar")).to be(String)
+    end
   end
 
   context ".resolve_path_elems" do
     it "returns an array" do
       expect(v.resolve_path_elems(["File", "Stat"])).to eq([File, File::Stat])
+    end
+
+    it "swallows NameError" do
+      expect(v.resolve_path_elems(["Foo", "Bar"])).to eq([])
     end
   end
 end

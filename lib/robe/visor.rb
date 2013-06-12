@@ -29,19 +29,19 @@ module Robe
       return [ARGF.class] if name == "ARGF.class"
       nesting = name.split("::")
       nesting.shift if nesting[0].empty?
-      begin
-        resolve_path_elems(nesting)
-      rescue NameError
-        []
-      end
+      resolve_path_elems(nesting)
     end
 
     def resolve_path_elems(nesting, init = Object)
       c = init; ary = []
-      nesting.each do |name|
-        ary << (c = c.const_get(name))
+      begin
+        nesting.each do |name|
+          ary << (c = c.const_get(name))
+        end
+        ary
+      rescue NameError
+        []
       end
-      ary
     end
   end
 end
