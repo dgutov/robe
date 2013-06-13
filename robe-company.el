@@ -11,15 +11,17 @@
                  (company-grab-symbol)))
     (candidates (robe-complete-thing arg))
     (duplicates t)
-    (meta (robe-signature (car (robe-cached-specs arg))))
+    (meta (let ((spec (car (robe-cached-specs arg))))
+            (when spec (robe-signature spec))))
     (location (let ((spec (company-robe-choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
     (doc-buffer (let ((spec (company-robe-choose-spec arg)))
-                  (save-window-excursion
-                    (robe-show-doc spec)
-                    (message nil)
-                    (get-buffer "*robe-doc*"))))))
+                  (when spec
+                    (save-window-excursion
+                      (robe-show-doc spec)
+                      (message nil)
+                      (get-buffer "*robe-doc*")))))))
 
 (defun company-robe-choose-spec (thing)
   (let ((specs (robe-cached-specs thing)))
