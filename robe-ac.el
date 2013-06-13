@@ -4,9 +4,10 @@
   "Return popup documentation for `auto-complete'."
   (when robe-running
     (let ((spec (car (robe-cached-specs symbol))))
-      (concat (robe-signature spec)
-              "\n\n"
-              (cdr (assoc 'docstring (robe-doc-for spec)))))))
+      (when spec
+        (concat (robe-signature spec)
+                "\n\n"
+                (cdr (assoc 'docstring (robe-doc-for spec))))))))
 
 ;;;###autoload
 (defun robe-ac-available ()
