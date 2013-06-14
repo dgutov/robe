@@ -22,7 +22,14 @@ module Robe
 
       def do_GET(req, res)
         _, endpoint, *args = req.path.split("/").map { |s| s == "-" ? nil : s }
-        value = sash.public_send(endpoint.to_sym, *args)
+
+        begin
+          value = sash.public_send(endpoint.to_sym, *args)
+        rescue Exception => e
+          puts "Request failed: #{args}. Please file an issue."
+          raise e
+        end
+
         res["Content-Type"] = "application/json"
         res.status = 200
         res.body = value.to_json
