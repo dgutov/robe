@@ -1,40 +1,62 @@
-require 'webrick'
 require 'json'
 require 'tmpdir'
+require 'socket'
+require 'webrick'
+require 'logger'
 
 module Robe
-  class Server < WEBrick::HTTPServer
-    def initialize(port, sash)
-      access_log = File.open("#{Dir.tmpdir}/robe-access.log", "w")
-      access_log.sync = true
-      super(Port: port, AccessLog:
-            [[access_log, WEBrick::AccessLog::COMMON_LOG_FORMAT]])
-      mount("/", Handler, sash)
+  class Server
+    attr_reader :running
+
+    def initialize(handler, port)
+      @port = port
+      @handler = handler
+
+      @server = TCPServer.new("127.0.0.1", @port)
+      @running = true
     end
 
-    class Handler < WEBrick::HTTPServlet::AbstractServlet
-      attr_reader :sash
+    def start
+      access = File.open("#{Dir.tmpdir}/robe-access.log", "w")
+      access.sync = true
 
-      def initialize(server, sash)
-        super(server)
-        @sash = sash
-      end
+      error_logger = Logger.new(STDERR)
+      access_logger = Logger.new(access)
 
-      def do_GET(req, res)
-        _, endpoint, *args = req.path.split("/").map { |s| s == "-" ? nil : s }
+      client = nil
 
+      loop do
         begin
-          value = sash.public_send(endpoint.to_sym, *args)
-        rescue Exception => e
-          puts "Request failed: #{args}. Please file an issue."
-          raise e
-        end
+          client = @server.accept
+          req = WEBrick::HTTPRequest.new(:InputBufferSize => 1024,
+                                         :Logger => error_logger)
+          req.parse(client)
+          access_logger.info "#{req.request_method} #{req.path}"
 
-        res["Content-Type"] = "application/json"
-        res.status = 200
-        res.body = value.to_json
-        raise WEBrick::HTTPStatus::OK
+          begin
+            body = @handler.call(req.path, req.body)
+          rescue Exception => e
+            error_logger.error "Request failed: #{req.path}. Please file an issue."
+            error_logger.error "#{e.message}\n#{e.backtrace.join("\n")}"
+          end
+
+          resp = WEBrick::HTTPResponse.new(:OutputBufferSize => 1024,
+                                           :Logger => error_logger,
+                                           :HTTPVersion => "1.1")
+          resp.status = 200
+          resp.body = body
+
+          resp.send_response(client)
+          client.close
+        rescue Errno::EINVAL
+          raise StopIteration
+        end
       end
+    end
+
+    def shutdown
+      @running = false
+      @server && @server.shutdown(Socket::SHUT_RDWR)
     end
   end
 end

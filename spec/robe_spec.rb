@@ -18,7 +18,7 @@ describe Robe do
   end
 
   it "has the server running" do
-    expect(Robe.server.status).to be(:Running)
+    expect(Robe.server.running).to be_true
   end
 
   it "has a stop method" do
@@ -35,7 +35,7 @@ describe Robe do
     match do |proc|
       server = Robe.server
       proc.call
-      Robe.server.nil? && [:Shutdown, :Stop].include?(server.status)
+      server.running == false
     end
   end
 end

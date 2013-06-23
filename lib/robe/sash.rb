@@ -160,5 +160,11 @@ module Robe
     def ping
       true
     end
+
+    def call(path, body)
+      _, endpoint, *args = path.split("/").map { |s| s == "-" ? nil : s }
+      value = public_send(endpoint.to_sym, *args)
+      value.to_json
+    end
   end
 end
