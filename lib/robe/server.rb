@@ -49,7 +49,7 @@ module Robe
           resp.send_response(client)
           client.close
         rescue Errno::EINVAL
-          raise StopIteration
+          break
         end
       end
     end
