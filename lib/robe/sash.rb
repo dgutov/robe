@@ -158,7 +158,7 @@ module Robe
     end
 
     def ping
-      true
+      "pong"
     end
 
     def call(path, body)

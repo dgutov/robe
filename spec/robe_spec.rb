@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'robe'
+require 'net/http'
 
 describe Robe do
   before do
@@ -23,6 +24,11 @@ describe Robe do
 
   it "has a stop method" do
     expect { Robe.stop }.to stop_it
+  end
+
+  it "proxies 'ping' to Sash" do
+    resp = Net::HTTP.get("127.0.0.1", "/ping", 12345)
+    expect(resp).to eq("\"pong\"")
   end
 
   %w(INT TERM).each do |signal|
