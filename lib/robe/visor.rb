@@ -27,6 +27,9 @@ module Robe
     def resolve_path(name)
       return [] unless name
       return [ARGF.class] if name == "ARGF.class"
+      if %w(IO::readable IO::writable).include?(name)
+        return [StringIO.included_modules.find { |m| m.name == name }]
+      end
       nesting = name.split("::")
       nesting.shift if nesting[0].empty?
       resolve_path_elems(nesting)
