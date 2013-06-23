@@ -1,5 +1,5 @@
 require 'pry'
-require 'pry-doc'
+require 'pry-doc' if RUBY_ENGINE == "ruby"
 
 module Robe
   class Sash
