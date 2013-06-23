@@ -33,6 +33,19 @@ describe Robe::Server do
     expect(resp.body).to eq("foobles")
   end
 
+  it "prints out exceptions raised in the handler" do
+    handler = proc { raise Exception.new("down with the king!") }
+
+    begin
+      $stderr = StringIO.new
+      start_and_send(handler, Net::HTTP::Get.new("/"))
+      $stderr.seek(0)
+      expect($stderr.read).to match("down with the king!\n")
+    ensure
+      $stderr = STDERR
+    end
+  end
+
   $port = 3000
 
   def start_and_send(handler, request)

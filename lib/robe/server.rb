@@ -20,7 +20,7 @@ module Robe
       access = File.open("#{Dir.tmpdir}/robe-access.log", "w")
       access.sync = true
 
-      error_logger = Logger.new(STDERR)
+      error_logger = Logger.new($stderr)
       access_logger = Logger.new(access)
 
       client = nil
