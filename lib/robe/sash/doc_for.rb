@@ -1,20 +1,15 @@
+require 'pry'
+require 'pry-doc' if RUBY_ENGINE == "ruby"
+
 module Robe
   class Sash
     class DocFor
-      begin
-        require 'robe/sash/pry_doc_info'
-        include PryDocInfo
-      rescue LoadError
-        require 'robe/sash/pry_doc_fallback'
-        include PryDocFallback
-      end
-
       def initialize(method)
         @method = method
       end
 
       def format
-        info = method_struct(@method)
+        info = self.class.method_struct(@method)
         {docstring: info.docstring,
          source: info.source,
          aliases: info.aliases,
@@ -29,6 +24,18 @@ module Robe
           :protected
         elsif owner.private_instance_methods(false).include?(name)
           :private
+        end
+      end
+
+      def self.method_struct(method)
+        begin
+          info = Pry::Method.new(method)
+          OpenStruct.new(docstring: info.doc,
+                         source: info.source,
+                         aliases: info.aliases.map(&:to_sym))
+        rescue Pry::CommandError
+          message = $!.message =~ /pry-doc/ ? $!.message : ""
+          return OpenStruct.new(docstring: message)
         end
       end
     end

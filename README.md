@@ -27,6 +27,10 @@ In the init file:
 (add-hook 'ruby-mode-hook 'robe-mode)
 ```
 
+## Dependencies
+
+`pry` and (on MRI) `pry-doc`.
+
 ## Completion
 
 ### [company-mode](http://company-mode.github.com/) ([screenshot](robe-company.png)):
@@ -50,6 +54,8 @@ Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
 ## Compatibility
 
 * Tested in Emacs 24.3+, with Ruby 1.9.3, on GNU/Linux.
+* Works with the latest Rubinius, although noticeably slower. Some
+  non-essential specs fail.
 * Mostly works on MS Windows, with minor glitches.
 * Using Emacs trunk is currently recommended (24.3.50) for better recognition
   of context at point.

@@ -1,7 +1,6 @@
 require 'spec_helper'
 require 'support/mocks'
 require 'robe/sash'
-require 'robe/sash/pry_doc_fallback'
 
 describe Robe::Sash do
   klass = described_class
