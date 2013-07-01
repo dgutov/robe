@@ -153,7 +153,8 @@ module Robe
     end
 
     def rails_refresh
-      reload!
+      ActionDispatch::Reloader.cleanup!
+      ActionDispatch::Reloader.prepare!
       Rails.application.eager_load!
     end
 
