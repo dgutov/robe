@@ -1,5 +1,9 @@
 require 'pry'
-require 'pry-doc' if RUBY_ENGINE == "ruby"
+begin
+  require 'pry-doc' if RUBY_ENGINE == "ruby"
+rescue LoadError
+  # Whatever, it's optional.
+end
 
 module Robe
   class Sash
