@@ -7,7 +7,7 @@
 ;; URL: https://github.com/dgutov/robe
 ;; Version: 0.7.4
 ;; Keywords: ruby convenience rails
-;; Package-Requires: ((inf-ruby "2.2.4"))
+;; Package-Requires: ((inf-ruby "2.3.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -78,7 +78,7 @@ have constants, methods and arguments highlighted in color."
 
 (defvar robe-port 24969)
 
-(defvar robe-max-retries 4)
+(defvar robe-max-retries 20)
 
 (defvar robe-jump-conservative nil)
 
@@ -87,6 +87,12 @@ have constants, methods and arguments highlighted in color."
 (defun robe-start (&optional arg)
   "Start Robe server if it isn't already running."
   (interactive "p")
+  (when (not (get-buffer-process inf-ruby-buffer))
+    (if (yes-or-no-p "No Ruby console running. Launch automatically?")
+        (let ((conf (current-window-configuration)))
+          (inf-ruby-console-auto)
+          (set-window-configuration conf))
+      (error "Aborted")))
   (when (or arg (not robe-running))
     (let ((script (format (mapconcat #'identity
                                      '("unless defined? Robe"
