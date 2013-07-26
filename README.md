@@ -1,9 +1,11 @@
 # Robe
 
 This builds on `inf-ruby` to handle Ruby subprocesses from Emacs.
+Generally, you'd want to use `M-x inf-ruby-console-auto`. If there's
+no Ruby console running, `robe` will offer to call it for you.
 
-Once you've loaded your inf-ruby process with the code for your project and its
-dependencies, Ruby keeps track of where each method is defined.
+Once you have you application or gem loaded in the console, Ruby keeps
+track of where each method is defined.
 
 You can jump to or read the documentation for the method, module (jump only),
 `super` or constructor definition at point.

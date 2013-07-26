@@ -5,7 +5,7 @@
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
-;; Version: 0.7.4
+;; Version: 0.7.5
 ;; Keywords: ruby convenience rails
 ;; Package-Requires: ((inf-ruby "2.3.0"))
 
@@ -27,8 +27,6 @@
 ;;  - C-c C-d to see the documentation
 ;;  - C-c C-k to refresh Rails environment
 ;;  - C-M-i to complete the symbol at point
-;;
-;; Before using any of these commands, call `run-ruby' or `rinari-console'.
 
 ;;; License:
 
