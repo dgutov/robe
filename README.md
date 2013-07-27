@@ -31,7 +31,9 @@ In the init file:
 
 ## Dependencies
 
-`pry` and (on MRI) `pry-doc`.
+* `pry`
+* `pry-doc` (on MRI)
+* `method_source >= 0.8.2pre1` (for the latest Rubinius compatibility)
 
 ## Completion
 
