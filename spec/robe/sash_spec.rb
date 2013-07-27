@@ -46,9 +46,6 @@ describe Robe::Sash do
           private
           def baz; end
           class << self
-            def name
-              "M"
-            end
             alias_method :inspect, :name
             def oom; end
             private
@@ -56,10 +53,14 @@ describe Robe::Sash do
           end
         end
       end
-      let(:k) { klass.new(double(resolve_const: m)) }
-      subject { k.targets(nil)[1..-1] }
 
-      specify { expect(k.targets(nil)[0]).to eq("M") }
+      before { stub_const("M", m) }
+
+      let(:k) { klass.new }
+
+      subject { k.targets("M")[1..-1] }
+
+      specify { expect(k.targets("M")[0]).to eq("M") }
 
       it { should include_spec("M#foo") }
       it { should include_spec("M#baz") }
@@ -91,8 +92,12 @@ describe Robe::Sash do
     let(:k) { klass.new }
 
     it "works on String#gsub" do
-      expect(k.method_spec(String.instance_method(:gsub)))
-        .to eq(["String", true, :gsub, [[:rest]]])
+      match = if RUBY_ENGINE == "rbx"
+        start_with("String", true, :gsub)
+      else
+        eq(["String", true, :gsub, [[:rest]]])
+      end
+      expect(k.method_spec(String.instance_method(:gsub))).to match
     end
 
     it "includes method location" do
@@ -185,8 +190,8 @@ describe Robe::Sash do
       end
 
       it "returns the method on Class" do
-        expect(k.method_targets("allocate", "Object", nil, nil, nil, nil))
-          .to have_one_spec("Class#allocate")
+        expect(k.method_targets("superclass", "Object", nil, nil, nil, nil))
+          .to have_one_spec("Class#superclass")
       end
 
       it "returns the non-overridden method" do
@@ -304,7 +309,7 @@ describe Robe::Sash do
     context "sandboxed" do
       it "completes all constants" do
         expect(k.complete_const("Test::A", nil))
-          .to eq(%w(Test::ACONST Test::AMOD Test::ACLS))
+          .to match_array(%w(Test::ACONST Test::AMOD Test::ACLS))
       end
 
       it "requires names to begin with prefix" do
