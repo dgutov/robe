@@ -342,7 +342,7 @@ describe Robe::Sash do
 
     it "keeps the global qualifier" do
       k = klass.new
-      expect(k.complete_const("::Obj", nil)).to eq(["::Object", "::ObjectSpace"])
+      expect(k.complete_const("::Obj", nil)).to match_array(["::Object", "::ObjectSpace"])
     end
   end
 

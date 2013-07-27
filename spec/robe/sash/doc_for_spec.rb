@@ -49,9 +49,10 @@ describe Robe::Sash::DocFor do
   end
 
   it "mentions pry-doc when relevant" do
+    val = Pry.config.has_pry_doc
     Pry.config.has_pry_doc = false
     struct = described_class.method_struct(String.instance_method(:gsub))
-    Pry.config.has_pry_doc = true
+    Pry.config.has_pry_doc = val
 
     if RUBY_ENGINE == "ruby"
       expect(struct.docstring).to match(/pry-doc/)
