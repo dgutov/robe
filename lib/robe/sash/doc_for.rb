@@ -35,7 +35,7 @@ module Robe
         begin
           info = Pry::Method.new(method)
           OpenStruct.new(docstring: info.doc,
-                         source: info.source,
+                         source: info.source? ? info.source : "# Not available",
                          aliases: info.aliases.map(&:to_sym))
         rescue Pry::CommandError
           message = $!.message =~ /pry-doc/ ? $!.message : ""
