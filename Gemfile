@@ -1,6 +1,6 @@
 source :rubygems
 
-gem "rspec"
+gem "rspec", "~> 2.14"
 gem "rake"
-gem "pry"
-gem 'simplecov', require: false
+gem "pry", "~> 0.9.12"
+gem "simplecov", require: false
