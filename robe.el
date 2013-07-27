@@ -139,10 +139,11 @@ have constants, methods and arguments highlighted in color."
   (declare (special url-http-response-status))
   (let ((buffer (condition-case nil (url-retrieve-synchronously url)
                   (file-error nil))))
-    (when (and buffer
-               (with-current-buffer buffer
-                 (memq url-http-response-status '(200 500))))
-      buffer)))
+    (if (and buffer
+             (with-current-buffer buffer
+               (memq url-http-response-status '(200 500))))
+        buffer
+      (setq robe-running nil))))
 
 (defstruct (robe-spec (:type list)) module inst-p method params file line)
 
