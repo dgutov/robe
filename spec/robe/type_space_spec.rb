@@ -35,26 +35,26 @@ describe Robe::TypeSpace do
       let(:space) { described_class.new(visor, "C", nil, true, nil) }
 
       it "passes class and its ancestors" do
-        scanner.should_receive(:scan)
+        expect(scanner).to receive(:scan)
           .with(include(c, Object, BasicObject, Kernel), true, false)
-        scanner.should_not_receive(:scan).with(include(Class), any_args())
+        expect(scanner).not_to receive(:scan).with(include(Class), any_args())
         space.scan_with(scanner)
       end
 
       it "passes included module" do
-        scanner.should_receive(:scan).with(include(m), true, false)
+        expect(scanner).to receive(:scan).with(include(m), true, false)
         space.scan_with(scanner)
       end
 
       it "passes the descendants" do
-        scanner.should_receive(:scan).with(include(*kids), true, false)
+        expect(scanner).to receive(:scan).with(include(*kids), true, false)
         space.scan_with(scanner)
       end
 
       it "passes Kernel even when scanning a module" do
         visor = ScopedVisor.new(m, {"M" => m})
         space = described_class.new(visor, "M", nil, true, nil)
-        scanner.should_receive(:scan).with(include(Kernel), true, false)
+        expect(scanner).to receive(:scan).with(include(Kernel), true, false)
         space.scan_with(scanner)
       end
 
@@ -63,12 +63,12 @@ describe Robe::TypeSpace do
         let(:space) { described_class.new(visor, "C", nil, true, true) }
 
         it "does not pass the descendants" do
-          scanner.should_not_receive(:scan).with(include(*kids), true, false)
+          expect(scanner).not_to receive(:scan).with(include(*kids), true, false)
           space.scan_with(scanner)
         end
 
         it "does not pass the class itself" do
-          scanner.should_not_receive(:scan).with(include(c), true, false)
+          expect(scanner).not_to receive(:scan).with(include(c), true, false)
           space.scan_with(scanner)
         end
       end
@@ -88,22 +88,22 @@ describe Robe::TypeSpace do
       let(:space) { described_class.new(visor, "C", nil, nil, nil) }
 
       it "passes class and its ancestors, then metaclass ancestors" do
-        scanner.should_receive(:scan).with(include(c, Object), be_false, true)
-        scanner.should_receive(:scan)
+        expect(scanner).to receive(:scan).with(include(c, Object), be_false, true)
+        expect(scanner).to receive(:scan)
           .with(include(Class, Module, Kernel, n), true, be_false)
         space.scan_with(scanner)
       end
 
       it "passes the descendants" do
-        scanner.should_receive(:scan).with(include(*kids), be_false, true)
-        scanner.should_receive(:scan).with(anything, true, be_false)
+        expect(scanner).to receive(:scan).with(include(*kids), be_false, true)
+        expect(scanner).to receive(:scan).with(anything, true, be_false)
         space.scan_with(scanner)
       end
 
       it "doesn't pass the included modules" do
-        scanner.should_not_receive(:scan).with(include(m), be_false, true)
-        scanner.should_receive(:scan).with(anything, be_false, true)
-        scanner.should_receive(:scan).with(anything, true, be_false)
+        expect(scanner).not_to receive(:scan).with(include(m), be_false, true)
+        expect(scanner).to receive(:scan).with(anything, be_false, true)
+        expect(scanner).to receive(:scan).with(anything, true, be_false)
         space.scan_with(scanner)
       end
     end
@@ -118,7 +118,7 @@ describe Robe::TypeSpace do
       it "passes the dependencies" do
         stub_const("ActiveSupport::Concern", asc)
         m.instance_variable_set("@_dependencies", deps)
-        scanner.should_receive(:scan).with(include(*deps), true, false)
+        expect(scanner).to receive(:scan).with(include(*deps), true, false)
         space.scan_with(scanner)
       end
     end
