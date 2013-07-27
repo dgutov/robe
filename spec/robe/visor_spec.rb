@@ -9,13 +9,15 @@ describe Robe::Visor do
       expect(v.resolve_const("ARGF.class")).to be(ARGF.class)
     end
 
-    it "resolves IO::readable and IO::writable" do
-      readable = v.resolve_const("IO::readable")
-      writable = v.resolve_const("IO::writable")
-      expect(readable.method_defined?(:readline)).to be_true
-      expect(writable.method_defined?(:puts)).to be_true
-      expect(writable.method_defined?(:readline)).to be_false
-      expect(readable.method_defined?(:puts)).to be_false
+    if RUBY_ENGINE == "ruby"
+      it "resolves IO::readable and IO::writable" do
+        readable = v.resolve_const("IO::readable")
+        writable = v.resolve_const("IO::writable")
+        expect(readable.method_defined?(:readline)).to be_true
+        expect(writable.method_defined?(:puts)).to be_true
+        expect(writable.method_defined?(:readline)).to be_false
+        expect(readable.method_defined?(:puts)).to be_false
+      end
     end
 
     it "silently fails on nil" do
