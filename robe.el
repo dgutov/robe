@@ -76,8 +76,6 @@ have constants, methods and arguments highlighted in color."
 
 (defvar robe-port 24969)
 
-(defvar robe-max-retries 0)
-
 (defvar robe-jump-conservative nil)
 
 (defvar robe-running nil)
@@ -137,20 +135,14 @@ have constants, methods and arguments highlighted in color."
           (kill-buffer response-buffer))
       (error "Server doesn't respond"))))
 
-(defun robe-retrieve (url &optional retries)
+(defun robe-retrieve (url)
   (declare (special url-http-response-status))
   (let ((buffer (condition-case nil (url-retrieve-synchronously url)
                   (file-error nil))))
-    (if (and buffer
-             (with-current-buffer buffer
-               (memq url-http-response-status '(200 500))))
-        buffer
-      (if (and retries (not (plusp retries)))
-          (setq robe-running nil)
-        (when buffer
-          (kill-buffer buffer))
-        (sleep-for 0.3)
-        (robe-retrieve url (1- (or retries robe-max-retries)))))))
+    (when (and buffer
+               (with-current-buffer buffer
+                 (memq url-http-response-status '(200 500))))
+      buffer)))
 
 (defstruct (robe-spec (:type list)) module inst-p method params file line)
 
@@ -558,8 +550,7 @@ Only works with Rails, see e.g. `rinari-console'."
       (let* ((call (robe-call-at-point))
              (thing (car call))
              (arg-num (cdr call))
-             (url-show-status nil)
-             (robe-max-retries 0))
+             (url-show-status nil))
         (when (and thing (not (robe-const-p thing)))
           (let* ((robe-jump-conservative t)
                  (list (loop for spec in (robe-jump-modules thing)
