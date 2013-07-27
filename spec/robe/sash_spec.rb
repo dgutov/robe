@@ -164,14 +164,14 @@ describe Robe::Sash do
   context "#doc_for" do
     it "returns doc hash for instance method" do
       k = klass.new
-      hash = k.doc_for("Hash", true, "update")
-      expect(hash[:docstring]).to include("Adds the contents")
+      hash = k.doc_for("Set", true, "replace")
+      expect(hash[:docstring]).to start_with("Replaces the contents")
     end
 
     it "returns doc hash for module method" do
       k = klass.new
-      hash = k.doc_for("Enumerable", nil, "attr_accessor")
-      expect(hash[:docstring]).to include("Defines a named attribute")
+      hash = k.doc_for("Set", nil, "[]")
+      expect(hash[:docstring]).to start_with("Creates a new set containing")
     end
   end
 

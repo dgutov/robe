@@ -19,9 +19,14 @@ describe Robe::Sash::DocFor do
 
   it "shows docs for built-in classes" do
     hash = klass.new(Hash.instance_method(:update)).format
-    expect(hash[:docstring]).to include("Adds the contents")
-    expect(hash[:source]).to include("rb_hash_foreach")
     expect(hash[:aliases]).to eq([:merge!])
+    if RUBY_ENGINE == "ruby"
+      expect(hash[:docstring]).to include("Adds the contents")
+      expect(hash[:source]).to include("rb_hash_foreach")
+    else
+      expect(hash[:docstring]).to eq("")
+      expect(hash[:source]).to start_with("def merge!(other)\n")
+    end
   end
 
   it "shows docs for stdlib classes" do
@@ -43,12 +48,18 @@ describe Robe::Sash::DocFor do
     expect(klass.new(method).format[:visibility]).to be(:protected)
   end
 
-  it "should mentions pry-doc when relevant" do
+  it "mentions pry-doc when relevant" do
     Pry.config.has_pry_doc = false
     struct = described_class.method_struct(String.instance_method(:gsub))
     Pry.config.has_pry_doc = true
-    expect(struct.docstring).to match(/pry-doc/)
-    expect(struct.source).to be_nil
+
+    if RUBY_ENGINE == "ruby"
+      expect(struct.docstring).to match(/pry-doc/)
+      expect(struct.source).to be_nil
+    else
+      expect(struct.docstring).to eq("")
+      expect(struct.source).to start_with("def gsub(")
+    end
   end
 
   context "native methods" do
@@ -56,8 +67,14 @@ describe Robe::Sash::DocFor do
 
     context "String#gsub info fields" do
       let(:struct) { c.method_struct(String.instance_method(:gsub)) }
-      it { expect(struct.docstring).to start_with("Returns")}
-      it { expect(struct.source).to start_with("static VALUE") }
+
+      if RUBY_ENGINE == "ruby"
+        it { expect(struct.docstring).to start_with("Returns")}
+        it { expect(struct.source).to start_with("static VALUE") }
+      else
+        it { expect(struct.docstring).to eq("") }
+        it { expect(struct.source).to start_with("def gsub(") }
+      end
     end
 
     context "Array#map has an alias" do
@@ -70,11 +87,20 @@ describe Robe::Sash::DocFor do
       it { expect(struct.aliases).to eq([:member?])}
     end
 
-    context "Know nothing about Kernel#is_a?" do
+    context "Know the appropriate amount about Kernel#is_a?" do
       let(:struct) { c.method_struct(Kernel.instance_method(:is_a?)) }
-      it { expect(struct.docstring).to be_empty }
-      [:aliases, :source, :visibility].each do |prop|
-        it { expect(struct.send prop).to be_nil }
+
+      it { expect(struct.visibility).to be_nil }
+
+      if RUBY_ENGINE == "ruby"
+        it { expect(struct.docstring).to be_empty }
+        [:aliases, :source].each do |prop|
+          it { expect(struct.send prop).to be_nil }
+        end
+      else
+        it { expect(struct.docstring).to include("class or superclass") }
+        it { expect(struct.aliases).to eq([:kind_of?]) }
+        it { expect(struct.source).to start_with("def kind_of?(") }
       end
     end
   end
