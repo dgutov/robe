@@ -57,8 +57,9 @@ describe Robe::Server do
       server.start
     end
 
+    server.wait_for_it
+
     http = Net::HTTP.new("127.0.0.1", $port)
-    http.open_timeout = 0.1
     http.request(request)
   ensure
     server.shutdown

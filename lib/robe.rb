@@ -17,7 +17,10 @@ module Robe
         end
         @server.start
       end
-      nil # no output
+
+      @server.wait_for_it
+
+      "robe on"
     end
 
     def stop

@@ -28,6 +28,9 @@ module Robe
       loop do
         begin
           client = @server.accept
+
+          next if client.eof?
+
           req = WEBrick::HTTPRequest.new(:InputBufferSize => 1024,
                                          :Logger => error_logger)
           req.parse(client)
@@ -51,6 +54,15 @@ module Robe
         rescue Errno::EINVAL
           break
         end
+      end
+    end
+
+    def wait_for_it
+      begin
+        TCPSocket.new("127.0.0.1", @port).close
+      rescue
+        sleep 0.05
+        retry
       end
     end
 

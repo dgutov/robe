@@ -6,7 +6,6 @@ describe Robe do
   before do
     $stderr = File.new(IO::NULL, "w")
     Robe.start(12345)
-    sleep 0.001
   end
 
   after do

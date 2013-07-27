@@ -76,7 +76,7 @@ have constants, methods and arguments highlighted in color."
 
 (defvar robe-port 24969)
 
-(defvar robe-max-retries 20)
+(defvar robe-max-retries 0)
 
 (defvar robe-jump-conservative nil)
 
@@ -86,21 +86,35 @@ have constants, methods and arguments highlighted in color."
   "Start Robe server if it isn't already running."
   (interactive "p")
   (when (not (get-buffer-process inf-ruby-buffer))
+    (setq robe-running nil)
     (if (yes-or-no-p "No Ruby console running. Launch automatically?")
         (let ((conf (current-window-configuration)))
           (inf-ruby-console-auto)
           (set-window-configuration conf))
       (error "Aborted")))
   (when (or arg (not robe-running))
-    (let ((script (format (mapconcat #'identity
-                                     '("unless defined? Robe"
-                                       "  $:.unshift '%s'"
-                                       "  require 'robe'"
-                                       "end"
-                                       "Robe.start(%d)\n")
-                                     ";")
-                          robe-ruby-path robe-port)))
-      (comint-send-string (inf-ruby-proc) script))
+    (let* ((proc (inf-ruby-proc))
+           started
+           (comint-filter (process-filter proc))
+           (tmp-filter (lambda (p s)
+                         (when (string-match-p "=> \"robe on\"" s)
+                           (setq started t))
+                         (funcall comint-filter p s)))
+           (script (format (mapconcat #'identity
+                                      '("unless defined? Robe"
+                                        "  $:.unshift '%s'"
+                                        "  require 'robe'"
+                                        "end"
+                                        "Robe.start(%d)\n")
+                                      ";")
+                           robe-ruby-path robe-port)))
+      (unwind-protect
+          (progn
+            (set-process-filter proc tmp-filter)
+            (comint-send-string proc script)
+            (while (not started)
+              (accept-process-output proc)))
+        (set-process-filter proc comint-filter)))
     (when (robe-request "ping") ;; Should be always t when no error, though.
       (setq robe-running t))))
 
