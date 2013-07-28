@@ -1,8 +1,8 @@
 # Robe
 
 This builds on `inf-ruby` to handle Ruby subprocesses from Emacs.
-Generally, you'd want to use `M-x inf-ruby-console-auto`. If there's
-no Ruby console running, `robe` will offer to call it for you.
+Generally, you'll want to use `M-x inf-ruby-console-auto`. If there's
+no Ruby console running, `robe` will offer to call it automatically.
 
 Once you have you application or gem loaded in the console, Ruby keeps
 track of where each method is defined.
