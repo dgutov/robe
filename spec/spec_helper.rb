@@ -1,7 +1,11 @@
 require 'pry'
-require 'simplecov'
 
-SimpleCov.start if RSpec.configuration.files_to_run.size > 1
+begin
+  require 'simplecov'
+  SimpleCov.start if RSpec.configuration.files_to_run.size > 1
+rescue LoadError
+  puts "simplecov not loaded"
+end
 
 RSpec.configure do |config|
   config.expect_with :rspec do |c|
