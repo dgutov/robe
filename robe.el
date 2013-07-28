@@ -5,7 +5,7 @@
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
-;; Version: 0.7.5
+;; Version: 0.7.6
 ;; Keywords: ruby convenience rails
 ;; Package-Requires: ((inf-ruby "2.3.0"))
 
@@ -111,6 +111,9 @@ have constants, methods and arguments highlighted in color."
             (set-process-filter proc tmp-filter)
             (comint-send-string proc script)
             (while (not started)
+              (unless (process-live-p proc)
+                (ruby-switch-to-inf t)
+                (error "Ruby process died"))
               (accept-process-output proc)))
         (set-process-filter proc comint-filter)))
     (when (robe-request "ping") ;; Should be always t when no error, though.
