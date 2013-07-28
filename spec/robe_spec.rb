@@ -40,6 +40,7 @@ describe Robe do
     match do |proc|
       server = Robe.server
       proc.call
+      sleep 0.001
       server.running == false
     end
   end

@@ -55,8 +55,13 @@ describe Robe::Sash::DocFor do
     Pry.config.has_pry_doc = val
 
     if RUBY_ENGINE == "ruby"
-      expect(struct.docstring).to match(/pry-doc/)
       expect(struct.source).to be_nil
+      if RUBY_VERSION < "2.0.0"
+        expect(struct.docstring).to match(/pry-doc/)
+      else
+        expect(struct.docstring).to eq("")
+        pending("https://github.com/pry/pry/issues/956")
+      end
     else
       expect(struct.docstring).to eq("")
       expect(struct.source).to start_with("def gsub(")
