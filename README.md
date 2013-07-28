@@ -1,4 +1,4 @@
-# Robe
+# Robe [![Build Status](https://travis-ci.org/dgutov/robe.png?branch=master)](https://travis-ci.org/dgutov/robe)
 
 This builds on `inf-ruby` to handle Ruby subprocesses from Emacs.
 Generally, you'll want to use `M-x inf-ruby-console-auto`. If there's
