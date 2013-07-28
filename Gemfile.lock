@@ -3,7 +3,7 @@ GEM
   specs:
     coderay (1.0.9)
     diff-lcs (1.2.4)
-    method_source (0.8.2pre1)
+    method_source (0.8.2)
     multi_json (1.4.0)
     pry (0.9.12.2)
       coderay (~> 1.0.5)
@@ -28,7 +28,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  method_source (>= 0.8.2pre)
+  method_source (>= 0.8.2)
   pry (~> 0.9.12)
   rake
   rspec (~> 2.14)
