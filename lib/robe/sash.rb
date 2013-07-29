@@ -1,13 +1,14 @@
 require 'robe/type_space'
 require 'robe/scanners'
 require 'robe/visor'
+require 'robe/jvisor'
 require 'robe/sash/doc_for'
 
 module Robe
   class Sash
     attr_accessor :visor
 
-    def initialize(visor = Visor.new)
+    def initialize(visor = pick_visor)
       @visor = visor
     end
 
@@ -166,6 +167,16 @@ module Robe
       _, endpoint, *args = path.split("/").map { |s| s == "-" ? nil : s }
       value = public_send(endpoint.to_sym, *args)
       value.to_json
+    end
+
+    private
+
+    def pick_visor
+      if RUBY_ENGINE == "jruby"
+        JVisor.new
+      else
+        Visor.new
+      end
     end
   end
 end

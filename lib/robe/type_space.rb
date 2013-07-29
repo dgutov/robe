@@ -13,10 +13,15 @@ module Robe
 
     def scan_with(scanner)
       return unless obj = target_type
-      modules = obj.ancestors - [obj]
+      modules = obj.ancestors
       modules -= obj.included_modules unless instance
-      modules +=
-        visor.each_object(obj.singleton_class).to_a unless @superc
+
+      if @superc
+        modules -= [obj]
+      else
+        modules += visor.descendants(obj).to_a
+      end
+
       modules.push(Kernel) if instance && !obj.is_a?(Class)
 
       if instance
