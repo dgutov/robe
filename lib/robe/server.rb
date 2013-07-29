@@ -58,6 +58,9 @@ module Robe
           end
         rescue Errno::EINVAL
           break
+        rescue IOError
+          # Hello JRuby
+          break
         end
       end
     end
@@ -73,7 +76,12 @@ module Robe
 
     def shutdown
       @running = false
-      @server && @server.shutdown(Socket::SHUT_RDWR)
+      begin
+        @server && @server.shutdown(Socket::SHUT_RDWR)
+      rescue Errno::ENOTCONN
+        # Hello JRuby
+        @server.close rescue nil
+      end
     end
   end
 end
