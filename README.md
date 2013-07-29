@@ -58,10 +58,8 @@ Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
 ## Compatibility
 
 * Tested in Emacs 24.3+, with Ruby 1.9.3 and 2.0.0, on GNU/Linux.
-* Works with the latest Rubinius, although noticeably slower. Some
-  non-essential specs fail.
-* Basic features work with JRuby. No obvious performance problems
-  (aside from the usual, i.e. slower startup).
+* Essential features work with JRuby and the latest Rubinius.
+  JRuby has longer startup, Rubinius is noticeably slower at runtime.
 * Mostly works on MS Windows, with minor glitches.
 * Using Emacs trunk is currently recommended (24.3.50) for better recognition
   of context at point.
