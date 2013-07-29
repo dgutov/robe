@@ -23,7 +23,7 @@ describe Robe::JVisor do
     expect(res).not_to include(String)
   end
 
-  it "accepts descendants of a class" do
+  it "returns descendants of a class" do
     res = subject.descendants(Integer)
     expect(res).to match_array([Bignum, Fixnum])
   end
