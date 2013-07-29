@@ -49,8 +49,13 @@ module Robe
           resp.status = 200
           resp.body = body
 
-          resp.send_response(client)
-          client.close
+          begin
+            resp.send_response(client)
+            client.close
+          rescue Errno::EPIPE
+            error_logger.error "Connection lost, unsent response:"
+            error_logger.error body
+          end
         rescue Errno::EINVAL
           break
         end
