@@ -80,7 +80,7 @@ module Robe
         @server && @server.shutdown(Socket::SHUT_RDWR)
       rescue Errno::ENOTCONN
         # Hello JRuby
-        @server.close rescue nil
+        @server.close
       end
     end
   end
