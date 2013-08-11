@@ -33,7 +33,7 @@ In the init file:
 
 * `pry`
 * `pry-doc` (on MRI)
-* `method_source >= 0.8.2` (for the latest Rubinius compatibility)
+* `method_source >= 0.8.2` (for compatibility with the latest Rubinius)
 
 ## Completion
 
