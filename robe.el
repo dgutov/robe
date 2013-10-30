@@ -80,6 +80,12 @@ have constants, methods and arguments highlighted in color."
 
 (defvar robe-running nil)
 
+(defvar robe-completing-read-func 'ido-completing-read
+  "Completing read function to call")
+
+(defun robe-completing-read (&rest args)
+  (apply robe-completing-read-func args))
+
 (defun robe-start (&optional arg)
   "Start Robe server if it isn't already running."
   (interactive "p")
@@ -157,11 +163,11 @@ have constants, methods and arguments highlighted in color."
 
 (defun robe-ask-prompt ()
   (let* ((modules (robe-request "modules"))
-         (module (ido-completing-read "Module: " modules))
+         (module (robe-completing-read "Module: " modules))
          (targets (robe-request "targets" module))
          (_ (unless targets (error "No methods found")))
          (alist (robe-decorate-methods (cdr targets))))
-    (cdr (assoc (ido-completing-read "Method: " alist nil t)
+    (cdr (assoc (robe-completing-read "Method: " alist nil t)
                 alist))))
 
 (defun robe-decorate-methods (list)
@@ -193,7 +199,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (unless alist (error "Method not found"))
     (if (= 1 (length alist))
         (cdar alist)
-      (cdr (assoc (ido-completing-read "Module: " alist nil t)
+      (cdr (assoc (robe-completing-read "Module: " alist nil t)
                   alist)))))
 
 (defun robe-jump-modules (thing)
@@ -243,13 +249,13 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 
 (defun robe-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
-  (interactive `(,(ido-completing-read "Module: " (robe-request "modules"))))
+  (interactive `(,(robe-completing-read "Module: " (robe-request "modules"))))
   (let ((paths (robe-request "class_locations" name (car (robe-context)))))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
                   (let ((alist (robe-to-abbr-paths paths)))
-                    (cdr (assoc (ido-completing-read "File: " alist nil t)
+                    (cdr (assoc (robe-completing-read "File: " alist nil t)
                                 alist))))))
       (robe-find-file file)
       (goto-char (point-min))
