@@ -80,8 +80,12 @@ have constants, methods and arguments highlighted in color."
 
 (defvar robe-running nil)
 
-(defvar robe-completing-read-func 'ido-completing-read
-  "Completing read function to call")
+(defcustom robe-completing-read-func 'ido-completing-read
+  "Function to call for completing read."
+  :type '(choice (const :tag "Ido" ido-completing-read)
+                 (const :tag "Plain" completing-read)
+                 (function :tag "Other function"))
+  :group 'robe)
 
 (defun robe-completing-read (&rest args)
   (apply robe-completing-read-func args))
