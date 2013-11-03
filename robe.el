@@ -58,6 +58,7 @@
 (require 'eldoc)
 (require 'help-mode)
 (require 'ruby-mode)
+(require 'ansi-color)
 
 (defgroup robe nil
   "Code navigation, documentation lookup and completion for Ruby"
@@ -105,7 +106,8 @@ have constants, methods and arguments highlighted in color."
            started
            (comint-filter (process-filter proc))
            (tmp-filter (lambda (p s)
-                         (when (string-match-p "=> \"robe on\"" s)
+                         (when (string-match-p "=> \"robe on\""
+                                               (ansi-color-filter-apply s))
                            (setq started t))
                          (funcall comint-filter p s)))
            (script (format (mapconcat #'identity
