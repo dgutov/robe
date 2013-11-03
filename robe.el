@@ -648,7 +648,11 @@ Only works with Rails, see e.g. `rinari-console'."
 
 ;;;###autoload
 (define-minor-mode robe-mode
-  "Improved navigation for Ruby"
+  "Improved navigation for Ruby.
+
+The following commands are available:
+
+\\{robe-mode-map}"
   nil " robe" robe-mode-map
   (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
   (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)

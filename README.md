@@ -18,6 +18,8 @@ If the result is ambiguous, you're prompted to pick the module/location.
 
 ElDoc support and constant and method completion are also provided.
 
+To see the available commands, type <kbd>M-x describe-package RET robe</kbd>.
+
 ## Install
 
 Set up [Melpa](http://melpa.milkbox.net/#installing) if you haven't already,
