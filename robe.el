@@ -71,6 +71,10 @@
 have constants, methods and arguments highlighted in color."
   :group 'robe)
 
+(defcustom robe-turn-on-eldoc t
+  "When non-nil `eldoc-mode' will be run when entering `robe-minor-mode'"
+  :group 'robe)
+
 (defvar robe-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
     (expand-file-name "lib" (file-name-directory current)))
@@ -626,9 +630,10 @@ Only works with Rails, see e.g. `rinari-console'."
   "Improved navigation for Ruby"
   nil " robe" robe-mode-map
   (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
-  (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)
-  (eldoc-add-command 'robe-complete-thing)
-  (turn-on-eldoc-mode))
+  (when robe-turn-on-eldoc
+    (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)
+    (eldoc-add-command 'robe-complete-thing)
+    (turn-on-eldoc-mode)))
 
 (provide 'robe)
 ;;; robe.el ends here
