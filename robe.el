@@ -110,7 +110,7 @@ have constants, methods and arguments highlighted in color."
            started
            (comint-filter (process-filter proc))
            (tmp-filter (lambda (p s)
-                         (when (string-match-p "=> \"robe on\""
+                         (when (string-match-p "\"robe on\""
                                                (ansi-color-filter-apply s))
                            (setq started t))
                          (funcall comint-filter p s)))
