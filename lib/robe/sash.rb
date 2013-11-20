@@ -16,7 +16,7 @@ module Robe
       locations = {}
       if (obj = visor.resolve_context(name, mod)) and obj.is_a? Module
         methods = obj.methods(false).map { |m| obj.method(m) } +
-          obj.instance_methods(false).map { |m| obj.instance_method(m) }
+                  obj.instance_methods(false).map { |m| obj.instance_method(m) }
         methods.each do |m|
           if loc = m.source_location
             path = loc[0]

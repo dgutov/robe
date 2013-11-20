@@ -93,10 +93,10 @@ describe Robe::Sash do
 
     it "works on String#gsub" do
       match = if RUBY_ENGINE == "rbx"
-        start_with("String", true, :gsub)
-      else
-        eq(["String", true, :gsub, [[:rest]]])
-      end
+                start_with("String", true, :gsub)
+              else
+                eq(["String", true, :gsub, [[:rest]]])
+              end
       expect(k.method_spec(String.instance_method(:gsub))).to match
     end
 
@@ -110,7 +110,7 @@ describe Robe::Sash do
       m = Module.new { def foo(a, *b, &c); end }
       expect(k.method_spec(m.instance_method(:foo)))
         .to eq([nil, true, :foo, [[:req, :a], [:rest, :b], [:block, :c]],
-          __FILE__, anything])
+                __FILE__, anything])
     end
 
     context "eigenclass" do
