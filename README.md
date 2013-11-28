@@ -37,6 +37,8 @@ In the init file:
 * `pry-doc` (on MRI)
 * `method_source >= 0.8.2` (for compatibility with the latest Rubinius)
 
+Note that if your project is using `Bundler`, the dependencies have to be added to the `Gemfile`.
+
 ## Completion
 
 ### [company-mode](http://company-mode.github.com/) ([screenshot](robe-company.png)):
