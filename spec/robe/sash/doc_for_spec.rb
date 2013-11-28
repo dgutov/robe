@@ -1,5 +1,6 @@
 require 'robe/sash/doc_for'
 require 'uri'
+require 'active_support/core_ext/kernel' # https://github.com/pry/pry-doc/issues/16
 
 describe Robe::Sash::DocFor do
   klass = described_class
