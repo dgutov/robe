@@ -107,12 +107,15 @@ have constants, methods and arguments highlighted in color."
       (error "Aborted")))
   (when (or arg (not robe-running))
     (let* ((proc (inf-ruby-proc))
-           started
+           started failed
            (comint-filter (process-filter proc))
            (tmp-filter (lambda (p s)
-                         (when (string-match-p "\"robe on\""
-                                               (ansi-color-filter-apply s))
+                         (cond
+                          ((string-match-p "\"robe on\""
+                                           (ansi-color-filter-apply s))
                            (setq started t))
+                          ((string-match-p "Error" s)
+                           (setq failed t)))
                          (funcall comint-filter p s)))
            (script (format (mapconcat #'identity
                                       '("unless defined? Robe"
@@ -127,9 +130,10 @@ have constants, methods and arguments highlighted in color."
             (set-process-filter proc tmp-filter)
             (comint-send-string proc script)
             (while (not started)
-              (unless (process-live-p proc)
+              (unless (process-live-p proc) (setq failed t))
+              (when failed
                 (ruby-switch-to-inf t)
-                (error "Ruby process died"))
+                (error "Robe launch failed"))
               (accept-process-output proc)))
         (set-process-filter proc comint-filter)))
     (when (robe-request "ping") ;; Should be always t when no error, though.

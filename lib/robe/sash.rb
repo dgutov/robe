@@ -1,8 +1,8 @@
+require 'robe/sash/doc_for'
 require 'robe/type_space'
 require 'robe/scanners'
 require 'robe/visor'
 require 'robe/jvisor'
-require 'robe/sash/doc_for'
 
 module Robe
   class Sash
