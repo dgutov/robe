@@ -600,7 +600,9 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-complete-at-point ()
   (when (get-buffer-process inf-ruby-buffer)
     (let ((bounds (bounds-of-thing-at-point 'symbol))
-          (fn (completion-table-dynamic #'robe-complete-thing)))
+          (fn (if (fboundp 'completion-table-with-cache)
+                  (completion-table-with-cache #'robe-complete-thing)
+                (completion-table-dynamic #'robe-complete-thing))))
       (if bounds
           (list (car bounds) (cdr bounds) fn
                 :annotation-function #'robe-complete-annotation
@@ -624,6 +626,7 @@ Only works with Rails, see e.g. `rinari-console'."
   (setq robe-specs-cache nil))
 
 (defun robe-complete-thing (thing)
+  (message "robe-complete-thing called with '%s'" thing)
   (setq this-command 'robe-complete-thing)
   (robe-start)
   (if (robe-const-p thing)
