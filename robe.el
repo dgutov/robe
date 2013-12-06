@@ -626,7 +626,6 @@ Only works with Rails, see e.g. `rinari-console'."
   (setq robe-specs-cache nil))
 
 (defun robe-complete-thing (thing)
-  (message "robe-complete-thing called with '%s'" thing)
   (setq this-command 'robe-complete-thing)
   (robe-start)
   (if (robe-const-p thing)
