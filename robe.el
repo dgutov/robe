@@ -100,12 +100,13 @@ have constants, methods and arguments highlighted in color."
 When called with a prefix argument, kills the current Ruby
 process, if any, and starts a new console for the current
 project."
-  (interactive "p")
+  (interactive "P")
   (let ((process (get-buffer-process inf-ruby-buffer)))
     (when (or force (not process))
       (setq robe-running nil)
       (when process
-        (delete-process process))
+        (delete-process process)
+        (kill-buffer inf-ruby-buffer))
       (if (or force
               (yes-or-no-p "No Ruby console running. Launch automatically?"))
           (let ((conf (current-window-configuration)))
