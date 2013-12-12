@@ -52,7 +52,6 @@
 (require 'json)
 (require 'url)
 (require 'url-http)
-(require 'ido)
 (require 'cl)
 (require 'thingatpt)
 (require 'eldoc)
