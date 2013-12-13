@@ -21,6 +21,10 @@
     (robe-complete-thing ac-prefix)))
 
 ;;;###autoload
+(defun robe-ac-setup ()
+  (push 'ac-source-robe ac-sources))
+
+;;;###autoload
 (defconst ac-source-robe
   '((available . robe-ac-available)
     (candidates . robe-ac-candidates)

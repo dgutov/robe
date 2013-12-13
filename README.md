@@ -50,7 +50,7 @@ Note that if your project is using `Bundler`, the dependencies have to be added 
 ### [auto-complete](http://auto-complete.org/):
 
 ```lisp
-(push 'ac-source-robe ac-sources)
+(add-hook 'robe-mode-hook 'robe-ac-setup)
 ```
 
 Both of the above work only when the connection to the `inf-ruby` process has
