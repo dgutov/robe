@@ -1,28 +1,48 @@
 # Robe [![Build Status](https://travis-ci.org/dgutov/robe.png?branch=master)](https://travis-ci.org/dgutov/robe)
 
-This builds on `inf-ruby` to handle Ruby subprocesses from Emacs.
-Generally, you'll want to use `M-x inf-ruby-console-auto`. If there's
-no Ruby console running, `robe` will offer to call it automatically.
+Robe is a code assistance tool that uses a Ruby REPL subprocess with
+your application or gem code loaded, to provide information about
+loaded classes and modules, and where each method is defined.
 
-Once you have you application or gem loaded in the console, Ruby keeps
-track of where each method is defined.
+Generally, you'll want to start with `M-x inf-ruby-console-auto`.
+If there's no Ruby console running, most interactive commands provided
+by Robe will offer to launch it automatically.
 
-You can jump to or read the documentation for the method, module (jump only),
-`super` or constructor definition at point.
+## Features
 
-If the method call target is implicit (like with `super`), or the call target is
-obvious (`Foo.new`, `self.foo`), then we first try to look for the definition in
-superclasses, descendants and included modules as appropriate.
-
-If the result is ambiguous, you're prompted to pick the module/location.
-
-ElDoc support and constant and method completion are also provided.
+* Jump to method definition
+* Jump to `super` or a constructor called at point
+* Jump to a module or class (provided it has at least one method defined)
+* Display method documentation
+* Display information about method called at point using ElDoc
+* Method and constant name completion
 
 To see the available commands, type <kbd>M-x describe-package RET robe RET</kbd>.
 
+## Details
+
+When peforming one of the commands defined here, we either need to
+narrow the method name at point down to a specific method in a specific
+module, or enumerate the possible method names or constants allowed at
+point (for code completion).
+
+To do that, we look at the contents of the buffer, and the contents at
+point: in which method it is, of which class, and if it's in singleton
+class context. Then we look at the method call at point.
+
+If the method call target is implicit (there's no target or the method
+is `super`), or the call target is obvious (`Foo.new`, `self.foo`),
+then we first try to look for the definition in the inheritance
+hierarchy of the target class. Otherwise, or if the initial search
+yields no result, scan all defined classes and modules.
+
+Depending on the command, if the result is ambiguous, you're either
+prompted to resolve the ambiguity manually, or the results are merged
+together.
+
 ## Install
 
-Set up [Melpa](http://melpa.milkbox.net/#installing) if you haven't already,
+Set up [MELPA](http://melpa.milkbox.net/#installing) if you haven't already,
 then type <kbd>M-x package-install RET robe RET</kbd>.
 
 In the init file:
@@ -53,11 +73,12 @@ Note that if your project is using `Bundler`, the dependencies have to be added 
 (add-hook 'robe-mode-hook 'robe-ac-setup)
 ```
 
-Both of the above work only when the connection to the `inf-ruby` process has
-been established. To do that, either use one of the core `robe` commands, or
+Both of the above work only when the connection to the Ruby subprocess has
+been established. To do that, either use one of the core Robe commands, or
 type <kbd>M-x robe-start</kbd>.
 
-Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
+Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported,
+no extra setup required.
 
 ## Compatibility
 
@@ -80,8 +101,10 @@ Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
   where `delegate` is called, which is accurate, but often less than useful.
 * Having more than one `inf-ruby` buffer at a time is not supported. If you see
   unexpected "Method not found" errors, check if you have an older one.
+* We may get the context wrong for code inside a block if the method
+  it's passed to uses `instance_eval` or `instance_exec`.
 
-## Todo
+## TODO
 
 * Handle `delegate` and `send`, `Class.new.method` and `self.class.method`.
 * For methods defined through macros, optionally jump to where the macro was
@@ -90,10 +113,6 @@ Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported.
 * Type inference and local variable completion.
 
 ## Copying
-
-Copyright © 2012 Phil Hagelberg
-
-Copyright © 2012, 2013 Dmitry Gutov
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
