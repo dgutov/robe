@@ -26,7 +26,7 @@ narrow the method name at point down to a specific method in a specific
 module, or enumerate the possible method names or constants allowed at
 point (for code completion).
 
-To do that, we look at the contents of the buffer, and the contents at
+To do that, we look at the contents of the buffer, and the context at
 point: in which method it is, of which class, and if it's in singleton
 class context. Then we look at the method call at point.
 
