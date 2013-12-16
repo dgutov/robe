@@ -8,6 +8,12 @@ Generally, you'll want to start with `M-x inf-ruby-console-auto`.
 If there's no Ruby console running, most interactive commands provided
 by Robe will offer to launch it automatically.
 
+As you change the code in your project, you'll want to update the
+running process. To load the current file, type <kbd>C-c C-l</kbd>
+(`ruby-load-file`), see [inf-ruby](https://github.com/nonsequitur/inf-ruby/)
+for more commands. When you're developing a Rails project, you can
+type <kbd>C-c C-k</kbd> instead, to reload the whole environment at once.
+
 ## Features
 
 * Jump to method definition
