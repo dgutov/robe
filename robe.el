@@ -104,7 +104,8 @@ project."
     (when (or force (not process))
       (setq robe-running nil)
       (when process
-        (delete-process process)
+        (delete-process process))
+      (when (buffer-live-p inf-ruby-buffer)
         (kill-buffer inf-ruby-buffer))
       (if (or force
               (yes-or-no-p "No Ruby console running. Launch automatically?"))
