@@ -40,8 +40,16 @@ module Robe
 
         begin
           info = Pry::Method.new(method)
-          OpenStruct.new(docstring: info.doc,
-                         source: (info.source? ? info.source : "# Not available"),
+
+          if info.dynamically_defined?
+            doc = ""
+            source = "# This method was defined outside of a source file."
+          else
+            doc = info.doc
+            source = (info.source? ? info.source : "# Not available.")
+          end
+
+          OpenStruct.new(docstring: doc, source: source,
                          aliases: info.aliases.map(&:to_sym))
         rescue Pry::CommandError
           message = $!.message =~ /pry-doc/ ? $!.message : ""

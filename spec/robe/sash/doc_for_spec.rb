@@ -149,4 +149,18 @@ describe Robe::Sash::DocFor do
       expect(struct.source).not_to be_empty
     end
   end
+
+  context "dynamically defined" do
+    let(:kls) { eval "Class.new do;def foo;42;end;end" }
+    let(:c) { described_class }
+
+    it "returns no docstring" do
+      expect(c.method_struct(kls.instance_method(:foo)).docstring).to be_empty
+    end
+
+    it "returns comment about dynamic definition as the source" do
+      expect(c.method_struct(kls.instance_method(:foo)).source)
+        .to include("outside of a source file")
+    end
+  end
 end
