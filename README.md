@@ -89,12 +89,12 @@ no extra setup required.
 ## Integration with rvm.el
 
 [rvm.el](https://github.com/senny/rvm.el) may not have activated the
-correct project ruby before `robe-start` runs. Either manually run
+correct project Ruby before `robe-start` runs. Either manually run
 <kbd>M-x rvm-activate-corresponding-ruby</kbd> before starting Robe,
-or advise `robe-start` to activate rvm automatically.
+or advise `inf-ruby-console-auto` to activate rvm automatically.
 
 ```lisp
-(defadvice robe-start (before activate-rvm-for-robe)
+(defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
   (rvm-activate-corresponding-ruby))
 ```
 
