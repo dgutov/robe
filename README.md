@@ -86,6 +86,18 @@ type <kbd>M-x robe-start</kbd>.
 Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported,
 no extra setup required.
 
+## Integration with rvm.el
+
+[rvm.el](https://github.com/senny/rvm.el) may not have activated the
+correct project ruby before `robe-start` runs. Either manually run
+<kbd>M-x rvm-activate-corresponding-ruby</kbd> before starting Robe,
+or advise `robe-start` to activate rvm automatically.
+
+```lisp
+(defadvice robe-start (before activate-rvm-for-robe)
+  (rvm-activate-corresponding-ruby))
+```
+
 ## Compatibility
 
 * Tested in Emacs 24.3+, with Ruby 1.9.3 and 2.0.0, on GNU/Linux.
