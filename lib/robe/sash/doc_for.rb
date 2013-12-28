@@ -33,8 +33,9 @@ module Robe
 
       def self.method_struct(method)
         # https://github.com/pry/pry-doc/issues/16
-        if method.owner == Kernel && defined?(Pry::MethodInfo) &&
-           !method.source_location && !Pry::MethodInfo.cached?(method)
+        if [Kernel, Kernel.singleton_class].include?(method.owner) &&
+           defined?(Pry::MethodInfo) && !method.source_location &&
+           !Pry::MethodInfo.cached?(method)
           return OpenStruct.new(docstring: "")
         end
 

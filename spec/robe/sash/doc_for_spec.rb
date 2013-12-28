@@ -40,6 +40,11 @@ describe Robe::Sash::DocFor do
       .to eq(:private)
   end
 
+  it "returns public visibility for Kernel.puts" do
+    # And doesn't do "Scanning and caching *.c files".
+    expect(klass.new(Kernel.method(:puts)).format[:visibility]).to eq(:public)
+  end
+
   it "returns protected visibility" do
     method = Class.new.class_exec do
       protected
