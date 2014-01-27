@@ -64,20 +64,31 @@ module Robe
     def method_spec(method)
       owner, inst = method.owner, nil
       if Class == owner || owner.ancestors.first == owner
-        inst = true
-        name = method_owner_name(owner)
+        name, inst = method_owner_and_inst(owner)
       else
         name = owner.to_s[/Class:([A-Z][^\(>]*)/, 1] # defined in an eigenclass
       end
       [name, inst, method.name, method.parameters] + method.source_location.to_a
     end
 
-    def method_owner_name(owner)
-      owner.name or
+    def method_owner_and_inst(owner)
+      if owner.name
+        [owner.name, true]
+      else
         unless owner.is_a?(Class)
-          klass = ObjectSpace.each_object(Class).find { |c| c.include?(owner) }
-          klass && klass.name
+          mod, inst = nil, true
+          ObjectSpace.each_object(Module) do |m|
+            if m.include?(owner)
+              mod = m
+            elsif m.respond_to?(:singleton_class) &&
+                  m.singleton_class.include?(owner)
+              mod = m
+              inst = false
+            end && break
+          end
+          [mod && mod.name, inst]
         end
+      end
     end
 
     def doc_for(mod, type, sym)

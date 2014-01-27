@@ -156,7 +156,16 @@ describe Robe::Sash do
 
       it "substitutes anonymous module with including class name" do
         stub_const("C", Class.new.send(:include, m) )
-        expect(k.method_spec(m.instance_method(:foo))[0]).to eq("C")
+        spec = k.method_spec(m.instance_method(:foo))
+        expect(spec[0]).to eq("C")
+        expect(spec[1]).to eq(true)
+      end
+
+      it "substitutes anonymous modules with extending module name" do
+        stub_const("M", Module.new.send(:extend, m) )
+        spec = k.method_spec(m.instance_method(:foo))
+        expect(spec[0]).to eq("M")
+        expect(spec[1]).to eq(false)
       end
     end
   end
