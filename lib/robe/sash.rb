@@ -83,7 +83,7 @@ module Robe
             elsif m.respond_to?(:singleton_class) &&
                   m.singleton_class.include?(owner)
               mod = m
-              inst = false
+              inst = nil
             end && break
           end
           [mod && mod.name, inst]

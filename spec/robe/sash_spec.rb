@@ -165,7 +165,7 @@ describe Robe::Sash do
         stub_const("M", Module.new.send(:extend, m) )
         spec = k.method_spec(m.instance_method(:foo))
         expect(spec[0]).to eq("M")
-        expect(spec[1]).to eq(false)
+        expect(spec[1]).to eq(nil)
       end
     end
   end
