@@ -477,9 +477,8 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-signature (spec &optional arg-num)
   (concat
-   (when (robe-spec-module spec)
-     (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
-                (split-string (robe-spec-module spec) "::" t) "::"))
+   (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
+              (split-string (or (robe-spec-module spec) "?") "::" t) "::")
    (if (robe-spec-inst-p spec) "#" ".")
    (propertize (robe-spec-method spec) 'face font-lock-function-name-face)
    (robe-signature-params (robe-spec-params spec) arg-num)))
