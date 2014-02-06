@@ -605,17 +605,28 @@ Only works with Rails, see e.g. `rinari-console'."
                      (msg (format "%s %s" sig summary)))
                 (substring msg 0 (min (frame-width) (length msg)))))))))))
 
+(defun robe-complete-symbol-p (beginning)
+  (not (or (eq (char-before beginning) ?@)
+           (eq (char-after beginning) ?:)
+           (memq (get-text-property beginning 'face)
+                 (list font-lock-keyword-face
+                       font-lock-comment-face
+                       font-lock-string-face)))))
+
 (defun robe-complete-at-point ()
   (when (get-buffer-process inf-ruby-buffer)
     (let ((bounds (bounds-of-thing-at-point 'symbol))
           (fn (if (fboundp 'completion-table-with-cache)
                   (completion-table-with-cache #'robe-complete-thing)
                 (completion-table-dynamic #'robe-complete-thing))))
-      (if bounds
-          (list (car bounds) (cdr bounds) fn
+      (when (robe-complete-symbol-p (or (car bounds) (point)))
+        (if bounds
+            (list (car bounds) (cdr bounds) fn
+                  :annotation-function #'robe-complete-annotation
+                  :exit-function #'robe-complete-exit)
+          (list (point) (point) fn
                 :annotation-function #'robe-complete-annotation
-                :exit-function #'robe-complete-exit)
-        (list (point) (point) fn)))))
+                :exit-function #'robe-complete-exit))))))
 
 (defvar robe-specs-cache nil)
 
