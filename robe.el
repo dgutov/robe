@@ -484,30 +484,31 @@ Only works with Rails, see e.g. `rinari-console'."
    (robe-signature-params (robe-spec-params spec) arg-num)))
 
 (defun robe-signature-params (params &optional arg-num)
-  (let ((cnt 0) args)
-    (dolist (pair params)
-      (let ((kind (intern (first pair)))
-            (name (second pair)))
-        (incf cnt)
-        (unless name
-          (setq name
-                (case kind
-                  (rest "args")
-                  (block "block")
-                  (t (format "arg%s" cnt)))))
-        (push (propertize (format (case kind
-                                    (rest "%s...")
-                                    (block "&%s")
-                                    (opt "[%s]")
-                                    (t "%s")) name)
-                          'face (if (and arg-num
-                                         (or (= arg-num cnt)
-                                             (and (eq kind 'rest)
-                                                  (> arg-num cnt))))
-                                    (list robe-em-face 'bold)
-                                  robe-em-face))
-              args)))
-    (concat "(" (mapconcat #'identity (nreverse args) ", ") ")")))
+  (when params
+    (let ((cnt 0) args)
+      (dolist (pair params)
+        (let ((kind (intern (first pair)))
+              (name (second pair)))
+          (incf cnt)
+          (unless name
+            (setq name
+                  (case kind
+                    (rest "args")
+                    (block "block")
+                    (t (format "arg%s" cnt)))))
+          (push (propertize (format (case kind
+                                      (rest "%s...")
+                                      (block "&%s")
+                                      (opt "[%s]")
+                                      (t "%s")) name)
+                            'face (if (and arg-num
+                                           (or (= arg-num cnt)
+                                               (and (eq kind 'rest)
+                                                    (> arg-num cnt))))
+                                      (list robe-em-face 'bold)
+                                    robe-em-face))
+                args)))
+      (concat "(" (mapconcat #'identity (nreverse args) ", ") ")"))))
 
 (defun robe-doc-for (spec)
   (apply 'robe-request "doc_for" (subseq spec 0 3)))
