@@ -616,7 +616,7 @@ Only works with Rails, see e.g. `rinari-console'."
                        font-lock-string-face)))))
 
 (defun robe-complete-at-point ()
-  (when (get-buffer-process inf-ruby-buffer)
+  (when robe-running
     (let ((bounds (bounds-of-thing-at-point 'symbol))
           (fn (if (fboundp 'completion-table-with-cache)
                   (completion-table-with-cache #'robe-complete-thing)

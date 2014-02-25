@@ -8,6 +8,9 @@ Generally, you'll want to start with `M-x inf-ruby-console-auto`.
 If there's no Ruby console running, most interactive commands provided
 by Robe will offer to launch it automatically.
 
+The exceptions are code completion and eldoc, which only work if the
+server is already running. To launch it, type `M-x robe-start`.
+
 As you change the code in your project, you'll want to update the
 running process. To load the current file, type <kbd>C-c C-l</kbd>
 (`ruby-load-file`), see [inf-ruby](https://github.com/nonsequitur/inf-ruby/)
