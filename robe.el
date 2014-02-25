@@ -647,7 +647,6 @@ Only works with Rails, see e.g. `rinari-console'."
   (setq robe-specs-cache nil))
 
 (defun robe-complete-thing (thing)
-  (setq this-command 'robe-complete-thing)
   (robe-start)
   (if (robe-const-p thing)
       (progn
@@ -688,7 +687,6 @@ The following commands are available:
   (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
   (when robe-turn-on-eldoc
     (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)
-    (eldoc-add-command 'robe-complete-thing)
     (turn-on-eldoc-mode)))
 
 (provide 'robe)
