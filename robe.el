@@ -611,6 +611,7 @@ Only works with Rails, see e.g. `rinari-console'."
            (eq (char-after beginning) ?:)
            (memq (get-text-property beginning 'face)
                  (list font-lock-keyword-face
+                       font-lock-function-name-face
                        font-lock-comment-face
                        font-lock-string-face)))))
 
