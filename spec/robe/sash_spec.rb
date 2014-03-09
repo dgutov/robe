@@ -143,6 +143,8 @@ describe Robe::Sash do
           end
         end
 
+        stub_const("Record", arc)
+
         expect(k.method_spec(arc.singleton_class.instance_method(:bar))[0]).to eq("Record")
       end
     end

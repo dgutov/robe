@@ -83,7 +83,7 @@ module Robe
         unless owner.is_a?(Class)
           mod, inst = nil, true
           ObjectSpace.each_object(Module) do |m|
-            if m.include?(owner)
+            if m.include?(owner) && m.name
               mod = m
             elsif m.respond_to?(:singleton_class) &&
                   m.singleton_class.include?(owner)
