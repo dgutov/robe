@@ -63,7 +63,7 @@ In the init file:
 ## Dependencies
 
 * `pry`
-* `pry-doc` (on MRI)
+* `pry-doc >= 0.6.0` (on MRI)
 * `method_source >= 0.8.2` (for compatibility with the latest Rubinius)
 
 Note that if your project is using `Bundler`, the dependencies have to be added to the `Gemfile`.

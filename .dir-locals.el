@@ -1,1 +1,1 @@
-((ruby-mode . ((rspec-use-bundler-when-possible . nil))))
+((ruby-mode . ((rspec-use-bundler-when-possible . t))))
