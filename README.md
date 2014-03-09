@@ -105,7 +105,7 @@ rvm automatically.
 
 ## Compatibility
 
-* Tested in Emacs 24.3+, with Ruby 1.9.3 and 2.0.0, on GNU/Linux.
+* Tested in Emacs 24.3+, with Ruby 1.9.3-2.1.1, on GNU/Linux.
 * Essential features work with JRuby and the latest Rubinius.
   JRuby has longer startup, Rubinius is noticeably slower at runtime
   ([rubinius/rubinius#2390](https://github.com/rubinius/rubinius/issues/2390)).

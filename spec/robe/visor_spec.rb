@@ -9,7 +9,7 @@ describe Robe::Visor do
       expect(v.resolve_const("ARGF.class")).to be(ARGF.class)
     end
 
-    if RUBY_ENGINE == "ruby"
+    if RUBY_ENGINE == "ruby" && RUBY_VERSION < "2.1"
       it "resolves IO::readable and IO::writable" do
         readable = v.resolve_const("IO::readable")
         writable = v.resolve_const("IO::writable")

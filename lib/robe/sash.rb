@@ -63,12 +63,17 @@ module Robe
 
     def method_spec(method)
       owner, inst = method.owner, nil
-      if Class == owner || owner.ancestors.first == owner
+      if !singleton_class(owner)
         name, inst = method_owner_and_inst(owner)
       else
         name = owner.to_s[/Class:([A-Z][^\(>]*)/, 1] # defined in an eigenclass
       end
       [name, inst, method.name, method.parameters] + method.source_location.to_a
+    end
+
+    def singleton_class(mod)
+      mod.respond_to?(:singleton_class?) ? mod.singleton_class? :
+        Class != mod && mod.ancestors.first != mod
     end
 
     def method_owner_and_inst(owner)
