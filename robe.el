@@ -484,7 +484,8 @@ Only works with Rails, see e.g. `rinari-console'."
    (robe-signature-params (robe-spec-params spec) arg-num)))
 
 (defun robe-signature-params (params &optional arg-num)
-  (when params
+  (if (not params)
+      ""
     (let ((cnt 0) args)
       (dolist (pair params)
         (let ((kind (intern (first pair)))
