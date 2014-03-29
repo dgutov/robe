@@ -31,7 +31,7 @@ module ScannerHelper
 
   def named_module(name, *args)
     new_module(*args).tap do |m|
-      m.instance_eval "def name; \"#{name}\" end"
+      m.instance_eval "def __name__; \"#{name}\" end"
     end
   end
 end

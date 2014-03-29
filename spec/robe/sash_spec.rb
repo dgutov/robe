@@ -7,18 +7,18 @@ describe Robe::Sash do
 
   context "#modules" do
     it "returns module names" do
-      mock_space = BlindVisor.new(*%w(A B C).map { |n| OpenStruct.new(name: n) })
+      mock_space = BlindVisor.new(*%w(A B C).map { |n| OpenStruct.new(__name__: n) })
       expect(klass.new(mock_space).modules).to eq %w(A B C)
     end
 
     it "ignores misbehaving ones" do
       m = Module.new do
-        def self.name
+        def self.__name__
           raise :hell
         end
       end
       n = Module.new do
-        def self.name
+        def self.__name__
           "dilbert"
         end
       end
@@ -111,6 +111,27 @@ describe Robe::Sash do
       expect(k.method_spec(m.instance_method(:foo)))
         .to eq([nil, true, :foo, [[:req, :a], [:rest, :b], [:block, :c]],
                 __FILE__, anything])
+    end
+
+    it "ignores overridden name method" do
+      # Celluloid::Actor in celluloid <~ 0.15
+      # https://github.com/celluloid/celluloid/issues/354
+
+      m = Module.new do
+        def self.name
+          raise TooCoolForSchoolError
+        end
+
+        def self.__name__
+          "baa"
+        end
+
+        def qux
+        end
+      end
+
+      expect(k.method_spec(m.instance_method(:qux)))
+        .to eq(["baa", true, :qux, [], __FILE__, anything])
     end
 
     context "eigenclass" do
