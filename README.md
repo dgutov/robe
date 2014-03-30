@@ -70,7 +70,7 @@ Note that if your project is using `Bundler`, the dependencies have to be added 
 
 ## Completion
 
-### [company-mode](http://company-mode.github.com/) ([screenshot](robe-company.png)):
+### [company-mode](http://company-mode.github.com/) ([screenshot](screenshots/company-robe.png)):
 
 ```lisp
 (push 'company-robe company-backends)
