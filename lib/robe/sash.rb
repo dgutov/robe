@@ -32,9 +32,7 @@ module Robe
     end
 
     def modules
-      res = visor.each_object(Module).map { |c| c.__name__ rescue nil }
-      res.compact!
-      res
+      visor.each_object(Module).map(&:__name__).compact
     end
 
     def targets(obj)
