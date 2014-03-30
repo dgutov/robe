@@ -79,7 +79,7 @@ Note that if your project is using `Bundler`, the dependencies have to be added 
 ### [auto-complete](http://auto-complete.org/):
 
 ```lisp
-(add-hook 'robe-mode-hook 'robe-ac-setup)
+(add-hook 'robe-mode-hook 'ac-robe-setup)
 ```
 
 Both of the above work only when the connection to the Ruby subprocess has

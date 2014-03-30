@@ -24,6 +24,8 @@
 (defun ac-robe-setup ()
   (push 'ac-source-robe ac-sources))
 
+(define-obsolete-function-alias 'robe-ac-setup 'ac-robe-setup "0.7.8")
+
 ;;;###autoload
 (defconst ac-source-robe
   '((available . ac-robe-available)
