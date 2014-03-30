@@ -40,4 +40,4 @@
             (cdr (assoc (ido-completing-read "Module: " alist nil t) alist)))
         (car specs)))))
 
-(provide 'robe-company)
+(provide 'company-robe)
