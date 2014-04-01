@@ -375,7 +375,6 @@ Only works with Rails, see e.g. `rinari-console'."
   'help-echo "mouse-2, RET: toggle source")
 
 (defun robe-show-doc (spec)
-  (interactive)
   (let* ((doc (robe-doc-for spec))
          (buffer (get-buffer-create "*robe-doc*"))
          (inhibit-read-only t)
