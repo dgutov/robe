@@ -18,7 +18,8 @@
   "Return completion candidates for `ac-prefix'."
   (require 'robe)
   (when robe-running
-    (robe-complete-thing ac-prefix)))
+    (let (robe-highlight-capf-candidates)
+      (robe-complete-thing ac-prefix))))
 
 ;;;###autoload
 (defun ac-robe-setup ()
