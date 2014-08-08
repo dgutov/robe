@@ -57,7 +57,6 @@
 (require 'eldoc)
 (require 'help-mode)
 (require 'ruby-mode)
-(require 'ansi-color)
 
 (defgroup robe nil
   "Code navigation, documentation lookup and completion for Ruby"
@@ -119,8 +118,7 @@ project."
            (comint-filter (process-filter proc))
            (tmp-filter (lambda (p s)
                          (cond
-                          ((string-match-p "\"robe on\""
-                                           (ansi-color-filter-apply s))
+                          ((string-match-p "robe on" s)
                            (setq started t))
                           ((string-match-p "Error" s)
                            (setq failed t)))
