@@ -61,17 +61,12 @@ module Robe
 
     def method_spec(method)
       owner, inst = method.owner, nil
-      if !singleton_class(owner)
+      if !owner.__singleton_class__?
         name, inst = method_owner_and_inst(owner)
       else
         name = owner.to_s[/Class:([A-Z][^\(>]*)/, 1] # defined in an eigenclass
       end
       [name, inst, method.name, method.parameters] + method.source_location.to_a
-    end
-
-    def singleton_class(mod)
-      mod.respond_to?(:singleton_class?) ? mod.singleton_class? :
-        Class != mod && mod.ancestors.first != mod
     end
 
     def method_owner_and_inst(owner)
@@ -83,8 +78,7 @@ module Robe
           ObjectSpace.each_object(Module) do |m|
             if m.include?(owner) && m.__name__
               mod = m
-            elsif m.respond_to?(:singleton_class) &&
-                  m.singleton_class.include?(owner)
+            elsif m.__singleton_class__.include?(owner)
               mod = m
               inst = nil
             end && break
@@ -198,5 +192,17 @@ end
 class Module
   unless method_defined?(:__name__)
     alias_method :__name__, :name
+  end
+
+  if method_defined?(:singleton_class?)
+    alias_method :__singleton_class__?, :singleton_class?
+  else
+    def __singleton_class__?
+      self != Class && ancestors.first != self
+    end
+  end
+
+  unless method_defined?(:__singleton_class__)
+    alias_method :__singleton_class__, :singleton_class
   end
 end

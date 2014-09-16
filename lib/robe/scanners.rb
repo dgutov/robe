@@ -11,8 +11,8 @@ module Robe
 
     def scan(modules, check_instance, check_module)
       modules.each do |m|
-        if check_module && m.respond_to?(:singleton_class)
-          sc = m.singleton_class
+        if check_module
+          sc = m.__singleton_class__
           scan_methods(sc, :instance_methods)
           scan_methods(sc, :private_instance_methods) if check_private
         end
