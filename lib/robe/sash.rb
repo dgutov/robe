@@ -76,9 +76,9 @@ module Robe
         unless owner.is_a?(Class)
           mod, inst = nil, true
           ObjectSpace.each_object(Module) do |m|
-            if m.include?(owner) && m.__name__
+            if m.__include__?(owner) && m.__name__
               mod = m
-            elsif m.__singleton_class__.include?(owner)
+            elsif m.__singleton_class__.__include__?(owner)
               mod = m
               inst = nil
             end && break
@@ -204,5 +204,9 @@ class Module
 
   unless method_defined?(:__singleton_class__)
     alias_method :__singleton_class__, :singleton_class
+  end
+
+  unless method_defined?(:__include__?)
+    alias_method :__include__?, :include?
   end
 end
