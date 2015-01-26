@@ -196,6 +196,7 @@ class Module
 
   if method_defined?(:singleton_class?)
     alias_method :__singleton_class__?, :singleton_class?
+    public :__singleton_class__? # Rails 3.2 + Ruby 2.1
   else
     def __singleton_class__?
       self != Class && ancestors.first != self
