@@ -99,13 +99,14 @@ When called with a prefix argument, kills the current Ruby
 process, if any, and starts a new console for the current
 project."
   (interactive "P")
-  (let ((process (get-buffer-process inf-ruby-buffer)))
+  (let* ((ruby-buffer (get-buffer inf-ruby-buffer))
+         (process (get-buffer-process ruby-buffer)))
     (when (or force (not process))
       (setq robe-running nil)
       (when process
         (delete-process process))
-      (when (buffer-live-p inf-ruby-buffer)
-        (kill-buffer inf-ruby-buffer))
+      (when (buffer-live-p ruby-buffer)
+        (kill-buffer ruby-buffer))
       (if (or force
               (yes-or-no-p "No Ruby console running. Launch automatically?"))
           (let ((conf (current-window-configuration)))
