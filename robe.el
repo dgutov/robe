@@ -99,7 +99,8 @@ When called with a prefix argument, kills the current Ruby
 process, if any, and starts a new console for the current
 project."
   (interactive "P")
-  (let* ((ruby-buffer (get-buffer inf-ruby-buffer))
+  (let* ((ruby-buffer (and inf-ruby-buffer
+                           (get-buffer inf-ruby-buffer)))
          (process (get-buffer-process ruby-buffer)))
     (when (or force (not process))
       (setq robe-running nil)
