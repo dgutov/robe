@@ -142,10 +142,15 @@ project."
               (when failed
                 (ruby-switch-to-inf t)
                 (error "Robe launch failed"))
-              (accept-process-output proc)))
+              (accept-process-output proc))
+            (set-process-sentinel proc #'robe-process-sentinel))
         (set-process-filter proc comint-filter)))
     (when (robe-request "ping") ;; Should be always t when no error, though.
       (setq robe-running t))))
+
+(defun robe-process-sentinel (proc _event)
+  (when (memq (process-status proc) '(signal exit))
+    (setq robe-running nil)))
 
 (defun robe-request (endpoint &rest args)
   (declare (special url-http-end-of-headers))
