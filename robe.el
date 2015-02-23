@@ -287,7 +287,8 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
       (robe-find-file file)
       (goto-char (point-min))
       (let* ((nesting (split-string name "::"))
-             (cnt (1- (length nesting))))
+             (cnt (1- (length nesting)))
+             case-fold-search)
         (re-search-forward (concat "^[ \t]*\\(class\\|module\\) +.*\\_<"
                                    (loop for i from 1 to cnt
                                          concat "\\(")
