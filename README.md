@@ -73,7 +73,8 @@ Note that if your project is using `Bundler`, the dependencies have to be added 
 ### [company-mode](http://company-mode.github.com/) ([screenshot](screenshots/company-robe.png)):
 
 ```lisp
-(push 'company-robe company-backends)
+(eval-after-load 'company
+  '(push 'company-robe company-backends))
 ```
 
 ### [auto-complete](http://auto-complete.org/):
