@@ -152,5 +152,3 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to the
 Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/de7c96160d19b6945b432196a97eaaf3 "githalytics.com")](http://githalytics.com/dgutov/robe)
