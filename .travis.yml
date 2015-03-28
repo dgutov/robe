@@ -1,6 +1,7 @@
 language: ruby
 bundler_args: --without metrics
 script: "bundle exec rake spec_for_build"
+sudo: false
 rvm:
   - 1.9.3
   - 2.0.0
