@@ -30,7 +30,7 @@ To see the available commands, type <kbd>M-x describe-package RET robe RET</kbd>
 
 ## Details
 
-When peforming one of the commands defined here, we either need to
+When performing one of the commands defined here, we either need to
 narrow the method name at point down to a specific method in a specific
 module, or enumerate the possible method names or constants allowed at
 point (for code completion).
