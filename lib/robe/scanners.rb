@@ -27,7 +27,10 @@ module Robe
   class ModuleScanner < Scanner
     def scan_methods(mod, coll)
       if mod.__send__(coll, false).include?(@sym)
-        candidates << mod.instance_method(@sym)
+        begin
+          candidates << mod.instance_method(@sym)
+        rescue NameError
+        end
       end
     end
   end
@@ -40,7 +43,10 @@ module Robe
 
     def scan_methods(mod, coll)
       mod.__send__(coll, false).grep(@re) do |sym|
-        candidates << mod.instance_method(sym)
+        begin
+          candidates << mod.instance_method(sym)
+        rescue NameError
+        end
       end
     end
   end
