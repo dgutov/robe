@@ -1,4 +1,5 @@
 require 'pry'
+require 'ostruct'
 begin
   require 'pry-doc' if RUBY_ENGINE == "ruby"
 rescue LoadError
