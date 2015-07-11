@@ -17,7 +17,7 @@ module Robe
       locations = {}
       if (obj = visor.resolve_context(name, mod)) and obj.is_a? Module
         methods = obj.methods(false).map { |m| obj.method(m) } +
-                  obj.instance_methods(false).map { |m| obj.instance_method(m) }
+                  obj.__instance_methods__(false).map { |m| obj.instance_method(m) }
         methods.each do |m|
           if loc = m.source_location
             path = loc[0]
@@ -40,8 +40,8 @@ module Robe
       obj = visor.resolve_const(obj)
       if obj.is_a? Module
         module_methods = obj.methods.map { |m| method_spec(obj.method(m)) }
-        instance_methods = (obj.instance_methods +
-                            obj.private_instance_methods(false))
+        instance_methods = (obj.__instance_methods__ +
+                            obj.__private_instance_methods__(false))
           .map { |m| method_spec(obj.instance_method(m)) }
         [obj.__name__] + module_methods + instance_methods
       else
@@ -112,7 +112,7 @@ module Robe
         end
       elsif (target || !conservative) && !special_method
         unless target
-          scanner.scan_methods(Kernel, :private_instance_methods)
+          scanner.scan_methods(Kernel, :__private_instance_methods__)
         end
         scanner.check_private = false
         scanner.scan(visor.each_object(Module), true, true)

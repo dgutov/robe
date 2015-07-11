@@ -55,4 +55,22 @@ describe Robe::ModuleScanner do
     scanner.scan([Module.new], true, true)
     expect(scanner.candidates).to be_empty
   end
+
+  it "doesn't pay attention to overridden [private_]instance_methods" do
+    tiff = new_module(:foo, :bar, :bar, :foo)
+
+    tiff = Module.new do
+      def self.instance_methods(_ign)
+        [:fool, :me, :once]
+      end
+
+      def self.private_instance_methods(_ign)
+        [:fool, :me, :twice]
+      end
+    end
+
+    scanner = klass.new(:fool, true)
+    scanner.scan([tiff], true, true)
+    expect(scanner.candidates).to be_empty
+  end
 end
