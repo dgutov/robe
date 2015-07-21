@@ -89,9 +89,9 @@ module Robe
       end
     end
 
-    def doc_for(mod, type, sym)
-      mod = visor.resolve_const(mod)
-      DocFor.new(find_method(mod, type, sym.to_sym)).format
+    def doc_for(mod, inst, sym)
+      resolved = visor.resolve_const(mod)
+      DocFor.new(find_method(resolved, inst, sym.to_sym)).format
     end
 
     def method_targets(name, target, mod, instance, superc, conservative)
