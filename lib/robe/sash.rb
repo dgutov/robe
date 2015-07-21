@@ -65,7 +65,7 @@ module Robe
       if !owner.__singleton_class__?
         name, inst = method_owner_and_inst(owner)
       else
-        name = owner.to_s[/Class:([A-Z][^\(>]*)/, 1] # defined in an eigenclass
+        name = owner.to_s[/Class:([A-Z][^\(> ]*)/, 1] # defined in an eigenclass
       end
       [name, inst, method.name, method.parameters] + method.source_location.to_a
     end
