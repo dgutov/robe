@@ -213,8 +213,20 @@ describe Robe::Sash do
       end
 
       it "returns the non-overridden method" do
-        expect(k.method_targets("initialize", "Object", nil, true, nil, nil))
+        expect(k.method_targets("new", "Object", nil, nil, nil, nil))
           .to include_spec("BasicObject#initialize")
+      end
+
+      it "returns #new overridden in the given class" do
+        c = Class.new do
+          def self.new
+          end
+        end
+
+        stub_const("C", c)
+
+        expect(k.method_targets("new", "Object", nil, nil, nil, nil))
+          .to include_spec("C.new")
       end
 
       it "doesn't return overridden method" do

@@ -97,29 +97,47 @@ module Robe
     def method_targets(name, target, mod, instance, superc, conservative)
       sym = name.to_sym
       space = TypeSpace.new(visor, target, mod, instance, superc)
-      special_method = sym == :initialize || superc
+      special_method = superc
+
       scanner = ModuleScanner.new(sym, special_method || !target)
 
       space.scan_with(scanner)
+      targets = scanner.candidates
 
-      if (targets = scanner.candidates).any?
-        owner = find_method_owner(space.target_type, instance, sym)
-        if owner
-          targets.reject! do |method|
-            !(method.owner <= owner) &&
-              targets.find { |other| other.owner < method.owner }
-          end
-        end
-      elsif (target || !conservative) && !special_method
+      if targets
+        filter_targets!(space, targets, instance, sym)
+      end
+
+      if !instance && (sym == :new)
+        ctor_space   = TypeSpace.new(visor, target, mod, true, superc)
+        ctor_scanner = ModuleScanner.new(:initialize, true)
+        ctor_space.scan_with(ctor_scanner)
+        ctor_targets = ctor_scanner.candidates
+        filter_targets!(ctor_space, ctor_targets, true, :initialize)
+        targets += ctor_targets
+      end
+
+      if targets.empty? && (target || !conservative) && !special_method
         unless target
           scanner.scan_methods(Kernel, :__private_instance_methods__)
         end
         scanner.check_private = false
         scanner.scan(visor.each_object(Module), true, true)
+        targets = scanner.candidates
       end
 
-      scanner.candidates.map { |method| method_spec(method) }
+      targets.map { |method| method_spec(method) }
         .sort_by { |(mname)| mname ? mname.scan(/::/).length : 99 }
+    end
+
+    def filter_targets!(space, targets, instance, sym)
+      owner = find_method_owner(space.target_type, instance, sym)
+      if owner
+        targets.reject! do |method|
+          !(method.owner <= owner) &&
+            targets.find { |other| other.owner < method.owner }
+        end
+      end
     end
 
     def complete_method(prefix, target, mod, instance)

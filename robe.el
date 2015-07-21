@@ -228,9 +228,6 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
         (when (string= thing "super")
           (setq thing (third ctx)
                 super t)))
-      (when (and target (string= thing "new"))
-        (setq thing "initialize"
-              instance t))
       (when (and target (save-excursion
                           (end-of-thing 'symbol)
                           (looking-at " *=[^=]")))
