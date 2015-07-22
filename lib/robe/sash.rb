@@ -4,6 +4,7 @@ require 'robe/scanners'
 require 'robe/visor'
 require 'robe/jvisor'
 require 'robe/core_ext'
+require 'robe/sash/includes_tracker'
 
 module Robe
   class Sash
@@ -62,31 +63,18 @@ module Robe
 
     def method_spec(method)
       owner, inst = method.owner, nil
-      if !owner.__singleton_class__?
-        name, inst = method_owner_and_inst(owner)
-      else
+      if owner.__singleton_class__?
         name = owner.to_s[/Class:([A-Z][^\(> ]*)/, 1] # defined in an eigenclass
+      elsif owner.__name__
+        name, inst = owner.__name__, true
+      elsif !owner.is_a?(Class)
+        name, inst = IncludesTracker.method_owner_and_inst(owner)
       end
+      # XXX: We can speed this up further by only returning the
+      # method's (or owner's) object_id here, and resolve the "real"
+      # host's name only when it's really needed. But that would break
+      # the current 'meta' impl in company-robe, for one thing.
       [name, inst, method.name, method.parameters] + method.source_location.to_a
-    end
-
-    def method_owner_and_inst(owner)
-      if owner.__name__
-        [owner.__name__, true]
-      else
-        unless owner.is_a?(Class)
-          mod, inst = nil, true
-          ObjectSpace.each_object(Module) do |m|
-            if m.__include__?(owner) && m.__name__
-              mod = m
-            elsif m.__singleton_class__.__include__?(owner)
-              mod = m
-              inst = nil
-            end && break
-          end
-          [mod && mod.__name__, inst]
-        end
-      end
     end
 
     def doc_for(mod, inst, sym)
