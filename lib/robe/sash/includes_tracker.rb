@@ -1,4 +1,3 @@
-require 'weakref'
 require 'set'
 require 'robe/core_ext'
 
