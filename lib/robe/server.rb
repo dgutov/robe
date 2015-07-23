@@ -10,8 +10,7 @@ module Robe
 
     def initialize(handler, port)
       @handler = handler
-
-      @server = TCPServer.new("127.0.0.1", @port)
+      @server = TCPServer.new("127.0.0.1", port)
       @running = true
       @port = @server.addr[1]
     end
