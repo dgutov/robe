@@ -46,11 +46,8 @@ describe Robe::Server do
     end
   end
 
-  $port = 3000
-
   def start_and_send(handler, request)
-    $port += 1
-    server = described_class.new(handler, $port)
+    server = described_class.new(handler, 0)
 
     Thread.new do
       Thread.current.abort_on_exception = true
@@ -59,7 +56,7 @@ describe Robe::Server do
 
     server.wait_for_it
 
-    http = Net::HTTP.new("127.0.0.1", $port)
+    http = Net::HTTP.new("127.0.0.1", server.port)
     http.request(request)
   ensure
     server.shutdown

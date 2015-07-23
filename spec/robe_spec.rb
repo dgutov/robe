@@ -5,7 +5,7 @@ require 'net/http'
 describe Robe do
   before do
     $stderr = File.new(IO::NULL, "w")
-    Robe.start(12345)
+    Robe.start
   end
 
   after do
@@ -26,7 +26,7 @@ describe Robe do
   end
 
   it "proxies 'ping' to Sash" do
-    resp = Net::HTTP.get("127.0.0.1", "/ping", 12345)
+    resp = Net::HTTP.get("127.0.0.1", "/ping", Robe.server.port)
     expect(resp).to eq("\"pong\"")
   end
 
