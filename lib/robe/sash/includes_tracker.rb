@@ -41,7 +41,7 @@ module Robe
       end
 
       if Module.respond_to?(:prepend)
-        @@invalidator = Module.new do
+        module Invalidator
           def include(*others)
             IncludesTracker.reset!
             super(*others)
@@ -53,7 +53,7 @@ module Robe
           end
         end
 
-        Module.send(:prepend, @@invalidator)
+        Module.send(:prepend, Invalidator)
       else
         Module.class_eval do
           alias_method :__orig_include, :include
