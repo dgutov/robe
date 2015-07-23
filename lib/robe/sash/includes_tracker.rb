@@ -30,6 +30,7 @@ module Robe
           @@hosts = includers = Hash.new { |h, k| h[k] = Set.new }
 
           ObjectSpace.each_object(Module) do |cl|
+            next unless cl.respond_to?(:included_modules)
             cl.included_modules.each { |mod| includers[mod] << [cl, true] }
             sc = cl.__singleton_class__
             sc.included_modules.each { |mod| includers[mod] << [cl, nil] }
