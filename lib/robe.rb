@@ -5,9 +5,11 @@ module Robe
   class << self
     attr_accessor :server
 
-    def start(port)
+    def start(port = 0)
       return if @server
+
       @server = Server.new(Sash.new, port)
+
       ['INT', 'TERM'].each do |signal|
         trap(signal) { stop }
       end
@@ -20,7 +22,7 @@ module Robe
 
       @server.wait_for_it
 
-      "robe on"
+      "robe on #{@server.port}"
     end
 
     def stop

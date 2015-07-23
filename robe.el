@@ -77,7 +77,7 @@ have constants, methods and arguments highlighted in color."
     (expand-file-name "lib" (file-name-directory current)))
   "Path to the backend Ruby code.")
 
-(defvar robe-port 24969)
+(defvar robe-port nil)
 
 (defvar robe-jump-conservative nil)
 
@@ -110,8 +110,10 @@ project."
            (comint-filter (process-filter proc))
            (tmp-filter (lambda (p s)
                          (cond
-                          ((string-match-p "robe on" s)
-                           (setq started t))
+                          ((string-match "robe on \\([0-9]+\\)" s)
+                           (setq started t)
+                           (setq robe-port (string-to-number
+                                            (match-string 1 s))))
                           ((string-match-p "Error" s)
                            (setq failed t)))
                          (funcall comint-filter p s)))
@@ -120,9 +122,9 @@ project."
                                         "  $:.unshift '%s'"
                                         "  require 'robe'"
                                         "end"
-                                        "Robe.start(%d)\n")
+                                        "Robe.start\n")
                                       ";")
-                           robe-ruby-path robe-port)))
+                           robe-ruby-path)))
       (unwind-protect
           (progn
             (set-process-filter proc tmp-filter)
