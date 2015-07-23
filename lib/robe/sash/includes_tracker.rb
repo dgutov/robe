@@ -42,12 +42,12 @@ module Robe
 
       if Module.respond_to?(:prepend)
         @@invalidator = Module.new do
-          define_method(:include) do |*others|
+          def include(*others)
             IncludesTracker.reset!
             super(*others)
           end
 
-          define_method(:extend) do |others|
+          def extend(*others)
             IncludesTracker.reset!
             super(*others)
           end
