@@ -1,4 +1,3 @@
-require 'set'
 require 'robe/core_ext'
 
 module Robe
@@ -26,7 +25,7 @@ module Robe
         includers = @@hosts
 
         unless includers
-          @@hosts = includers = Hash.new { |h, k| h[k] = Set.new }
+          @@hosts = includers = Hash.new { |h, k| h[k] = [] }
 
           ObjectSpace.each_object(Module) do |cl|
             next unless cl.respond_to?(:included_modules)
