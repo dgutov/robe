@@ -3,13 +3,13 @@ require 'robe/core_ext'
 module Robe
   class Sash
     class IncludesTracker
-      def self.method_owner_and_inst(owner)
+      def self.method_owner_and_inst(owner, name_cache)
         includers = maybe_scan
 
         mod, inst = includers[owner].first
 
         if mod
-          [mod.__name__, inst]
+          [name_cache[mod], inst]
         else
           [nil, true]
         end

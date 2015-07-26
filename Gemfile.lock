@@ -63,6 +63,3 @@ DEPENDENCIES
   rake (~> 10.3.0)
   rspec (~> 2.14)
   simplecov
-
-BUNDLED WITH
-   1.10.6

@@ -8,10 +8,11 @@ require 'robe/sash/includes_tracker'
 
 module Robe
   class Sash
-    attr_accessor :visor
+    attr_accessor :visor, :name_cache
 
     def initialize(visor = pick_visor)
       @visor = visor
+      init_name_cache
     end
 
     def class_locations(name, mod)
@@ -34,7 +35,7 @@ module Robe
     end
 
     def modules
-      visor.each_object(Module).map(&:__name__).compact
+      visor.each_object(Module).map { |mod| name_cache[mod] }.compact
     end
 
     def targets(obj)
@@ -44,7 +45,7 @@ module Robe
         instance_methods = (obj.__instance_methods__ +
                             obj.__private_instance_methods__(false))
           .map { |m| method_spec(obj.instance_method(m)) }
-        [obj.__name__] + module_methods + instance_methods
+        [name_cache[obj]] + module_methods + instance_methods
       else
         self.targets(obj.class.to_s)
       end
@@ -65,10 +66,10 @@ module Robe
       owner, inst = method.owner, nil
       if owner.__singleton_class__?
         name = owner.to_s[/Class:([A-Z][^\(> ]*)/, 1] # defined in an eigenclass
-      elsif owner.__name__
-        name, inst = owner.__name__, true
+      elsif name = name_cache[owner]
+        inst = true
       elsif !owner.is_a?(Class)
-        name, inst = IncludesTracker.method_owner_and_inst(owner)
+        name, inst = IncludesTracker.method_owner_and_inst(owner, name_cache)
       end
       # XXX: We can speed this up further by only returning the
       # method's (or owner's) object_id here, and resolve the "real"
@@ -172,6 +173,7 @@ module Robe
       ActionDispatch::Reloader.cleanup!
       ActionDispatch::Reloader.prepare!
       Rails.application.eager_load!
+      init_name_cache
     end
 
     def ping
@@ -192,6 +194,11 @@ module Robe
       else
         Visor.new
       end
+    end
+
+    def init_name_cache
+      # https://www.ruby-forum.com/topic/167055
+      @name_cache = Hash.new { |h, mod| h[mod] = mod.__name__ }
     end
   end
 end
