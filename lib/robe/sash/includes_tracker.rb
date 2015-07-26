@@ -40,32 +40,32 @@ module Robe
 
       if Module.respond_to?(:prepend)
         module Invalidator
-          def include(*others)
+          def included(other)
             IncludesTracker.reset!
-            super(*others)
+            super(other)
           end
 
-          def extend(*others)
+          def extended(other)
             IncludesTracker.reset!
-            super(*others)
+            super(other)
           end
         end
 
         Module.send(:prepend, Invalidator)
       else
         Module.class_eval do
-          alias_method :__orig_include, :include
-          alias_method :__orig_extend, :extend
+          alias_method :__orig_included, :included
+          alias_method :__orig_extended, :extended
 
           # Cannot hook into this method without :prepend.
-          def include(*others)
+          def included(other)
             IncludesTracker.reset!
-            __orig_include(*others)
+            __orig_included(other)
           end
 
-          def extend(*others)
+          def extended(other)
             IncludesTracker.reset!
-            __orig_extend(*others)
+            __orig_extended(other)
           end
         end
       end
