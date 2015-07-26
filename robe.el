@@ -96,11 +96,11 @@ project."
       (setq robe-running nil)
       (when process
         (delete-process process))
-      (when (buffer-live-p ruby-buffer)
-        (kill-buffer ruby-buffer))
       (if (or force
               (yes-or-no-p "No Ruby console running. Launch automatically?"))
           (let ((conf (current-window-configuration)))
+            (when (buffer-live-p ruby-buffer)
+              (kill-buffer ruby-buffer))
             (inf-ruby-console-auto)
             (set-window-configuration conf))
         (error "Aborted"))))
