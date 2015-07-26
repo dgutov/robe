@@ -16,7 +16,7 @@ module Robe
     end
 
     def start
-      access = File.open("#{Dir.tmpdir}/robe-access.log", "w")
+      access = File.open("#{Dir.tmpdir}/robe-access-#{@port}.log", "w")
       access.sync = true
 
       error_logger = Logger.new($stderr)
