@@ -94,10 +94,13 @@ module Robe
       targets = scanner.candidates
 
       if targets
+        targets.delete(Class.instance_method(:new))
         filter_targets!(space, targets, instance, sym)
       end
 
-      if !instance && (sym == :new)
+      sc = space.target_type.singleton_class
+
+      if !instance && (sym == :new) && targets.all? { |t| t.owner < sc }
         ctor_space   = TypeSpace.new(visor, target, mod, true, superc)
         ctor_scanner = ModuleScanner.new(:initialize, true)
         ctor_space.scan_with(ctor_scanner)
