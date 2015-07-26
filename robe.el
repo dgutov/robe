@@ -1,7 +1,7 @@
 ;;; robe.el --- Code navigation, documentation lookup and completion for Ruby
 
 ;; Copyright © 2012 Phil Hagelberg
-;; Copyright © 2012, 2013 Dmitry Gutov
+;; Copyright © 2012-2015 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
