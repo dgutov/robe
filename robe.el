@@ -154,6 +154,7 @@ project."
                                          (t "-")))
                                  args "/")))
          (response-buffer (robe-retrieve url)))
+    (message nil) ;; So "Contacting host" message is cleared
     (if response-buffer
         (prog1
             (with-current-buffer response-buffer
