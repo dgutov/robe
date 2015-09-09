@@ -114,7 +114,8 @@ project."
                            (setq started t)
                            (setq robe-port (string-to-number
                                             (match-string 1 s))))
-                          ((string-match-p "Error" s)
+                          ((let (case-fold-search)
+                             (string-match-p "Error\\>" s))
                            (setq failed t)))
                          (funcall comint-filter p s)))
            (script (format (mapconcat #'identity
