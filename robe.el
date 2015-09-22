@@ -459,11 +459,11 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-doc-fontify-c-string (string)
   (with-temp-buffer
     (insert string)
-    (let ((delay-mode-hooks t))
-      (c-mode))
-    (run-hooks 'font-lock-mode-hook)
-    (font-lock-fontify-buffer)
-    (buffer-string)))
+    (delay-mode-hooks
+      (c-mode)
+      (run-hooks 'font-lock-mode-hook)
+      (font-lock-fontify-buffer)
+      (buffer-string))))
 
 (defun robe-toggle-source (button)
   (let* ((end (button-end button))
