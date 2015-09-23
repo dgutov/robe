@@ -682,8 +682,8 @@ The following commands are available:
 \\{robe-mode-map}"
   nil " robe" robe-mode-map
   (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
+  (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)
   (when robe-turn-on-eldoc
-    (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)
     (turn-on-eldoc-mode)))
 
 (provide 'robe)
