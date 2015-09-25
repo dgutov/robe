@@ -68,10 +68,6 @@
 have constants, methods and arguments highlighted in color."
   :group 'robe)
 
-(defcustom robe-turn-on-eldoc t
-  "When non-nil, `robe-mode' will turn on `eldoc-mode'."
-  :group 'robe)
-
 (defvar robe-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
     (expand-file-name "lib" (file-name-directory current)))
@@ -682,9 +678,7 @@ The following commands are available:
 \\{robe-mode-map}"
   nil " robe" robe-mode-map
   (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
-  (when robe-turn-on-eldoc
-    (set (make-local-variable 'eldoc-documentation-function) 'robe-eldoc)
-    (turn-on-eldoc-mode)))
+  (set (make-local-variable 'eldoc-documentation-function) #'robe-eldoc))
 
 (provide 'robe)
 ;;; robe.el ends here
