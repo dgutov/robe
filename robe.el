@@ -79,6 +79,27 @@ have constants, methods and arguments highlighted in color."
 
 (defvar robe-running nil)
 
+(defcustom robe-completing-read-func 'completing-read-default
+  "Function to call for completing reads, to resolve ambiguous names.
+
+Will not be used when either `completing-read' or
+`completing-read-function' are [temporarily] overridden by user
+or another package."
+  :type '(choice (const :tag "Ido" ido-completing-read)
+                 (const :tag "Plain" completing-read-default)
+                 (function :tag "Other function"))
+  :group 'robe)
+
+(defun robe-completing-read (&rest args)
+  (let ((completing-read-function
+         ; 1) allow read-function override. Subtle: an *old* customization
+         ; value 'completing-read would cause infinite loop, so avoid.
+         (if (and (eq completing-read-function 'completing-read-default)
+                  (not (eq robe-completing-read-func 'completing-read)))
+             robe-completing-read-func
+           completing-read-function)))
+    (apply #'completing-read args)))      ; 2) allow completing-read override
+
 (defun robe-start (&optional force)
   "Start Robe server if it isn't already running.
 When called with a prefix argument, kills the current Ruby
@@ -180,11 +201,11 @@ project."
 
 (defun robe-ask-prompt ()
   (let* ((modules (robe-request "modules"))
-         (module (completing-read "Module: " modules))
+         (module (robe-completing-read "Module: " modules))
          (targets (robe-request "targets" module))
          (_ (unless targets (error "No methods found")))
          (alist (robe-decorate-methods (cdr targets))))
-    (cdr (assoc (completing-read "Method: " alist nil t)
+    (cdr (assoc (robe-completing-read "Method: " alist nil t)
                 alist))))
 
 (defun robe-decorate-methods (list)
@@ -216,7 +237,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (unless alist (error "Method not found"))
     (if (= 1 (length alist))
         (cdar alist)
-      (cdr (assoc (completing-read "Module: " alist nil t)
+      (cdr (assoc (robe-completing-read "Module: " alist nil t)
                   alist)))))
 
 (defun robe-jump-modules (thing)
@@ -263,13 +284,13 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 
 (defun robe-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
-  (interactive `(,(completing-read "Module: " (robe-request "modules"))))
+  (interactive `(,(robe-completing-read "Module: " (robe-request "modules"))))
   (let ((paths (robe-request "class_locations" name (car (robe-context)))))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
                   (let ((alist (robe-to-abbr-paths paths)))
-                    (cdr (assoc (completing-read "File: " alist nil t)
+                    (cdr (assoc (robe-completing-read "File: " alist nil t)
                                 alist))))))
       (robe-find-file file)
       (goto-char (point-min))

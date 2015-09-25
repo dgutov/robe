@@ -37,7 +37,7 @@
                              for module = (robe-spec-module spec)
                              when module
                              collect (cons module spec))))
-            (cdr (assoc (completing-read "Module: " alist nil t) alist)))
+            (cdr (assoc (robe-completing-read "Module: " alist nil t) alist)))
         (car specs)))))
 
 (provide 'company-robe)
