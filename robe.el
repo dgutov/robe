@@ -622,7 +622,10 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-complete-symbol-p (beginning)
   (not (or (eq (char-before beginning) ?@)
-           (eq (char-after beginning) ?:)
+           (and
+            ;; Implement symbol completion using Symbol.all_symbols.
+            (eq (char-after beginning) ?:)
+            (not (eq (char-after (1+ beginning)) ?:)))
            (memq (get-text-property beginning 'face)
                  (list font-lock-keyword-face
                        font-lock-function-name-face
