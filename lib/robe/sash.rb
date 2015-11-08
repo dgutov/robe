@@ -1,3 +1,4 @@
+require 'robe/legacy_shim'
 require 'robe/sash/doc_for'
 require 'robe/type_space'
 require 'robe/scanners'
@@ -5,6 +6,8 @@ require 'robe/visor'
 require 'robe/jvisor'
 require 'robe/core_ext'
 require 'robe/sash/includes_tracker'
+
+
 
 module Robe
   class Sash
@@ -43,8 +46,7 @@ module Robe
       if obj.is_a? Module
         module_methods = obj.methods.map { |m| method_spec(obj.method(m)) }
         instance_methods = (obj.__instance_methods__ +
-                            obj.__private_instance_methods__(false))
-          .map { |m| method_spec(obj.instance_method(m)) }
+                            obj.__private_instance_methods__(false)).map { |m| method_spec(obj.instance_method(m)) }
         [name_cache[obj]] + module_methods + instance_methods
       else
         self.targets(obj.class.to_s)
@@ -75,6 +77,11 @@ module Robe
       # method's (or owner's) object_id here, and resolve the "real"
       # host's name only when it's really needed. But that would break
       # the current 'meta' impl in company-robe, for one thing.
+      unless method.respond_to? :parameters
+        def method.parameters
+          []
+        end
+      end
       [name, inst, method.name, method.parameters] + method.source_location.to_a
     end
 
@@ -118,10 +125,15 @@ module Robe
         targets = scanner.candidates
       end
 
-      targets.map { |method| method_spec(method) }
-        .sort_by { |(mname)| mname ? mname.scan(/::/).length : 99 }
+      targets.map { |method| method_spec(method) }.sort_by do |mname|
+        if mname
+          mname.scan(/::/).length
+        else
+          99
+        end
+      end
     end
-
+    
     def filter_targets!(space, targets, instance, sym)
       owner = find_method_owner(space.target_type, instance, sym)
       if owner
@@ -142,7 +154,7 @@ module Robe
         scanner.check_private = false
         scanner.scan(visor.each_object(Module), true, true)
       end
-
+      
       scanner.candidates.map { |m| method_spec(m) }
     end
 

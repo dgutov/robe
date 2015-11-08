@@ -4,7 +4,7 @@ module Robe
   class Visor
     extend Forwardable
 
-    delegate each_object: ObjectSpace
+    def_delegator  :ObjectSpace, :each_object, :each_object 
 
     def descendants(cls)
       each_object(cls.singleton_class).to_a - [cls]
