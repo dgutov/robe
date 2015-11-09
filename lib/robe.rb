@@ -1,6 +1,7 @@
 require 'robe/sash'
 require 'robe/server'
 
+
 module Robe
   class << self
     attr_accessor :server

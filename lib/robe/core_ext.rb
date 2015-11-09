@@ -1,3 +1,5 @@
+require 'backports'
+
 class Module
   unless method_defined?(:__name__)
     alias_method :__name__, :name

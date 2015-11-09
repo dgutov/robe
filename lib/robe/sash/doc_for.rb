@@ -2,24 +2,28 @@ require 'pry'
 require 'ostruct'
 
 begin
+  RUBY_ENGINE = "ruby" unless defined?(RUBY_ENGINE)
   require 'pry-doc' if RUBY_ENGINE == "ruby"
 rescue LoadError
   # Whatever, it's optional.
 end
 
+
 module Robe
   class Sash
     class DocFor
+
+      
       def initialize(method)
         @method = method
       end
 
       def format
         info = self.class.method_struct(@method)
-        {docstring: info.docstring,
-         source: info.source,
-         aliases: info.aliases,
-         visibility: visibility}
+        {:docstring => info.docstring,
+         :source => info.source,
+         :aliases => info.aliases,
+         :visibility => visibility}
       end
 
       def visibility
@@ -45,11 +49,11 @@ module Robe
             source = (info.source? ? info.source : "# Not available.")
           end
 
-          OpenStruct.new(docstring: doc, source: source,
-                         aliases: info.aliases.map(&:to_sym))
+          OpenStruct.new(:docstring => doc, :source => source,
+                         :aliases => info.aliases.map(&:to_sym))
         rescue Pry::CommandError
           message = $!.message =~ /pry-doc/ ? $!.message : ""
-          return OpenStruct.new(docstring: message)
+          return OpenStruct.new(:docstring => message)
         end
       end
     end
