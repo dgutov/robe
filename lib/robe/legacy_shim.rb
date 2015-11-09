@@ -1,5 +1,5 @@
 
-if RUBY_VERSION[/^1.8/]
+if RUBY_VERSION.to_f < 1.9
 
   require 'rubygems'
   require 'backports'
@@ -19,9 +19,9 @@ if RUBY_VERSION[/^1.8/]
     end
   end
 
-  class Module
-    def singleton_class
-      class << self; self; end
-    end
-  end
+  # class Module
+  #   def singleton_class
+  #     class << self; self; end
+  #   end
+  # end
 end
