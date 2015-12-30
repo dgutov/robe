@@ -1,7 +1,7 @@
 (eval-when-compile (require 'robe))
 
 ;;;###autoload
-(defun company-robe (command &optional arg)
+(defun company-robe (command &optional arg &rest ignore)
   "A `company-mode' completion back-end for `robe-mode'."
   (interactive (list 'interactive))
   (case command
