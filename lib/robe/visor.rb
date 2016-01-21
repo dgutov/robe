@@ -4,7 +4,9 @@ module Robe
   class Visor
     extend Forwardable
 
-    delegate each_object: ObjectSpace
+    def each_object(*args)
+      ObjectSpace.each_object(*args).reject { |m| m.__singleton_class__? }
+    end
 
     def descendants(cls)
       each_object(cls.singleton_class).to_a - [cls]
