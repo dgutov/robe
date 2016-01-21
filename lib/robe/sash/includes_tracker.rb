@@ -29,6 +29,7 @@ module Robe
 
           ObjectSpace.each_object(Module) do |cl|
             next unless cl.respond_to?(:included_modules)
+            next if cl.__singleton_class__?
             cl.included_modules.each { |mod| includers[mod] << [cl, true] }
             sc = cl.__singleton_class__
             sc.included_modules.each { |mod| includers[mod] << [cl, nil] }
