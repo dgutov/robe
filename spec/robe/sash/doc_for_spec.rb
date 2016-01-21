@@ -105,10 +105,9 @@ describe Robe::Sash::DocFor do
       it { expect(struct.visibility).to be_nil }
 
       if RUBY_ENGINE == "ruby"
-        it { expect(struct.docstring).to be_empty }
-        [:aliases, :source].each do |prop|
-          it { expect(struct.send prop).to be_nil }
-        end
+        it { expect(struct.docstring).to include("one of the superclasses") }
+        it { expect(struct.aliases).to eq([:kind_of?]) }
+        it { expect(struct.source).to start_with("VALUE\nrb_obj_is_kind_of") }
       else
         it { expect(struct.docstring).to include("class or superclass") }
         it { expect(struct.aliases).to eq([:kind_of?]) }
