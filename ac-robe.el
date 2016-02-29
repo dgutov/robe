@@ -14,6 +14,11 @@
   "Return t if `robe-mode' completions are available, otherwise nil."
   (and (boundp 'robe-mode) robe-mode))
 
+(defun ac-robe-prefix ()
+  (let ((bounds (robe-complete-bounds)))
+    (when (and bounds (robe-complete-symbol-p (car bounds)))
+      (car bounds))))
+
 (defun ac-robe-candidates ()
   "Return completion candidates for `ac-prefix'."
   (require 'robe)
@@ -30,6 +35,7 @@
 ;;;###autoload
 (defconst ac-source-robe
   '((available . ac-robe-available)
+    (prefix . ac-robe-prefix)
     (candidates . ac-robe-candidates)
     (document . ac-robe-doc)
     (symbol . "r"))

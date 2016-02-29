@@ -632,9 +632,20 @@ Only works with Rails, see e.g. `rinari-console'."
                        font-lock-comment-face
                        font-lock-string-face)))))
 
+(defun robe-complete-bounds ()
+  (cons
+   (save-excursion
+     (while (or (not (zerop (skip-syntax-backward "w_")))
+                (not (zerop (skip-chars-backward ":")))))
+     (point))
+   (save-excursion
+     (while (or (not (zerop (skip-syntax-forward "w_")))
+                (not (zerop (skip-chars-forward ":")))))
+     (point))))
+
 (defun robe-complete-at-point ()
   (when robe-running
-    (let ((bounds (bounds-of-thing-at-point 'symbol))
+    (let ((bounds (robe-complete-bounds))
           (fn (if (fboundp 'completion-table-with-cache)
                   (completion-table-with-cache #'robe-complete-thing)
                 (completion-table-dynamic #'robe-complete-thing))))

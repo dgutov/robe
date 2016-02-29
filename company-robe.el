@@ -25,9 +25,11 @@
                       (get-buffer "*robe-doc*")))))))
 
 (defun company-robe--prefix ()
-  (let ((prefix (company-grab-symbol)))
-    (when (robe-complete-symbol-p (- (point) (length prefix)))
-      prefix)))
+  (let ((bounds (robe-complete-bounds)))
+    (when (and bounds
+               (equal (point) (cdr bounds))
+               (robe-complete-symbol-p (car bounds)))
+      (buffer-substring (car bounds) (cdr bounds)))))
 
 (defun company-robe--choose-spec (thing)
   (let ((specs (robe-cached-specs thing)))
