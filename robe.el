@@ -223,7 +223,8 @@ project."
 If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   (interactive "P")
   (robe-start)
-  (let ((thing (thing-at-point 'symbol)))
+  (let* ((bounds (robe-complete-bounds))
+         (thing (buffer-substring (car bounds) (cdr bounds))))
     (cond
      ((or (not thing) arg)
       (robe-ask))
