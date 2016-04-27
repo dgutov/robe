@@ -52,6 +52,7 @@
 (require 'json)
 (require 'url)
 (require 'url-http)
+(require 'url-handlers)
 (require 'cl)
 (require 'thingatpt)
 (require 'eldoc)
@@ -163,7 +164,6 @@ project."
     (setq robe-running nil)))
 
 (defun robe-request (endpoint &rest args)
-  (declare (special url-http-end-of-headers))
   (let* ((url (format "http://127.0.0.1:%s/%s/%s" robe-port endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
@@ -175,8 +175,9 @@ project."
     (message nil) ;; So "Contacting host" message is cleared
     (if response-buffer
         (prog1
-            (with-current-buffer response-buffer
-              (goto-char url-http-end-of-headers)
+            (with-temp-buffer
+              (url-insert response-buffer)
+              (goto-char (point-min))
               (let ((json-array-type 'list))
                 (json-read)))
           (kill-buffer response-buffer))
@@ -526,7 +527,7 @@ Only works with Rails, see e.g. `rinari-console'."
       (concat "(" (mapconcat #'identity (nreverse args) ", ") ")"))))
 
 (defun robe-doc-for (spec)
-  (apply 'robe-request "doc_for" (subseq spec 0 3)))
+  (apply #'robe-request "doc_for" (subseq spec 0 3)))
 
 (defun robe-call-at-point ()
   (let ((state (syntax-ppss)) (start (point))
@@ -594,6 +595,7 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-eldoc ()
   (when robe-running
+    ;; FIXME: Don't save excursion around the whole thing.
     (save-excursion
       (let* ((call (robe-call-at-point))
              (thing (car call))

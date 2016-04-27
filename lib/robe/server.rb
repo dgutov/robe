@@ -46,6 +46,7 @@ module Robe
                                            :Logger => error_logger,
                                            :HTTPVersion => "1.1")
           resp.status = 200
+          resp.content_type = "application/json; charset=utf-8"
           resp.body = body
 
           begin
