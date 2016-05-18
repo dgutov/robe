@@ -30,6 +30,10 @@ describe Robe do
     expect(resp).to eq("\"pong\"")
   end
 
+  it "returns 'robe on' when already running" do
+    expect(Robe.start).to start_with("robe on")
+  end
+
   %w(INT TERM).each do |signal|
     it "shuts down on #{signal}" do
       expect { Process.kill(signal, Process.pid) }.to stop_it
