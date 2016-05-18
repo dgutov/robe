@@ -6,7 +6,7 @@ module Robe
     attr_accessor :server
 
     def start(port = 0)
-      return connected_string if @server
+      return running_string if @server
 
       @server = Server.new(Sash.new, port)
 
@@ -22,7 +22,7 @@ module Robe
 
       @server.wait_for_it
 
-      connected_string
+      running_string
     end
 
     def stop
@@ -32,7 +32,7 @@ module Robe
 
     private
 
-    def connected_string
+    def running_string
       "robe on #{@server.port}"
     end
   end
