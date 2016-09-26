@@ -91,6 +91,11 @@ or another package."
                  (function :tag "Other function"))
   :group 'robe)
 
+(defcustom robe-find-file-hook nil
+  "Normal hook run after visiting a file."
+  :type 'hook
+  :group 'robe)
+
 (defun robe-completing-read (&rest args)
   (let ((completing-read-function
          ; 1) allow read-function override. Subtle: an *old* customization
@@ -350,7 +355,8 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   (if pop-to-buffer
       (pop-to-buffer (find-file-noselect file))
     (ring-insert find-tag-marker-ring (point-marker))
-    (find-file file)))
+    (find-file file))
+  (run-hooks 'robe-find-file-hook))
 
 (defun robe-rails-refresh ()
   "Pick up changes in the loaded classes and detect new files.
