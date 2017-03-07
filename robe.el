@@ -74,6 +74,7 @@ have constants, methods and arguments highlighted in color."
     (expand-file-name "lib" (file-name-directory current)))
   "Path to the backend Ruby code.")
 
+(defvar robe-host "127.0.0.1")
 (defvar robe-port nil)
 
 (defvar robe-jump-conservative nil)
@@ -106,6 +107,15 @@ or another package."
            completing-read-function)))
     (apply #'completing-read args)))      ; 2) allow completing-read override
 
+(defun robe-args ()
+  (mapconcat
+   'identity
+   (loop for arg in (list
+                     (concat "host: " (if robe-host (format "'%s'" robe-host) "nil"))
+                     (if robe-port (concat "port: " robe-port) nil))
+         if arg collect arg)
+   ", "))
+
 (defun robe-start (&optional force)
   "Start Robe server if it isn't already running.
 When called with a prefix argument, kills the current Ruby
@@ -135,8 +145,9 @@ project."
                          (cond
                           ((string-match "robe on \\([0-9]+\\)" s)
                            (setq started t)
-                           (setq robe-port (string-to-number
-                                            (match-string 1 s))))
+                           (when (not robe-port)
+                             (setq robe-port (string-to-number
+                                              (match-string 1 s)))))
                           ((let (case-fold-search)
                              (string-match-p "Error\\>" s))
                            (setq failed t)))
@@ -146,9 +157,10 @@ project."
                                         "  $:.unshift '%s'"
                                         "  require 'robe'"
                                         "end"
-                                        "Robe.start\n")
+                                        "Robe.start(%s)\n")
                                       ";")
-                           robe-ruby-path)))
+                           robe-ruby-path
+                           (robe-args))))
       (unwind-protect
           (progn
             (set-process-filter proc tmp-filter)
@@ -169,7 +181,7 @@ project."
     (setq robe-running nil)))
 
 (defun robe-request (endpoint &rest args)
-  (let* ((url (format "http://127.0.0.1:%s/%s/%s" robe-port endpoint
+  (let* ((url (format "http://%s:%s/%s/%s" robe-host robe-port endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
                                          ((plusp (length arg))

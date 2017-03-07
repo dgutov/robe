@@ -8,9 +8,9 @@ module Robe
   class Server
     attr_reader :running, :port
 
-    def initialize(handler, port)
+    def initialize(handler, host, port)
       @handler = handler
-      @server = TCPServer.new("127.0.0.1", port)
+      @server = TCPServer.new(host, port)
       @running = true
       @port = @server.addr[1]
     end
