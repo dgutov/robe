@@ -660,9 +660,7 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-complete-at-point ()
   (when robe-running
     (let ((bounds (robe-complete-bounds))
-          (fn (if (fboundp 'completion-table-with-cache)
-                  (completion-table-with-cache #'robe-complete-thing)
-                (completion-table-dynamic #'robe-complete-thing))))
+          (fn (completion-table-with-cache #'robe-complete-thing)))
       (when (robe-complete-symbol-p (or (car bounds) (point)))
         (if bounds
             (list (car bounds) (cdr bounds) fn
