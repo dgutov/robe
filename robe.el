@@ -229,8 +229,7 @@ project."
 If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   (interactive "P")
   (robe-start)
-  (let* ((bounds (robe-complete-bounds))
-         (thing (robe--jump-thing bounds)))
+  (let ((thing (robe--jump-thing)))
     (cond
      ((or (not thing) arg)
       (robe-ask))
@@ -239,8 +238,9 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
      (t
       (robe-jump-to (robe-jump-prompt thing))))))
 
-(defun robe--jump-thing (bounds)
-  (let ((thing (buffer-substring (car bounds) (cdr bounds))))
+(defun robe--jump-thing ()
+  (let* ((bounds (robe-complete-bounds))
+         (thing (buffer-substring (car bounds) (cdr bounds))))
     (if (and thing (save-excursion
                      (end-of-thing 'symbol)
                      (looking-at " *=[^=]")))
@@ -373,7 +373,7 @@ Only works with Rails, see e.g. `rinari-console'."
   "Show docstring for the method at point."
   (interactive "P")
   (robe-start)
-  (let ((thing (thing-at-point 'symbol)))
+  (let ((thing (robe--jump-thing)))
     (robe-show-doc (if (or (not thing) arg)
                           (robe-ask-prompt)
                         (robe-jump-prompt thing)))))
