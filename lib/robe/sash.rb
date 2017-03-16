@@ -173,8 +173,12 @@ module Robe
     end
 
     def rails_refresh
-      ActionDispatch::Reloader.cleanup!
-      ActionDispatch::Reloader.prepare!
+      if defined?(Rails.application.reloader)
+        Rails.application.reloader.reload!
+      else
+        ActionDispatch::Reloader.cleanup!
+        ActionDispatch::Reloader.prepare!
+      end
       Rails.application.eager_load!
       init_name_cache
     end
