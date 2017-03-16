@@ -242,7 +242,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   (let* ((bounds (robe-complete-bounds))
          (thing (buffer-substring (car bounds) (cdr bounds))))
     (if (and thing (save-excursion
-                     (end-of-thing 'symbol)
+                     (goto-char (cdr bounds))
                      (looking-at " *=[^=]")))
         (concat thing "=")
       thing)))
