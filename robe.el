@@ -1,7 +1,7 @@
 ;;; robe.el --- Code navigation, documentation lookup and completion for Ruby
 
 ;; Copyright © 2012 Phil Hagelberg
-;; Copyright © 2012-2015 Dmitry Gutov
+;; Copyright © 2012-2017 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
@@ -250,8 +250,6 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 (defun robe-jump-modules (thing)
   (destructuring-bind (target module instance ctx) (robe-call-context)
     (let (super)
-      (when (save-excursion (end-of-thing 'symbol) (looking-at "!"))
-        (setq thing (concat thing "!")))
       (unless target
         (when (string= thing "super")
           (setq thing (third ctx)
