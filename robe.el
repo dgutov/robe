@@ -64,7 +64,7 @@
   :group 'languages
   :group 'convenience)
 
-(defcustom robe-highlight-capf-candidates (version< "24.3.50" emacs-version)
+(defcustom robe-highlight-capf-candidates t
   "When non-nil, `completion-at-point' candidates buffer will
 have constants, methods and arguments highlighted in color."
   :group 'robe)
