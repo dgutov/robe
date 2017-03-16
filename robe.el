@@ -230,7 +230,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   (interactive "P")
   (robe-start)
   (let* ((bounds (robe-complete-bounds))
-         (thing (buffer-substring (car bounds) (cdr bounds))))
+         (thing (robe--jump-thing bounds)))
     (cond
      ((or (not thing) arg)
       (robe-ask))
@@ -239,25 +239,30 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
      (t
       (robe-jump-to (robe-jump-prompt thing))))))
 
+(defun robe--jump-thing (bounds)
+  (let ((thing (buffer-substring (car bounds) (cdr bounds))))
+    (if (and thing (save-excursion
+                     (end-of-thing 'symbol)
+                     (looking-at " *=[^=]")))
+        (concat thing "=")
+      thing)))
+
 (defun robe-jump-prompt (thing)
-  (let* ((alist (robe-decorate-modules (robe-jump-modules thing))))
+  (let* ((alist (robe-decorate-modules (robe-jump-modules thing
+                                                          (robe-call-context)))))
     (unless alist (error "Method not found"))
     (if (= 1 (length alist))
         (cdar alist)
       (cdr (assoc (robe-completing-read "Module: " alist nil t)
                   alist)))))
 
-(defun robe-jump-modules (thing)
-  (destructuring-bind (target module instance ctx) (robe-call-context)
+(defun robe-jump-modules (thing context)
+  (destructuring-bind (target module instance ctx) context
     (let (super)
       (unless target
         (when (string= thing "super")
           (setq thing (third ctx)
                 super t)))
-      (when (and target (save-excursion
-                          (end-of-thing 'symbol)
-                          (looking-at " *=[^=]")))
-        (setq thing (concat thing "=")))
       (robe-request "method_targets"
                        thing target module instance super
                        robe-jump-conservative))))
@@ -599,33 +604,35 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-eldoc ()
   (when robe-running
-    ;; FIXME: Don't save excursion around the whole thing.
-    (save-excursion
-      (let* ((call (robe-call-at-point))
-             (thing (car call))
-             (arg-num (cdr call))
-             (url-show-status nil))
-        (when (and thing (not (robe-const-p thing)))
-          (let* ((robe-jump-conservative t)
-                 (list (loop for spec in (robe-jump-modules thing)
-                             when (robe-spec-module spec) collect spec)))
-            (when (consp list)
-              (let* ((spec (car list))
-                     (doc (robe-doc-for spec))
-                     (summary (with-temp-buffer
-                                (insert (cdr (assoc 'docstring doc)))
-                                (unless (= (point) (point-min))
-                                  (goto-char (point-min))
-                                  (save-excursion
-                                    (forward-sentence)
-                                    (delete-region (point) (point-max)))
-                                  (robe-doc-apply-rules (point) (point-max))
-                                  (while (search-forward "\n" nil t)
-                                    (replace-match " ")))
-                                (buffer-string)))
-                     (sig (robe-signature spec arg-num))
-                     (msg (format "%s %s" sig summary)))
-                (substring msg 0 (min (frame-width) (length msg)))))))))))
+    (let* ((context nil)
+           (call (save-excursion
+                   (prog1
+                       (robe-call-at-point)
+                     (setq context (robe-call-context)))))
+           (thing (car call))
+           (arg-num (cdr call))
+           (url-show-status nil))
+      (when (and thing (not (robe-const-p thing)))
+        (let* ((robe-jump-conservative t)
+               (list (loop for spec in (robe-jump-modules thing context)
+                           when (robe-spec-module spec) collect spec)))
+          (when (consp list)
+            (let* ((spec (car list))
+                   (doc (robe-doc-for spec))
+                   (summary (with-temp-buffer
+                              (insert (cdr (assoc 'docstring doc)))
+                              (unless (= (point) (point-min))
+                                (goto-char (point-min))
+                                (save-excursion
+                                  (forward-sentence)
+                                  (delete-region (point) (point-max)))
+                                (robe-doc-apply-rules (point) (point-max))
+                                (while (search-forward "\n" nil t)
+                                  (replace-match " ")))
+                              (buffer-string)))
+                   (sig (robe-signature spec arg-num))
+                   (msg (format "%s %s" sig summary)))
+              (substring msg 0 (min (frame-width) (length msg))))))))))
 
 (defun robe-complete-symbol-p (beginning)
   (not (or (eq (char-before beginning) ?@)
