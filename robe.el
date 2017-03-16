@@ -661,14 +661,10 @@ Only works with Rails, see e.g. `rinari-console'."
   (when robe-running
     (let ((bounds (robe-complete-bounds))
           (fn (completion-table-with-cache #'robe-complete-thing)))
-      (when (robe-complete-symbol-p (or (car bounds) (point)))
-        (if bounds
-            (list (car bounds) (cdr bounds) fn
-                  :annotation-function #'robe-complete-annotation
-                  :exit-function #'robe-complete-exit)
-          (list (point) (point) fn
-                :annotation-function #'robe-complete-annotation
-                :exit-function #'robe-complete-exit))))))
+      (when (robe-complete-symbol-p (car bounds))
+        (list (car bounds) (cdr bounds) fn
+              :annotation-function #'robe-complete-annotation
+              :exit-function #'robe-complete-exit)))))
 
 (defvar robe-specs-cache nil)
 
