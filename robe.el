@@ -327,7 +327,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (mapcar (lambda (path) (cons (substring path len) path)) list)))
 
 (defun robe-context ()
-  (let ((current-method (ruby-add-log-current-method)))
+  (let ((current-method (funcall add-log-current-defun-function)))
     (if current-method
         ;; Side-stepping the module methods bug in the above function.
         (let* ((segments (split-string current-method "#\\|\\.\\|::" t))
