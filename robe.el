@@ -526,6 +526,8 @@ Only works with Rails, see e.g. `rinari-console'."
                                       (rest "%s...")
                                       (block "&%s")
                                       (opt "[%s]")
+                                      (keyreq "%s:")
+                                      (key "%s: _")
                                       (t "%s")) name)
                             'face (if (and arg-num
                                            (or (= arg-num cnt)
