@@ -7,7 +7,7 @@
 ;; URL: https://github.com/dgutov/robe
 ;; Version: 0.7.9
 ;; Keywords: ruby convenience rails
-;; Package-Requires: ((inf-ruby "2.3.0"))
+;; Package-Requires: ((inf-ruby "2.3.0") (emacs "24.4"))
 
 ;; This file is NOT part of GNU Emacs.
 
