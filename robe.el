@@ -74,11 +74,11 @@ have constants, methods and arguments highlighted in color."
     (expand-file-name "lib" (file-name-directory current)))
   "Path to the backend Ruby code.")
 
-(defvar robe-port nil)
+(defvar-local robe-port nil)
 
 (defvar robe-jump-conservative nil)
 
-(defvar robe-running nil)
+(defvar-local robe-running nil)
 
 (defcustom robe-completing-read-func 'completing-read-default
   "Function to call for completing reads, to resolve ambiguous names.
@@ -106,6 +106,11 @@ or another package."
            completing-read-function)))
     (apply #'completing-read args)))      ; 2) allow completing-read override
 
+(defmacro robe-with-inf-buffer (&rest body)
+  `(when (buffer-live-p inf-ruby-buffer)
+     (with-current-buffer inf-ruby-buffer
+       ,@body)))
+
 (defun robe-start (&optional force)
   "Start Robe server if it isn't already running.
 When called with a prefix argument, kills the current Ruby
@@ -116,7 +121,9 @@ project."
                            (get-buffer inf-ruby-buffer)))
          (process (get-buffer-process ruby-buffer)))
     (when (or force (not process))
-      (setq robe-running nil)
+      (when (buffer-live-p ruby-buffer)
+        (with-current-buffer ruby-buffer
+          (setq robe-running nil)))
       (when process
         (delete-process process))
       (if (or force
@@ -127,7 +134,7 @@ project."
             (inf-ruby-console-auto)
             (set-window-configuration conf))
         (error "Aborted"))))
-  (when (not robe-running)
+  (when (not (robe-running-p))
     (let* ((proc (inf-ruby-proc))
            started failed
            (comint-filter (process-filter proc))
@@ -135,8 +142,9 @@ project."
                          (cond
                           ((string-match "robe on \\([0-9]+\\)" s)
                            (setq started t)
-                           (setq robe-port (string-to-number
-                                            (match-string 1 s))))
+                           (with-current-buffer (process-buffer proc)
+                             (setq robe-port (string-to-number
+                                              (match-string 1 s)))))
                           ((let (case-fold-search)
                              (string-match-p "Error\\>" s))
                            (setq failed t)))
@@ -162,14 +170,21 @@ project."
             (set-process-sentinel proc #'robe-process-sentinel))
         (set-process-filter proc comint-filter)))
     (when (robe-request "ping") ;; Should be always t when no error, though.
-      (setq robe-running t))))
+      (robe-with-inf-buffer
+       (setq robe-running t)))))
+
+(defun robe-running-p ()
+  (robe-with-inf-buffer
+   robe-running))
 
 (defun robe-process-sentinel (proc _event)
   (when (memq (process-status proc) '(signal exit))
     (setq robe-running nil)))
 
 (defun robe-request (endpoint &rest args)
-  (let* ((url (format "http://127.0.0.1:%s/%s/%s" robe-port endpoint
+  (let* ((base-url (robe-with-inf-buffer
+                    (format "http://127.0.0.1:%s/" robe-port)))
+         (url (format "%s/%s/%s" base-url endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
                                          ((plusp (length arg))
@@ -196,7 +211,8 @@ project."
              (with-current-buffer buffer
                (memq url-http-response-status '(200 500))))
         buffer
-      (setq robe-running nil))))
+      (robe-with-inf-buffer
+       (setq robe-running nil)))))
 
 (defstruct (robe-spec (:type list)) module inst-p method params file line)
 
@@ -607,7 +623,7 @@ Only works with Rails, see e.g. `rinari-console'."
       n)))
 
 (defun robe-eldoc ()
-  (when robe-running
+  (when (robe-running-p)
     (let* ((context nil)
            (call (save-excursion
                    (prog1
@@ -662,7 +678,7 @@ Only works with Rails, see e.g. `rinari-console'."
      (point))))
 
 (defun robe-complete-at-point ()
-  (when robe-running
+  (when (robe-running-p)
     (let ((bounds (robe-complete-bounds))
           (fn (completion-table-with-cache #'robe-complete-thing)))
       (when (robe-complete-symbol-p (car bounds))
