@@ -183,6 +183,10 @@ module Robe
       init_name_cache
     end
 
+    def load_path
+      $LOAD_PATH
+    end
+
     def ping
       "pong"
     end

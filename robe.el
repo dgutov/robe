@@ -1,13 +1,13 @@
-;;; robe.el --- Code navigation, documentation lookup and completion for Ruby
+;;; robe.el --- Code navigation, documentation lookup and completion for Ruby -*- lexical-binding: t -*-
 
 ;; Copyright © 2012 Phil Hagelberg
 ;; Copyright © 2012-2017 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
-;; Version: 0.7.9
+;; Version: 0.8.0
 ;; Keywords: ruby convenience rails
-;; Package-Requires: ((inf-ruby "2.3.0") (emacs "24.4"))
+;; Package-Requires: ((inf-ruby "2.5.1") (emacs "24.4"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -80,6 +80,8 @@ have constants, methods and arguments highlighted in color."
 
 (defvar-local robe-running nil)
 
+(defvar-local robe-load-path nil)
+
 (defcustom robe-completing-read-func 'completing-read-default
   "Function to call for completing reads, to resolve ambiguous names.
 
@@ -107,9 +109,10 @@ or another package."
     (apply #'completing-read args)))      ; 2) allow completing-read override
 
 (defmacro robe-with-inf-buffer (&rest body)
-  `(when (buffer-live-p inf-ruby-buffer)
-     (with-current-buffer inf-ruby-buffer
-       ,@body)))
+  `(let ((buf (robe-inf-buffer)))
+     (when buf
+       (with-current-buffer buf
+         ,@body))))
 
 (defun robe-start (&optional force)
   "Start Robe server if it isn't already running.
@@ -117,8 +120,7 @@ When called with a prefix argument, kills the current Ruby
 process, if any, and starts a new console for the current
 project."
   (interactive "P")
-  (let* ((ruby-buffer (and inf-ruby-buffer
-                           (get-buffer inf-ruby-buffer)))
+  (let* ((ruby-buffer (robe-inf-buffer))
          (process (get-buffer-process ruby-buffer)))
     (when (or force (not process))
       (when (buffer-live-p ruby-buffer)
@@ -171,7 +173,46 @@ project."
         (set-process-filter proc comint-filter)))
     (when (robe-request "ping") ;; Should be always t when no error, though.
       (robe-with-inf-buffer
-       (setq robe-running t)))))
+       (setq robe-running t
+             robe-load-path (mapcar #'file-name-as-directory
+                                    (robe-request "load_path")))))))
+
+(defun robe-inf-buffer ()
+  ;; Using locate-dominating-file in a large directory
+  ;; (such as .rbenv//gems/), or file-in-directory-p for all LOAD_PATH
+  ;; entries, turns out to be too slow.
+  (let ((dd (expand-file-name default-directory))
+        (inf-buffers (cl-remove-if-not
+                      (lambda (buf)
+                        (and (buffer-live-p buf)
+                             (get-buffer-process buf)))
+                      inf-ruby-buffers)))
+    (cond
+     ((null inf-buffers)
+      nil)
+     ((= 1 (length inf-buffers))
+      (car inf-buffers))
+     (t
+      ;; More than one inf-ruby process, let's use the more complex
+      ;; detection logic.
+      (or
+       (robe-find-inf-buffer
+        (lambda ()
+          (string-prefix-p (expand-file-name default-directory) dd))
+        inf-buffers)
+       (robe-find-inf-buffer
+        (lambda ()
+          (cl-find dd robe-load-path
+                   :test (lambda (dd path-element)
+                           (string-prefix-p path-element dd))))
+        inf-buffers))))))
+
+(defun robe-find-inf-buffer (predicate buffers)
+  (catch 'buffer
+    (dolist (buffer buffers)
+      (with-current-buffer buffer
+        (when (funcall predicate)
+          (throw 'buffer buffer))))))
 
 (defun robe-running-p ()
   (robe-with-inf-buffer

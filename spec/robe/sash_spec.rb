@@ -379,6 +379,12 @@ describe Robe::Sash do
     end
   end
 
+  context "#load_path" do
+    it 'returns an appropriate value' do
+      expect(klass.new.load_path).to eq($:)
+    end
+  end
+
   it { expect(klass.new.ping).to be_true }
 
   RSpec::Matchers.define :include_spec do |*specs|
