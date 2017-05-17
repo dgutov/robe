@@ -53,7 +53,7 @@
 (require 'url)
 (require 'url-http)
 (require 'url-handlers)
-(require 'cl)
+(require 'cl-lib)
 (require 'thingatpt)
 (require 'eldoc)
 (require 'help-mode)
@@ -67,7 +67,8 @@
 (defcustom robe-highlight-capf-candidates t
   "When non-nil, `completion-at-point' candidates buffer will
 have constants, methods and arguments highlighted in color."
-  :group 'robe)
+  :group 'robe
+  :type 'boolean)
 
 (defvar robe-ruby-path
   (let ((current (or load-file-name (buffer-file-name))))
@@ -228,7 +229,7 @@ project."
          (url (format "%s/%s/%s" base-url endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
-                                         ((plusp (length arg))
+                                         ((cl-plusp (length arg))
                                           (url-hexify-string arg))
                                          (t "-")))
                                  args "/")))
@@ -245,7 +246,7 @@ project."
       (error "Server doesn't respond"))))
 
 (defun robe-retrieve (url)
-  (declare (special url-http-response-status))
+  (defvar url-http-response-status)
   (let ((buffer (condition-case nil (url-retrieve-synchronously url)
                   (file-error nil))))
     (if (and buffer
@@ -255,7 +256,7 @@ project."
       (robe-with-inf-buffer
        (setq robe-running nil)))))
 
-(defstruct (robe-spec (:type list)) module inst-p method params file line)
+(cl-defstruct (robe-spec (:type list)) module inst-p method params file line)
 
 (defun robe-ask ()
   "Prompt for module, method, and jump to its definition."
@@ -314,11 +315,11 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                   alist)))))
 
 (defun robe-jump-modules (thing context)
-  (destructuring-bind (target module instance ctx) context
+  (cl-destructuring-bind (target module instance ctx) context
     (let (super)
       (unless target
         (when (string= thing "super")
-          (setq thing (third ctx)
+          (setq thing (nth 2 ctx)
                 super t)))
       (robe-request "method_targets"
                        thing target module instance super
@@ -333,13 +334,13 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                (or (thing-at-point 'symbol)
                                    "!")))))
          (ctx (robe-context))
-         (module (first ctx))
+         (module (car ctx))
          (_ (when (string= target "self") (setq target nil)))
-         (instance (unless target (second ctx))))
+         (instance (unless target (nth 1 ctx))))
     (list target module instance ctx)))
 
 (defun robe-decorate-modules (list)
-  (loop for spec in list
+  (cl-loop for spec in list
         for name = (cond ((robe-spec-module spec))
                          ((robe-spec-file spec)
                           (format "<%s>" (file-name-nondirectory
@@ -365,22 +366,22 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
              (cnt (1- (length nesting)))
              case-fold-search)
         (re-search-forward (concat "^[ \t]*\\(class\\|module\\) +.*\\_<"
-                                   (loop for i from 1 to cnt
-                                         concat "\\(")
+                                   (cl-loop for i from 1 to cnt
+                                            concat "\\(")
                                    (mapconcat #'identity nesting "::\\)?")
                                    "\\_>")))
       (back-to-indentation))))
 
 (defun robe-to-abbr-paths (list)
   (let* ((sorted (sort (copy-sequence list) #'string-lessp))
-         (first (first sorted))
+         (first (car sorted))
          (last (car (last sorted)))
-         (len (loop for i from 0 to (min (length first)
+         (len (cl-loop for i from 0 to (min (length first)
                                          (length last))
                     when (/= (aref first i) (aref last i))
                     return i)))
     (unless (zerop len)
-      (while (/= (aref first (1- len)) ?/) (decf len)))
+      (while (/= (aref first (1- len)) ?/) (cl-decf len)))
     (mapcar (lambda (path) (cons (substring path len) path)) list)))
 
 (defun robe-context ()
@@ -519,10 +520,10 @@ Only works with Rails, see e.g. `rinari-console'."
     (with-syntax-table table
       (save-excursion
         (goto-char from)
-        (loop for (re fn . args) in robe-doc-rules do
-              (save-excursion
-                (while (re-search-forward re to t)
-                  (apply fn args))))))))
+        (cl-loop for (re fn . args) in robe-doc-rules do
+                 (save-excursion
+                   (while (re-search-forward re to t)
+                     (apply fn args))))))))
 
 (defun robe-doc-hl-text (group face)
   (replace-match (format "\\%d" group))
@@ -530,8 +531,8 @@ Only works with Rails, see e.g. `rinari-console'."
                      'face (symbol-value face)))
 
 (defun robe-doc-replace-text (&rest rules)
-  (loop for (group . replacement) in rules do
-        (replace-match replacement t nil nil group)))
+  (cl-loop for (group . replacement) in rules do
+           (replace-match replacement t nil nil group)))
 
 (defun robe-doc-fontify-ruby (from to)
   (let ((syntax-propertize-function #'ruby-syntax-propertize-function)
@@ -570,16 +571,16 @@ Only works with Rails, see e.g. `rinari-console'."
       ""
     (let ((cnt 0) args)
       (dolist (pair params)
-        (let ((kind (intern (first pair)))
-              (name (second pair)))
-          (incf cnt)
+        (let ((kind (intern (car pair)))
+              (name (nth 1 pair)))
+          (cl-incf cnt)
           (unless name
             (setq name
-                  (case kind
+                  (cl-case kind
                     (rest "args")
                     (block "block")
                     (t (format "arg%s" cnt)))))
-          (push (propertize (format (case kind
+          (push (propertize (format (cl-case kind
                                       (rest "%s...")
                                       (block "&%s")
                                       (opt "[%s]")
@@ -597,7 +598,7 @@ Only works with Rails, see e.g. `rinari-console'."
       (concat "(" (mapconcat #'identity (nreverse args) ", ") ")"))))
 
 (defun robe-doc-for (spec)
-  (apply #'robe-request "doc_for" (subseq spec 0 3)))
+  (apply #'robe-request "doc_for" (cl-subseq spec 0 3)))
 
 (defun robe-call-at-point ()
   (let ((state (syntax-ppss)) (start (point))
@@ -620,7 +621,7 @@ Only works with Rails, see e.g. `rinari-console'."
                         (robe-call-arg-num (point) start))))))))
 
 (defun robe-call-goto-paren (state)
-  (when (and (plusp (nth 0 state))
+  (when (and (cl-plusp (nth 0 state))
              (eq (char-after (nth 1 state)) ?\())
     (goto-char (nth 1 state))
     (skip-chars-backward " ")))
@@ -660,7 +661,7 @@ Only works with Rails, see e.g. `rinari-console'."
       (while (re-search-forward "," point t)
         (let ((state (parse-partial-sexp from (point))))
           (when (and (= depth (car state)) (not (nth 8 state)))
-            (incf n))))
+            (cl-incf n))))
       n)))
 
 (defun robe-eldoc ()
@@ -675,8 +676,8 @@ Only works with Rails, see e.g. `rinari-console'."
            (url-show-status nil))
       (when (and thing (not (robe-const-p thing)))
         (let* ((robe-jump-conservative t)
-               (list (loop for spec in (robe-jump-modules thing context)
-                           when (robe-spec-module spec) collect spec)))
+               (list (cl-loop for spec in (robe-jump-modules thing context)
+                              when (robe-spec-module spec) collect spec)))
           (when (consp list)
             (let* ((spec (car list))
                    (doc (robe-doc-for spec))
@@ -749,7 +750,7 @@ Only works with Rails, see e.g. `rinari-console'."
       (progn
         (robe-complete-exit)
         (robe-request "complete_const" thing (car (robe-context))))
-    (destructuring-bind (target module instance _) (robe-call-context)
+    (cl-destructuring-bind (target module instance _) (robe-call-context)
       (setq robe-specs-cache (make-hash-table :test 'equal))
       (mapcar (lambda (spec)
                 (let* ((method (robe-spec-method spec))
