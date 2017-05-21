@@ -168,7 +168,7 @@ project."
           (with-current-buffer (process-buffer proc)
             (add-hook 'comint-preoutput-filter-functions tmp-filter nil t)
             (comint-send-string proc script)
-            (set-process-sentinel proc sentinel)
+            (add-function :after (process-sentinel proc) sentinel)
             (while (not started)
               (when failed
                 (ruby-switch-to-inf t)
