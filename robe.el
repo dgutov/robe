@@ -139,7 +139,8 @@ project."
         (error "Aborted"))))
   (when (not (robe-running-p))
     (let* ((proc (inf-ruby-proc))
-           started failed
+           started
+           (failed (not (process-live-p proc)))
            (tmp-filter (lambda (s)
                          (cond
                           ((string-match "robe on \\([0-9]+\\)" s)
@@ -151,6 +152,10 @@ project."
                              (string-match-p "Error\\>" s))
                            (setq failed t)))
                          s))
+           (sentinel (lambda (proc _event)
+                       (when (memq (process-status proc) '(signal exit))
+                         (setq failed t
+                               robe-running nil))))
            (script (format (mapconcat #'identity
                                       '("unless defined? Robe"
                                         "  $:.unshift '%s'"
@@ -163,14 +168,14 @@ project."
           (with-current-buffer (process-buffer proc)
             (add-hook 'comint-preoutput-filter-functions tmp-filter nil t)
             (comint-send-string proc script)
+            (set-process-sentinel proc sentinel)
             (while (not started)
-              (unless (process-live-p proc) (setq failed t))
               (when failed
                 (ruby-switch-to-inf t)
                 (error "Robe launch failed"))
-              (accept-process-output proc))
-            (set-process-sentinel proc #'robe-process-sentinel))
-        (remove-hook 'comint-preoutput-filter-functions tmp-filter t)))
+              (accept-process-output proc)))
+        (with-current-buffer (process-buffer proc)
+          (remove-hook 'comint-preoutput-filter-functions tmp-filter t))))
     (when (robe-request "ping") ;; Should be always t when no error, though.
       (robe-with-inf-buffer
        (setq robe-running t
