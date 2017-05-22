@@ -121,6 +121,34 @@ When called with a prefix argument, kills the current Ruby
 process, if any, and starts a new console for the current
 project."
   (interactive "P")
+  (let* (started
+         failed
+         (process
+          (robe-start-async
+           (lambda (result)
+             (pcase-exhaustive result
+               (:success
+                (setq started t))
+               (:failure
+                (setq failed t))))
+           force)))
+    (when process
+      (while (not started)
+        (when failed
+          (ruby-switch-to-inf t)
+          (error "Robe launch failed"))
+        (accept-process-output process)))))
+
+(defun robe-start-async (&optional callback force)
+  (interactive
+   (list
+    (lambda (result)
+      (pcase-exhaustive result
+        (:success
+         (message "Robe started"))
+        (:failure
+         (message "Robe launch failed"))))
+    prefix-arg))
   (let* ((ruby-buffer (robe-inf-buffer))
          (process (get-buffer-process ruby-buffer)))
     (when (or force (not process))
@@ -138,49 +166,60 @@ project."
             (set-window-configuration conf))
         (error "Aborted"))))
   (when (not (robe-running-p))
-    (let* ((proc (inf-ruby-proc))
-           started
-           (failed (not (process-live-p proc)))
-           (tmp-filter (lambda (s)
-                         (cond
-                          ((string-match "robe on \\([0-9]+\\)" s)
-                           (setq started t)
-                           (with-current-buffer (process-buffer proc)
-                             (setq robe-port (string-to-number
-                                              (match-string 1 s)))))
-                          ((let (case-fold-search)
-                             (string-match-p "Error\\>" s))
-                           (setq failed t)))
-                         s))
-           (sentinel (lambda (proc _event)
-                       (when (memq (process-status proc) '(signal exit))
-                         (setq failed t
-                               robe-running nil))))
-           (script (format (mapconcat #'identity
-                                      '("unless defined? Robe"
-                                        "  $:.unshift '%s'"
-                                        "  require 'robe'"
-                                        "end"
-                                        "Robe.start\n")
-                                      ";")
-                           robe-ruby-path)))
-      (unwind-protect
+    (let ((proc (inf-ruby-proc))
+          (script (format (mapconcat #'identity
+                                     '("unless defined? Robe"
+                                       "  $:.unshift '%s'"
+                                       "  require 'robe'"
+                                       "end"
+                                       "Robe.start\n")
+                                     ";")
+                          robe-ruby-path)))
+      (cl-labels ((finish (result)
+                          (remove-hook 'comint-preoutput-filter-functions
+                                       #'tmp-filter t)
+                          (remove-function (process-sentinel proc)
+                                           #'sentinel)
+                          (add-function :after (process-sentinel proc)
+                                        #'robe-process-sentinel)
+                          (and callback
+                               (funcall callback result)))
+                  (tmp-filter (s)
+                              (cond
+                               ((string-match "robe on \\([0-9]+\\)" s)
+                                (with-current-buffer (process-buffer proc)
+                                  (setq robe-port (string-to-number
+                                                   (match-string 1 s)))
+                                  ;; Defer the network call so that
+                                  ;; the REPL output looks better,
+                                  ;; and inserted in proper order.
+                                  (run-with-timer 0 nil #'robe-start-finisher
+                                                  #'finish)))
+                               ((let (case-fold-search)
+                                  (string-match-p "Error\\>" s))
+                                (with-current-buffer (process-buffer proc)
+                                  (finish :failure))))
+                              s)
+                  (sentinel (proc _event)
+                            (when (memq (process-status proc) '(signal exit))
+                              (finish :failure))))
+        (unless (process-live-p proc)
           (with-current-buffer (process-buffer proc)
-            (add-hook 'comint-preoutput-filter-functions tmp-filter nil t)
-            (comint-send-string proc script)
-            (add-function :after (process-sentinel proc) sentinel)
-            (while (not started)
-              (when failed
-                (ruby-switch-to-inf t)
-                (error "Robe launch failed"))
-              (accept-process-output proc)))
+          (finish :failure)))
         (with-current-buffer (process-buffer proc)
-          (remove-hook 'comint-preoutput-filter-functions tmp-filter t))))
-    (when (robe-request "ping") ;; Should be always t when no error, though.
-      (robe-with-inf-buffer
-       (setq robe-running t
-             robe-load-path (mapcar #'file-name-as-directory
-                                    (robe-request "load_path")))))))
+          (add-hook 'comint-preoutput-filter-functions #'tmp-filter nil t)
+          (comint-send-string proc script)
+          (add-function :after (process-sentinel proc) #'sentinel)))
+      proc)))
+
+(defun robe-start-finisher (callback)
+  (robe-with-inf-buffer
+   (when (robe-request "ping")
+     (setq robe-running t
+           robe-load-path
+           (mapcar #'file-name-as-directory
+                   (robe-request "load_path")))))
+  (funcall callback :success))
 
 (defun robe-inf-buffer ()
   ;; Using locate-dominating-file in a large directory
