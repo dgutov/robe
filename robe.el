@@ -782,8 +782,21 @@ The following commands are available:
 
 \\{robe-mode-map}"
   nil " robe" robe-mode-map
-  (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
-  (setq-local eldoc-documentation-function #'robe-eldoc))
+  (if robe-mode
+      (progn
+        (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
+        ;; Compose to work together with `yard-eldoc-message'
+        ;; (though `yard-mode' has to be enabled first).
+        ;; TODO: Adapt the code to use :before-until, for reliability.
+        ;; TODO: Simplify when Emacs 25.1+ is required.
+        (if eldoc-documentation-function
+            (add-function :after-until (local 'eldoc-documentation-function)
+                          #'robe-eldoc)
+          (setq-local eldoc-documentation-function #'robe-eldoc)))
+    (remove-hook 'completion-at-point-functions 'robe-complete-at-point t)
+    (if (eq eldoc-documentation-function #'robe-eldoc)
+        (kill-local-variable 'eldoc-documentation-function)
+      (remove-function (local 'eldoc-documentation-function) #'robe-eldoc))))
 
 (provide 'robe)
 ;;; robe.el ends here
