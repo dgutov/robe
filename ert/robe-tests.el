@@ -1,4 +1,5 @@
 (require 'ert-x)
+(require 'robe)
 
 (ert-deftest signature-for-simple-args ()
   (should (string= (robe-signature '("C" t "foo" (("req" "a") ("req" "b"))))
