@@ -14,8 +14,8 @@ server is already running. To launch it, type `M-x robe-start`.
 As you change the code in your project, you'll want to update the
 running process. To load the current file, type <kbd>C-c C-l</kbd>
 (`ruby-load-file`), see [inf-ruby](https://github.com/nonsequitur/inf-ruby/)
-for more commands. When you're developing a Rails project, you can
-type <kbd>C-c C-k</kbd> instead, to reload the whole environment at once.
+for more commands. When you're working on a Rails project, you can
+type <kbd>C-c C-k</kbd> instead to reload the whole environment at once.
 
 ## Features
 
