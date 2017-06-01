@@ -7,7 +7,7 @@
   (case command
     (interactive (company-begin-backend 'company-robe))
     (prefix (and (boundp 'robe-mode)
-                 robe-mode robe-running
+                 robe-mode (robe-running-p)
                  (company-robe--prefix)))
     (candidates (robe-complete-thing arg))
     (duplicates t)

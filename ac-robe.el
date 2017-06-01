@@ -22,7 +22,7 @@
 (defun ac-robe-candidates ()
   "Return completion candidates for `ac-prefix'."
   (require 'robe)
-  (when robe-running
+  (when (robe-running-p)
     (let (robe-highlight-capf-candidates)
       (robe-complete-thing ac-prefix))))
 
