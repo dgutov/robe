@@ -11,8 +11,7 @@
                  (company-robe--prefix)))
     (candidates (robe-complete-thing arg))
     (duplicates t)
-    (meta (let ((spec (car (robe-cached-specs arg))))
-            (when spec (robe-signature spec))))
+    (meta (company-robe--meta arg))
     (location (let ((spec (company-robe--choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
@@ -23,6 +22,12 @@
                       (robe-show-doc spec)
                       (message nil)
                       (get-buffer "*robe-doc*")))))))
+
+(defun company-robe--meta (completion)
+  (or
+   (get-text-property 0 'robe-type completion)
+   (let ((spec (car (robe-cached-specs completion))))
+     (when spec (robe-signature spec)))))
 
 (defun company-robe--prefix ()
   (let ((bounds (robe-complete-bounds)))
