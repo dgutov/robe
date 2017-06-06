@@ -35,7 +35,7 @@
   (let ((specs (robe-cached-specs thing)))
     (when specs
       (if (cdr specs)
-          (let ((alist (loop for spec in specs
+          (let ((alist (cl-loop for spec in specs
                              for module = (robe-spec-module spec)
                              when module
                              collect (cons module spec))))
