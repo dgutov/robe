@@ -568,8 +568,7 @@ Only works with Rails, see e.g. `rinari-console'."
    (robe-signature-params (robe-spec-params spec) arg-num)))
 
 (defun robe-signature-params (params &optional arg-num)
-  (if (not params)
-      ""
+  (when params
     (let ((cnt 0) args)
       (dolist (pair params)
         (let ((kind (intern (car pair)))
@@ -741,7 +740,8 @@ Only works with Rails, see e.g. `rinari-console'."
                                           (car (robe-cached-specs thing))))))
       (if robe-highlight-capf-candidates
           params
-        (substring-no-properties params)))))
+        (and params
+             (substring-no-properties params))))))
 
 (defun robe-complete-exit (&rest _)
   (setq robe-specs-cache nil))
