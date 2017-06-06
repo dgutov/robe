@@ -12,7 +12,7 @@ task :default => :build
 
 task :ert do
   system("emacs --batch --eval \"(package-initialize)\" -l robe.el\
-         -l ert/robe-tests.el -f ert-run-tests-batch-and-exit") or exit
+         -l ert/core-tests.el -f ert-run-tests-batch-and-exit") or exit
 end
 
 task :build => [:spec_for_build, :ert] do
