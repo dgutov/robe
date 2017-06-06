@@ -176,7 +176,8 @@ project."
       (robe-with-inf-buffer
        (setq robe-running t
              robe-load-path (mapcar #'file-name-as-directory
-                                    (robe-request "load_path")))))))
+                                    (robe-request "load_path"))))
+      (message "Robe connection established"))))
 
 (defun robe-inf-buffer ()
   ;; Using locate-dominating-file in a large directory
@@ -247,7 +248,7 @@ project."
 
 (defun robe-retrieve (url)
   (defvar url-http-response-status)
-  (let ((buffer (condition-case nil (url-retrieve-synchronously url)
+  (let ((buffer (condition-case nil (url-retrieve-synchronously url t)
                   (file-error nil))))
     (if (and buffer
              (with-current-buffer buffer
