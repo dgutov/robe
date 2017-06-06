@@ -819,7 +819,7 @@ Only works with Rails, see e.g. `rinari-console'."
                          (* (in " \t"))
                          "def"
                          (* (in " \t"))
-                         (optional "self."))
+                         (optional (+ (in "a-z" "A-Z" ?:)) ?.))
                         method-name
                         (rx (* (in " \t"))
                             (or eol ?\( (syntax ?w)))))
