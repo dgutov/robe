@@ -805,11 +805,11 @@ Only works with Rails, see e.g. `rinari-console'."
       (goto-char (point-min))
       (while (re-search-forward var-regexp bol t)
         (when (not (nth 8 (syntax-ppss)))
-          (push (match-string 1) vars)))
+          (push (match-string-no-properties 1) vars)))
       (goto-char eol)
       (while (re-search-forward var-regexp nil t)
         (when (not (nth 8 (syntax-ppss)))
-          (push (match-string 1) vars))))
+          (push (match-string-no-properties 1) vars))))
     vars))
 
 (defun robe-complete--local-variables (method-name)
@@ -850,14 +850,14 @@ Only works with Rails, see e.g. `rinari-console'."
                       (point))))
           (goto-char beg)
           (while (re-search-forward arg-regexp end t)
-            (push (match-string 1) vars))))
+            (push (match-string-no-properties 1) vars))))
       (unless method-name
         (goto-char (point-min)))
       ;; Now either after arglist or at bob.
       ;; FIXME: Also skip over blocks that do not contain
       ;; the original position.
       (while (re-search-forward var-regexp bol t)
-        (push (match-string 1) vars)))
+        (push (match-string-no-properties 1) vars)))
     vars))
 
 (defvar robe-mode-map
