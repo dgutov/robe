@@ -804,13 +804,16 @@ Only works with Rails, see e.g. `rinari-console'."
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward var-regexp bol t)
-        (when (not (save-match-data (nth 8 (syntax-ppss))))
+        (when (robe--not-in-string-or-comment)
           (push (match-string-no-properties 1) vars)))
       (goto-char eol)
       (while (re-search-forward var-regexp nil t)
-        (when (not (save-match-data (nth 8 (syntax-ppss))))
+        (when (robe--not-in-string-or-comment)
           (push (match-string-no-properties 1) vars))))
     vars))
+
+(defun robe--not-in-string-or-comment ()
+  (not (save-match-data (nth 8 (syntax-ppss)))))
 
 (defun robe-complete--local-variables (method-name)
   (let ((method-regexp (concat
@@ -867,7 +870,7 @@ Only works with Rails, see e.g. `rinari-console'."
         (goto-char (point-min)))
       (save-excursion
         (while (re-search-forward block-regexp bol t)
-          (when (not (nth 8 (syntax-ppss)))
+          (when (robe--not-in-string-or-comment)
             (goto-char (match-beginning 1))
             (let ((end (match-end 1)))
               (while (re-search-forward arg-regexp end t)
@@ -878,7 +881,8 @@ Only works with Rails, see e.g. `rinari-console'."
       ;; `backward-up-list' can be slow-ish in large files,
       ;; but we could add a cache akin to syntax-ppss.
       (while (re-search-forward var-regexp bol t)
-        (push (match-string-no-properties 1) vars)))
+        (when (robe--not-in-string-or-comment)
+          (push (match-string-no-properties 1) vars))))
     vars))
 
 (defvar robe-mode-map
