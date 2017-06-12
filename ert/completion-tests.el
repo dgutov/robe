@@ -64,10 +64,10 @@ tee = 4 + qux
 (ert-deftest complete-local-variables-includes-method-arguments ()
   (insert "
 class A
-  def foo(a1, a2: b2, a3:)
+  def foo(a1, a2: b2, a3:, *rest)
     xyz = 5
     ")
-    (should (equal '("xyz" "a3" "a2" "a1")
+    (should (equal '("xyz" "rest" "a3" "a2" "a1")
                    (robe-complete--local-variables "foo"))))
 
 (ert-deftest complete-local-variables-includes-block-arguments ()
