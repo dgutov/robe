@@ -69,3 +69,12 @@ class A
     ")
     (should (equal '("xyz" "a3" "a2" "a1")
                    (robe-complete--local-variables "foo"))))
+
+(ert-deftest complete-local-variables-includes-block-arguments ()
+  (insert "
+class A
+  def foo
+    [a1, a2].blarg do |b, z, (x, c)|
+    ")
+    (should (equal '("c" "x" "z" "b")
+                   (robe-complete--local-variables "foo"))))

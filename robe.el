@@ -823,8 +823,20 @@ Only works with Rails, see e.g. `rinari-console'."
                         method-name
                         (rx (* (in " \t"))
                             (or eol ?\( (syntax ?w)))))
+        (block-regexp (rx
+                       (or
+                        (syntax ?w) (syntax ?_) ?\))
+                       (+ (in " \t"))
+                       (or
+                        (sequence "do" symbol-end)
+                        ?\{)
+                       (* (in " \t"))
+                       ?|
+                       (group
+                        (+ (not (in "|"))))
+                       ?|))
         (arg-regexp (rx
-                     (or point ?,)
+                     (or point ?\( ?,)
                      (* (in " \t\n"))
                      (group
                       (+ (or (syntax ?w) (syntax ?_))))))
@@ -853,9 +865,18 @@ Only works with Rails, see e.g. `rinari-console'."
             (push (match-string-no-properties 1) vars))))
       (unless method-name
         (goto-char (point-min)))
+      (save-excursion
+        (while (re-search-forward block-regexp bol t)
+          (when (not (nth 8 (syntax-ppss)))
+            (goto-char (match-beginning 1))
+            (let ((end (match-end 1)))
+              (while (re-search-forward arg-regexp end t)
+                (push (match-string-no-properties 1) vars))))))
       ;; Now either after arglist or at bob.
       ;; FIXME: Also skip over blocks that do not contain
       ;; the original position.
+      ;; `backward-up-list' can be slow-ish in large files,
+      ;; but we could add a cache akin to syntax-ppss.
       (while (re-search-forward var-regexp bol t)
         (push (match-string-no-properties 1) vars)))
     vars))
