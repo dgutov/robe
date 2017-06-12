@@ -25,8 +25,8 @@ type <kbd>C-c C-k</kbd> instead to reload the whole environment at once.
 * Display method documentation
 * Display information about method called at point using ElDoc
 * Method and constant name completion
-* Completion for variable and method and block argument names, using
-  simple regexp search in the current file
+* Completion for instance and local variable names, using simple
+  regexp search in the current file
 
 To see the available commands, type <kbd>M-x describe-package RET robe RET</kbd>.
 
