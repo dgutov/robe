@@ -25,6 +25,8 @@ type <kbd>C-c C-k</kbd> instead to reload the whole environment at once.
 * Display method documentation
 * Display information about method called at point using ElDoc
 * Method and constant name completion
+* Completion for instance variables, local variables and method and
+  block arguments, implemented with regexps in Emacs Lisp
 
 To see the available commands, type <kbd>M-x describe-package RET robe RET</kbd>.
 
