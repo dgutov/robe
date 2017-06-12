@@ -804,11 +804,11 @@ Only works with Rails, see e.g. `rinari-console'."
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward var-regexp bol t)
-        (when (not (nth 8 (syntax-ppss)))
+        (when (not (save-match-data (nth 8 (syntax-ppss))))
           (push (match-string-no-properties 1) vars)))
       (goto-char eol)
       (while (re-search-forward var-regexp nil t)
-        (when (not (nth 8 (syntax-ppss)))
+        (when (not (save-match-data (nth 8 (syntax-ppss))))
           (push (match-string-no-properties 1) vars))))
     vars))
 
