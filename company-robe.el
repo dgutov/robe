@@ -4,7 +4,7 @@
 (defun company-robe (command &optional arg &rest ignore)
   "A `company-mode' completion back-end for `robe-mode'."
   (interactive (list 'interactive))
-  (case command
+  (cl-case command
     (interactive (company-begin-backend 'company-robe))
     (prefix (and (boundp 'robe-mode)
                  robe-mode (robe-running-p)
