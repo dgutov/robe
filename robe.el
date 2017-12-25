@@ -283,6 +283,57 @@ project."
 (defun robe-const-p (thing)
   (let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing)))
 
+(defun robe-list-c-method-files ()
+  (let* ((default-directory robe-ruby-source-directory)
+         (cmd (concat robe-global-command " -r  'rb_define_method'"))
+         (output (shell-command-to-string cmd))
+         (files (split-string output)))
+    files))
+
+(defun robe-determine-c-file-for (fun-or-var)
+  (let* ((input (robe-jump-prompt fun-or-var))
+         (type (downcase (first input)))
+         (file (concat type ".c")))
+    file))
+
+(defun robe-jump-to-c-source (fun-or-var &optional debug)
+  "Jump to the C source location where FUN-OR-VAR is defined.
+When a DEBUG argument is passed, print debugging messages."
+  (interactive)
+  (let ((default-directory robe-ruby-source-directory)
+        (results nil)
+        (c-files (robe-list-c-method-files))
+        (c-filename (robe-determine-c-file-for fun-or-var))
+        (here (point)))
+    (save-excursion
+      (loop for file in c-files do
+            ;; The following code is adapted from find-func.el in the
+            ;; Emacs sources
+            (if (string-equal file c-filename)
+                (progn
+                  (xref-push-marker-stack)
+                  (with-current-buffer (find-file-noselect file)
+                    (goto-char (point-min))
+                    (let ((regex
+                           (concat
+                            "rb_define_\\(singleton_\\)?\\(method\\)([a-z_]+, +\""
+                            (regexp-quote fun-or-var)
+                            "\", +\\([a-z_]+\\)")))
+                      (if (re-search-forward regex nil t)
+                          (let ((it (match-string-no-properties 3)))
+                            (progn
+                              (when debug
+                                (message "Found %s in file %s: %s, jumping..." fun-or-var file it))
+                              (ggtags-find-tag 'definition (shell-quote-argument it))))
+                        (progn
+                          (when debug
+                            (let ((msg (concat
+                                        "Can't find source for method '%s'"
+                                        " in file '%s' using regex '%s'")))
+                              (message msg fun-or-var file regex)))
+                          (message "Can't find source for method '%s'"
+                                   fun-or-var file regex)))))))))))
+
 (defun robe-jump (arg)
   "Jump to the method or module at point, prompt for module or file if necessary.
 If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
@@ -295,7 +346,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
      ((robe-const-p thing)
       (robe-jump-to-module thing))
      (t
-      (robe-jump-to (robe-jump-prompt thing))))))
+      (robe-jump-to (robe-jump-prompt thing) nil thing)))))
 
 (defun robe--jump-thing ()
   (let* ((bounds (robe-complete-bounds))
@@ -402,11 +453,13 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
           (list module (when instance t) method-name))
       (list nil t nil))))
 
-(defun robe-jump-to (spec &optional pop-to-buffer)
+(defun robe-jump-to (spec &optional pop-to-buffer thing)
   (let ((file (robe-spec-file spec)))
     (if (null file)
-        (when (yes-or-no-p "Can't jump to a C method. Show documentation? ")
-          (robe-show-doc spec))
+        (if robe-use-global-p
+            (robe-jump-to-c-source thing)
+          (when (yes-or-no-p "Can't jump to a C method. Show documentation? ")
+            (robe-show-doc spec)))
       (robe-find-file file pop-to-buffer)
       (goto-char (point-min))
       (forward-line (1- (robe-spec-line spec)))
@@ -893,6 +946,14 @@ Only works with Rails, see e.g. `rinari-console'."
     (define-key map (kbd "C-c C-d") 'robe-doc)
     (define-key map (kbd "C-c C-k") 'robe-rails-refresh)
     map))
+
+(defvar robe-use-global-p nil
+  "If GNU GLOBAL is installed, use it to jump to Ruby C sources.")
+
+(defvar robe-ruby-source-directory nil "Location of Ruby C Sources.")
+
+(defvar robe-global-command "global"
+  "Location of the GNU GLOBAL executable.")
 
 ;;;###autoload
 (define-minor-mode robe-mode

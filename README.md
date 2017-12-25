@@ -112,12 +112,13 @@ rvm automatically.
 * Essential features work with JRuby and the latest Rubinius.
   JRuby has longer startup, Rubinius is noticeably slower at runtime
   ([rubinius/rubinius#2390](https://github.com/rubinius/rubinius/issues/2390)).
+* Jumping to the sources of methods written in C works if you use MRI
+  and have MRI sources and GNU Global on your machine (see the
+  **Notes** section for more details).
 * Mostly works on MS Windows, with minor glitches.
 
 ## Notes
 
-* We can't jump to methods defined in C (such as most of the core classes).
-  To read their docs, install `pry-doc` or add it to your Gemfile.
 * We can't jump to lazily defined methods, such as `model.column` or `find_by_`
   `ActiveRecord` methods, before they've been called. This is treatable, but low
   priority.
@@ -129,6 +130,18 @@ rvm automatically.
   will be used for all Ruby files, with suboptimal results.
 * We may get the context wrong for code inside a block if the method
   it's passed to uses `instance_eval` or `instance_exec`.
+* To read the docs for methods defined in C (such as most of the core
+  classes), install `pry-doc` or add it to your Gemfile.
+* We can (optionally) jump to methods defined in C if you:
+  * Have [GNU Global](https://gnu.org/s/global) installed, have the
+    Ruby C sources on your machine, and have tagged them with Global.
+  * Set the value of the variables `robe-use-global-p`,
+    `robe-ruby-source-directory`, and `robe-global-command` to
+    appropriate values
+* If you don't feel like downloading the MRI sources or setting up GNU
+  Global, you can safely ignore this feature and stick with the
+  default behavior, where you can only read the documentation for
+  methods defined in C.
 
 ## TODO
 
