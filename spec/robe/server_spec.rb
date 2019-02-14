@@ -47,7 +47,7 @@ describe Robe::Server do
   end
 
   def start_and_send(handler, request)
-    server = described_class.new(handler, 0)
+    server = described_class.new(handler, '127.0.0.1', 0)
 
     Thread.new do
       Thread.current.abort_on_exception = true

@@ -75,6 +75,8 @@ have constants, methods and arguments highlighted in color."
     (expand-file-name "lib" (file-name-directory current)))
   "Path to the backend Ruby code.")
 
+(defvar-local robe-host "127.0.0.1")
+
 (defvar-local robe-port nil)
 
 (defvar robe-jump-conservative nil)
@@ -153,11 +155,11 @@ project."
                            (setq failed t)))
                          (funcall comint-filter p s)))
            (script (format (mapconcat #'identity
-                                      '("unless defined? Robe"
+                                      `("unless defined? Robe"
                                         "  $:.unshift '%s'"
                                         "  require 'robe'"
                                         "end"
-                                        "Robe.start\n")
+                                        ,(robe-start-call))
                                       ";")
                            robe-ruby-path)))
       (unwind-protect
@@ -178,6 +180,12 @@ project."
              robe-load-path (mapcar #'file-name-as-directory
                                     (robe-request "load_path"))))
       (message "Robe connection established"))))
+
+(defun robe-start-call ()
+  (let (args)
+    (when robe-host (push (format "'%s'" robe-host) args))
+    (push (or robe-port "0") args)
+    (format "Robe.start(%s)\n" (mapconcat #'identity args ", "))))
 
 (defun robe-inf-buffer ()
   ;; Using locate-dominating-file in a large directory
@@ -226,7 +234,7 @@ project."
 
 (defun robe-request (endpoint &rest args)
   (let* ((base-url (robe-with-inf-buffer
-                    (format "http://127.0.0.1:%s/" robe-port)))
+                    (format "http://%s:%s/" robe-host robe-port)))
          (url (format "%s/%s/%s" base-url endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")
