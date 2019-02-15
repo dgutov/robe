@@ -544,9 +544,9 @@ Only works with Rails, see e.g. `rinari-console'."
            (replace-match replacement t nil nil group)))
 
 (defun robe-doc-fontify-ruby (from to)
-  (let ((syntax-propertize-function #'ruby-syntax-propertize-function)
-        (font-lock-defaults (list ruby-font-lock-keywords nil nil))
-        (font-lock-syntax-table ruby-font-lock-syntax-table)
+  (let ((major-mode 'ruby-mode)
+        (syntax-propertize-function #'ruby-syntax-propertize-function)
+        (font-lock-defaults '((ruby-font-lock-keywords) nil nil ((?_ . "w"))))
         (font-lock-dont-widen t))
     (save-restriction
       (narrow-to-region from to)
