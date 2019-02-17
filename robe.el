@@ -863,7 +863,6 @@ Only works with Rails, see e.g. `rinari-console'."
                      (not (in "=>"))))
         (bol (line-beginning-position))
         vars)
-    ;; FIXME: Add support for block arguments.
     (save-excursion
       (when (and method-name
                  (re-search-backward method-regexp nil)
