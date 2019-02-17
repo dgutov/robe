@@ -294,18 +294,31 @@ project."
   (let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing)))
 
 (defun robe-jump (arg)
-  "Jump to the method or module at point, prompt for module or file if necessary.
+  "Jump to the identifier at point, prompt for module or file if necessary.
+Identifier can be a constant, or a variable, or a method call.
 If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   (interactive "P")
-  (robe-start)
   (let ((thing (robe--jump-thing)))
     (cond
      ((or (not thing) arg)
+      (robe-start)
       (robe-ask))
      ((robe-const-p thing)
+      (robe-start)
       (robe-jump-to-module thing))
+     ((robe--jump-to-var thing))
      (t
+      (robe-start)
       (robe-jump-to (robe-jump-prompt thing))))))
+
+(defun robe--jump-to-var (thing)
+  (let* ((context (robe-context))
+         (vars (robe-complete--variables (nth 1 context) (nth 2 context)))
+         (var (cl-member-if (lambda (v) (equal thing (robe--variable-name v)))
+                            vars)))
+    (when var
+      (ring-insert find-tag-marker-ring (point-marker))
+      (goto-char (robe--variable-position (car var))))))
 
 (defun robe--jump-thing ()
   (let* ((bounds (robe-complete-bounds))
@@ -769,7 +782,7 @@ Only works with Rails, see e.g. `rinari-console'."
          ;; For company-robe mostly.  capf will call all-completions anyway.
          (all-completions
           thing
-          (robe-complete--variables instance-method? name)))
+          (robe-complete--variable-names instance-method? name)))
        (robe-complete--methods thing target module instance)))))
 
 (defun robe-complete--methods (thing target module instance)
@@ -788,7 +801,7 @@ Only works with Rails, see e.g. `rinari-console'."
           (reverse
            (robe-request "complete_method" thing target module instance))))
 
-(defun robe-complete--variables (instance-method? method-name)
+(defun robe-complete--variable-names (instance-method? method-name)
   (let ((instance-vars (and instance-method?
                             (robe-complete--instance-variables)))
         (local-vars (robe-complete--local-variables method-name)))
@@ -797,17 +810,33 @@ Only works with Rails, see e.g. `rinari-console'."
        (put-text-property 0 1 'robe-type 'variable str)
        str)
      (cl-delete-duplicates
-      (nconc instance-vars local-vars)))))
+      (mapcar #'robe--variable-name
+              (nconc instance-vars local-vars))))))
+
+(defun robe-complete--variables (instance-method? method-name)
+  (let ((instance-vars (and instance-method?
+                            (robe-complete--instance-variables)))
+        (local-vars (robe-complete--local-variables method-name)))
+    (nconc instance-vars local-vars)))
+
+(cl-defstruct (robe--variable
+               (:constructor robe--make-variable (name position)))
+  name position)
+
+(defun robe--matched-variable ()
+  (robe--make-variable (match-string-no-properties 1)
+                       (match-beginning 1)))
 
 (defun robe-complete--instance-variables ()
   (let ((bol (line-beginning-position))
         (eol (line-end-position))
         (var-regexp (rx
-                     (or line-start (in ", \t"))
+                     (or line-start (in ", \t("))
                      (group
                       (repeat 1 2 "@")
                       (+ (or (syntax ?w) (syntax ?_))))
                      (* ?\s)
+                     (* ?|)
                      ?=
                      (not (in "=>"))))
         vars)
@@ -815,11 +844,11 @@ Only works with Rails, see e.g. `rinari-console'."
       (goto-char (point-min))
       (while (re-search-forward var-regexp bol t)
         (when (robe--not-in-string-or-comment)
-          (push (match-string-no-properties 1) vars)))
+          (push (robe--matched-variable) vars)))
       (goto-char eol)
       (while (re-search-forward var-regexp nil t)
         (when (robe--not-in-string-or-comment)
-          (push (match-string-no-properties 1) vars))))
+          (push (robe--matched-variable) vars))))
     vars))
 
 (defun robe--not-in-string-or-comment ()
@@ -875,7 +904,7 @@ Only works with Rails, see e.g. `rinari-console'."
                       (point))))
           (goto-char beg)
           (while (re-search-forward arg-regexp end t)
-            (push (match-string-no-properties 1) vars))))
+            (push (robe--matched-variable) vars))))
       (unless method-name
         (goto-char (point-min)))
       (save-excursion
@@ -884,7 +913,7 @@ Only works with Rails, see e.g. `rinari-console'."
             (goto-char (match-beginning 1))
             (let ((end (match-end 1)))
               (while (re-search-forward arg-regexp end t)
-                (push (match-string-no-properties 1) vars))))))
+                (push (robe--matched-variable) vars))))))
       ;; Now either after arglist or at bob.
       ;; FIXME: Also skip over blocks that do not contain
       ;; the original position.
@@ -892,7 +921,7 @@ Only works with Rails, see e.g. `rinari-console'."
       ;; but we could add a cache akin to syntax-ppss.
       (while (re-search-forward var-regexp bol t)
         (when (robe--not-in-string-or-comment)
-          (push (match-string-no-properties 1) vars))))
+          (push (robe--matched-variable) vars))))
     vars))
 
 (defvar robe-mode-map

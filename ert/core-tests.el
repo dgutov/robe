@@ -200,3 +200,9 @@ end")
   (should (equal "!" (with-temp-buffer
                        (insert "(bar + tee).qux")
                        (car (robe-call-context))))))
+
+(ert-deftest jump-to-var ()
+  (with-temp-buffer
+    (insert "def foo\n  abc = 1\n  abc")
+    (robe-jump nil)
+    (should (looking-at "abc ="))))
