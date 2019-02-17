@@ -956,5 +956,13 @@ The following commands are available:
         (kill-local-variable 'eldoc-documentation-function)
       (remove-function (local 'eldoc-documentation-function) #'robe-eldoc))))
 
+;;;###autoload
+(define-globalized-minor-mode global-robe-mode robe-mode robe-mode-on)
+
+(defun robe-mode-on ()
+  (when (and (not (or noninteractive (eq (aref (buffer-name) 0) ?\s)))
+             (derived-mode-p #'ruby-mode #'enh-ruby-mode))
+    (robe-mode 1)))
+
 (provide 'robe)
 ;;; robe.el ends here
