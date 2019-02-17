@@ -8,6 +8,7 @@ module Robe
       ObjectSpace.each_object(*args).reject { |m| m.__singleton_class__? }
     end
 
+    # FIXME: Consider porting over and fixing JVisor's specs.
     def descendants(cls)
       each_object(cls.singleton_class).to_a - [cls]
     end
