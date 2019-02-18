@@ -8,7 +8,7 @@ describe Robe::TypeSpace do
     it "resolves simple class" do
       space = described_class.new(Robe::Visor.new, "String", nil, true, nil)
       expect(space.target_type).to eq String
-      expect(space.instance).to be_true
+      expect(space.instance).to eq(true)
     end
 
     it "resolves nested class" do
@@ -20,7 +20,7 @@ describe Robe::TypeSpace do
     it "resolves constant to its type" do
       space = described_class.new(Robe::Visor.new, "E", "Math", nil, nil)
       expect(space.target_type).to eq Float
-      expect(space.instance).to be_true
+      expect(space.instance).to eq(true)
     end
   end
 
@@ -88,22 +88,22 @@ describe Robe::TypeSpace do
       let(:space) { described_class.new(visor, "C", nil, nil, nil) }
 
       it "passes class and its ancestors, then metaclass ancestors" do
-        expect(scanner).to receive(:scan).with(include(c, Object), be_false, true)
+        expect(scanner).to receive(:scan).with(include(c, Object), be_falsey, true)
         expect(scanner).to receive(:scan)
-          .with(include(Class, Module, Kernel, n), true, be_false)
+          .with(include(Class, Module, Kernel, n), true, be_falsey)
         space.scan_with(scanner)
       end
 
       it "passes the descendants" do
-        expect(scanner).to receive(:scan).with(include(*kids), be_false, true)
-        expect(scanner).to receive(:scan).with(anything, true, be_false)
+        expect(scanner).to receive(:scan).with(include(*kids), be_falsey, true)
+        expect(scanner).to receive(:scan).with(anything, true, be_falsey)
         space.scan_with(scanner)
       end
 
       it "doesn't pass the included modules" do
-        expect(scanner).not_to receive(:scan).with(include(m), be_false, true)
-        expect(scanner).to receive(:scan).with(anything, be_false, true)
-        expect(scanner).to receive(:scan).with(anything, true, be_false)
+        expect(scanner).not_to receive(:scan).with(include(m), be_falsey, true)
+        expect(scanner).to receive(:scan).with(anything, be_falsey, true)
+        expect(scanner).to receive(:scan).with(anything, true, be_falsey)
         space.scan_with(scanner)
       end
     end

@@ -18,7 +18,7 @@ describe Robe do
   end
 
   it "has the server running" do
-    expect(Robe.server.running).to be_true
+    expect(Robe.server.running).to eq(true)
   end
 
   it "has a stop method" do
@@ -46,6 +46,10 @@ describe Robe do
       proc.call
       sleep 0.001
       server.running == false
+    end
+
+    def supports_block_expectations?
+      true
     end
   end
 end

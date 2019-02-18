@@ -95,8 +95,8 @@ describe Robe::Sash do
     it "includes method parameters" do
       m = Module.new { def foo(a, *b, &c); end }
       expect(k.method_spec(m.instance_method(:foo)))
-        .to eq([nil, true, :foo, [[:req, :a], [:rest, :b], [:block, :c]],
-                __FILE__, anything])
+        .to match([nil, true, :foo, [[:req, :a], [:rest, :b], [:block, :c]],
+                   __FILE__, anything])
     end
 
     it "ignores overridden name method" do
@@ -117,7 +117,7 @@ describe Robe::Sash do
       end
 
       expect(k.method_spec(m.instance_method(:qux)))
-        .to eq(["baa", true, :qux, [], __FILE__, anything])
+        .to match(["baa", true, :qux, [], __FILE__, anything])
     end
 
     context "eigenclass" do
@@ -385,7 +385,7 @@ describe Robe::Sash do
     end
   end
 
-  it { expect(klass.new.ping).to be_true }
+  it { expect(klass.new.ping).to eq("pong") }
 
   RSpec::Matchers.define :include_spec do |*specs|
     match do |candidates|

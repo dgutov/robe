@@ -13,10 +13,10 @@ describe Robe::Visor do
       it "resolves IO::readable and IO::writable" do
         readable = v.resolve_const("IO::readable")
         writable = v.resolve_const("IO::writable")
-        expect(readable.method_defined?(:readline)).to be_true
-        expect(writable.method_defined?(:puts)).to be_true
-        expect(writable.method_defined?(:readline)).to be_false
-        expect(readable.method_defined?(:puts)).to be_false
+        expect(readable.method_defined?(:readline)).to eq(true)
+        expect(writable.method_defined?(:puts)).to eq(true)
+        expect(writable.method_defined?(:readline)).to eq(false)
+        expect(readable.method_defined?(:puts)).to eq(false)
       end
     end
 
