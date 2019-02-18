@@ -39,6 +39,8 @@ module Robe
 
       if Module.respond_to?(:prepend)
         module Invalidator
+          private
+
           def included(other)
             IncludesTracker.reset!
             super(other)
