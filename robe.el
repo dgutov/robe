@@ -352,7 +352,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                (eq ?. (char-before)))
                         (progn (forward-char -1)
                                (skip-chars-backward " \n\r\t")
-                               (or (thing-at-point 'symbol)
+                               (or (robe--jump-thing)
                                    "!")))))
          (ctx (robe-context))
          (module (car ctx))
