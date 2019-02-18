@@ -85,14 +85,12 @@ have constants, methods and arguments highlighted in color."
 
 (defvar-local robe-load-path nil)
 
-(defcustom robe-completing-read-func 'completing-read-default
+(defcustom robe-completing-read-func nil
   "Function to call for completing reads, to resolve ambiguous names.
 
-Will not be used when either `completing-read' or
-`completing-read-function' are [temporarily] overridden by user
-or another package."
+nil means to use the global value of `completing-read-function'."
   :type '(choice (const :tag "Ido" ido-completing-read)
-                 (const :tag "Plain" completing-read-default)
+                 (const :tag "Default" nil)
                  (function :tag "Other function"))
   :group 'robe)
 
@@ -103,12 +101,9 @@ or another package."
 
 (defun robe-completing-read (&rest args)
   (let ((completing-read-function
-         ; 1) allow read-function override. Subtle: an *old* customization
-         ; value 'completing-read would cause infinite loop, so avoid.
-         (if (and (eq completing-read-function 'completing-read-default)
-                  (not (eq robe-completing-read-func 'completing-read)))
-             robe-completing-read-func
-           completing-read-function)))
+         ; 1) allow read-function override
+         (or robe-completing-read-func
+             completing-read-function)))
     (apply #'completing-read args)))      ; 2) allow completing-read override
 
 (defmacro robe-with-inf-buffer (&rest body)
@@ -382,6 +377,8 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (let ((file (if (= (length paths) 1)
                     (car paths)
                   (let ((alist (robe-to-abbr-paths paths)))
+                    ;; FIXME: Sort the file names by how they match the
+                    ;; autoloading convention.
                     (cdr (assoc (robe-completing-read "File: " alist nil t)
                                 alist))))))
       (robe-find-file file)
