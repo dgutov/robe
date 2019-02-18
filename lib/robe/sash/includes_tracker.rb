@@ -58,6 +58,8 @@ module Robe
           alias_method :__orig_included, :included
           alias_method :__orig_extended, :extended
 
+          private
+
           # Cannot hook into this method without :prepend.
           def included(other)
             IncludesTracker.reset!
