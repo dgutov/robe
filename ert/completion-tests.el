@@ -73,7 +73,8 @@ class A
     xyz = 5
     ")
     (should (equal '("xyz" "rest" "a3" "a2" "a1")
-                   (mapcar #'robe--variable-name (robe-complete--local-variables "foo")))))
+                   (mapcar #'robe--variable-name
+                           (robe-complete--local-variables "foo")))))
 
 (ert-deftest complete-local-variables-includes-block-arguments ()
   (insert "
