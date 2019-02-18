@@ -317,7 +317,9 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 
 (defun robe--jump-thing ()
   (let* ((bounds (robe-complete-bounds))
-         (thing (buffer-substring (car bounds) (cdr bounds))))
+         (thing
+          (when (not (eq (car bounds) (cdr bounds)))
+            (buffer-substring (car bounds) (cdr bounds)))))
     (if (and thing (save-excursion
                      (goto-char (cdr bounds))
                      (looking-at " *=[^=]")))
