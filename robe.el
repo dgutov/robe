@@ -376,7 +376,12 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
-                  (let ((alist (robe-to-abbr-paths paths)))
+                  (let* ((sort-pred
+                          (lambda (p1 p2)
+                            (and (string-match-p "/ruby/gems/" p2)
+                                 (not (string-match-p "/ruby/gems/" p1)))))
+                         (paths (sort paths sort-pred))
+                         (alist (robe-to-abbr-paths paths)))
                     ;; FIXME: Sort the file names by how they match the
                     ;; autoloading convention.
                     (cdr (assoc (robe-completing-read "File: " alist nil t)
