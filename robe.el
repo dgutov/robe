@@ -738,8 +738,7 @@ Only works with Rails, see e.g. `rinari-console'."
      (skip-chars-backward "@")
      (point))
    (save-excursion
-     (while (or (not (zerop (skip-syntax-forward "w_")))
-                (not (zerop (skip-chars-forward ":")))))
+     (skip-syntax-forward "w_")
      (point))))
 
 (defun robe-complete-at-point ()
