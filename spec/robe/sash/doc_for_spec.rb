@@ -91,7 +91,7 @@ describe Robe::Sash::DocFor do
 
     context "Set#include? has an alias" do
       let(:struct) { c.method_struct(Set.instance_method(:include?)) }
-      it { expect(struct.aliases).to eq([:member?])}
+      it { expect(struct.aliases).to include(:member?)}
     end
 
     context "Know the appropriate amount about Kernel#is_a?" do

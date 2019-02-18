@@ -307,18 +307,18 @@ describe Robe::Sash do
       end
 
       it "no private methods with explicit target" do
-        expect(k.complete_method("attr", "Object", nil, nil))
-          .not_to include_spec("Module#attr_reader")
+        expect(k.complete_method("ext", "Object", nil, nil))
+          .not_to include_spec("Module#extend_object")
       end
 
       it "no private methods with no target at all" do
-        expect(k.complete_method("attr", "Object", nil, nil))
-          .not_to include_spec("Module#attr_reader")
+        expect(k.complete_method("ext", "Object", nil, nil))
+          .not_to include_spec("Module#extend_object")
       end
 
       it "completes private methods with implicit target" do
-        expect(k.complete_method("attr", nil, "Object", nil))
-          .to include_spec("Module#attr_reader", "Module#attr_writer")
+        expect(k.complete_method("ext", nil, "Object", nil))
+          .to include_spec("Module#extend_object")
       end
     end
   end
