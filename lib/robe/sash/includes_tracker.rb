@@ -19,8 +19,6 @@ module Robe
         @@hosts = nil
       end
 
-      private
-
       def self.maybe_scan
         includers = @@hosts
 
