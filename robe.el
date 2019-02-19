@@ -320,9 +320,14 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
          (thing
           (when (not (eq (car bounds) (cdr bounds)))
             (buffer-substring (car bounds) (cdr bounds)))))
-    (if (and thing (save-excursion
-                     (goto-char (cdr bounds))
-                     (looking-at " *=[^=]")))
+    (if (and thing
+             (save-excursion
+               (goto-char (car bounds))
+               (skip-chars-backward " \t\n\t")
+               (eq (preceding-char) ?.))
+             (save-excursion
+               (goto-char (cdr bounds))
+               (looking-at " *=[^=]")))
         (concat thing "=")
       thing)))
 
@@ -806,9 +811,14 @@ Only works with Rails, see e.g. `rinari-console'."
            (robe-request "complete_method" thing target module instance))))
 
 (defun robe-complete--variable-names (instance-method? method-name)
-  (let ((instance-vars (and instance-method?
-                            (robe-complete--instance-variables)))
-        (local-vars (robe-complete--local-variables method-name)))
+  (let* ((instance-vars (and instance-method?
+                             (robe-complete--instance-variables)))
+         (local-vars (robe-complete--local-variables method-name))
+         (local-vars (cl-delete-if-not
+                      (lambda (v) (< (+ (robe--variable-position v)
+                                   (length (robe--variable-name v)))
+                                (point)))
+                      local-vars)))
     (mapcar
      (lambda (str)
        (put-text-property 0 1 'robe-type 'variable str)
@@ -888,13 +898,13 @@ Only works with Rails, see e.g. `rinari-console'."
                      (group
                       (+ (or (syntax ?w) (syntax ?_))))))
         (var-regexp (rx
-                     (or line-start (in ", \t"))
+                     (or line-start (in ", \t("))
                      (group
                       (+ (or (syntax ?w) (syntax ?_))))
                      (* ?\s)
                      ?=
                      (not (in "=>"))))
-        (bol (line-beginning-position))
+        (eol (line-end-position))
         vars)
     (save-excursion
       (when (and method-name
@@ -912,7 +922,7 @@ Only works with Rails, see e.g. `rinari-console'."
       (unless method-name
         (goto-char (point-min)))
       (save-excursion
-        (while (re-search-forward block-regexp bol t)
+        (while (re-search-forward block-regexp eol t)
           (when (robe--not-in-string-or-comment)
             (goto-char (match-beginning 1))
             (let ((end (match-end 1)))
@@ -923,7 +933,7 @@ Only works with Rails, see e.g. `rinari-console'."
       ;; the original position.
       ;; `backward-up-list' can be slow-ish in large files,
       ;; but we could add a cache akin to syntax-ppss.
-      (while (re-search-forward var-regexp bol t)
+      (while (re-search-forward var-regexp eol t)
         (when (robe--not-in-string-or-comment)
           (push (robe--matched-variable) vars))))
     vars))

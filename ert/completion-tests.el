@@ -85,3 +85,24 @@ class A
     (should (equal '("c" "x" "z" "b")
                    (mapcar #'robe--variable-name
                            (robe-complete--local-variables "foo")))))
+
+(ert-deftest complete-local-variables-after-paren ()
+  (insert "
+class A
+  def foo
+    if (qux = 4)
+      return true
+    ")
+  (should (equal '("qux")
+                 (mapcar #'robe--variable-name
+                         (robe-complete--local-variables "foo")))))
+
+(ert-deftest complete-local-variables-skips-ones-at-and-after-point ()
+  (insert "
+class A
+  def foo
+    bar = 1; tee = 2; qux = 3
+    ")
+  (search-backward " = 2")
+  (should (equal '("bar")
+                 (robe-complete--variable-names t "foo"))))
