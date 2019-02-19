@@ -69,10 +69,10 @@ tee = 4 + qux
 (ert-deftest complete-local-variables-includes-method-arguments ()
   (insert "
 class A
-  def foo(a1, a2: b2, a3:, *rest)
+  def foo(a1, a2: b2, a3:, *rest, &block)
     xyz = 5
     ")
-    (should (equal '("xyz" "rest" "a3" "a2" "a1")
+    (should (equal '("xyz" "block" "rest" "a3" "a2" "a1")
                    (mapcar #'robe--variable-name
                            (robe-complete--local-variables "foo")))))
 

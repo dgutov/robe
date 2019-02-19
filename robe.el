@@ -894,7 +894,7 @@ Only works with Rails, see e.g. `rinari-console'."
         (arg-regexp (rx
                      (or point ?\( ?,)
                      (* (in " \t\n"))
-                     (* ?*)
+                     (or ?& (* ?*))
                      (group
                       (+ (or (syntax ?w) (syntax ?_))))))
         (var-regexp (rx
