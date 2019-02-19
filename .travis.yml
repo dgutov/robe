@@ -15,5 +15,5 @@ rvm:
   - jruby-head
 matrix:
   allow_failures:
-    - rvm: rbx
+    - rvm: rbx-3
     - rvm: jruby-head
