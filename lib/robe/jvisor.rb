@@ -6,9 +6,5 @@ module Robe
       # JRuby has weird Module's (Java package objects, etc)
       ObjectSpace.each_object(mod).select { |m| m.respond_to? :instance_methods }
     end
-
-    def descendants(cls)
-      ObjectSpace.each_object(Class).select { |c| c < cls }
-    end
   end
 end

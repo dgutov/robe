@@ -1,4 +1,5 @@
 require 'forwardable'
+require 'robe/core_ext'
 
 module Robe
   class Visor
@@ -8,9 +9,9 @@ module Robe
       ObjectSpace.each_object(*args).reject { |m| m.__singleton_class__? }
     end
 
-    # FIXME: Consider porting over and fixing JVisor's specs.
+    # Returns descendants and (modules only) also includers.
     def descendants(cls)
-      each_object(cls.singleton_class).to_a - [cls]
+      ObjectSpace.each_object(Class).select { |c| c < cls }
     end
 
     def resolve_context(name, mod)

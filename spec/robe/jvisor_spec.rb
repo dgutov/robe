@@ -16,16 +16,4 @@ describe Robe::JVisor do
     expect(res.all? { |m| m.respond_to? :name }).to eq(true)
     expect(res.all? { |m| m.respond_to? :instance_methods }).to eq(true)
   end
-
-  it "returns descendants of a module" do
-    res = subject.descendants(Enumerable)
-    expect(res).to include(Array)
-    expect(res).not_to include(String)
-  end
-
-  it "returns descendants of a class" do
-    res = subject.descendants(Numeric)
-    expect(res).to include(Integer, Complex)
-    expect(res).not_to include(String)
-  end
 end

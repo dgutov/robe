@@ -88,4 +88,18 @@ describe Robe::Visor do
       expect(v.resolve_path_elems(["Foo", "Bar"])).to eq([])
     end
   end
+
+  context '#descendants' do
+    it "returns descendants of a module" do
+      res = subject.descendants(Enumerable)
+      expect(res).to include(Array)
+      expect(res).not_to include(String)
+    end
+
+    it "returns descendants of a class" do
+      res = subject.descendants(Numeric)
+      expect(res).to include(Integer, Complex)
+      expect(res).not_to include(String)
+    end
+  end
 end
