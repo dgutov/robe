@@ -307,8 +307,12 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
       (robe-jump-to (robe-jump-prompt thing))))))
 
 (defun robe--jump-to-var (thing)
-  (let* ((context (robe-context))
-         (vars (robe-complete--variables (nth 1 context) (nth 2 context)))
+  (let ((call-context (robe-call-context)))
+    (unless (nth 0 call-context)
+      (robe--jump-to-var-1 thing (nth 3 call-context)))))
+
+(defun robe--jump-to-var-1 (thing context)
+  (let* ((vars (robe-complete--variables (nth 1 context) (nth 2 context)))
          (var (cl-member-if (lambda (v) (equal thing (robe--variable-name v)))
                             vars)))
     (when var

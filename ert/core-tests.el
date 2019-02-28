@@ -206,3 +206,10 @@ end")
     (insert "def foo\n  abc = 1\n  abc")
     (robe-jump nil)
     (should (looking-at "abc ="))))
+
+(ert-deftest jump-to-var-not-method-call ()
+  (with-temp-buffer
+    (insert "def foo\n  abc = 1\n  t.abc")
+    (should (equal
+             (nth 1 (should-error (robe-jump nil)))
+             "Method not found"))))
