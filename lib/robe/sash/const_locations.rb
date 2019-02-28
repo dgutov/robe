@@ -29,7 +29,21 @@ module Robe
           locations.delete(Class.method(:class_attribute).source_location[0])
         end
 
-        locations.keys.sort { |k1, k2| -(locations[k1] <=> locations[k2]) }
+        filter_locations_by_module(
+          locations.keys.sort { |k1, k2| -(locations[k1] <=> locations[k2]) },
+          obj
+        )
+      end
+
+      private
+
+      def filter_locations_by_module(files, obj)
+        return files if obj.nil?
+        obj_local_name = obj.name[/(\A|::)([^:]+)\z/, 2]
+        re = /^[ \t]*(class|module) *(.*?::)?#{obj_local_name}\b/
+        filtered = files.select { |file| File.read(file).match(re) }
+        return files unless filtered.any?
+        filtered
       end
     end
   end
