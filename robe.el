@@ -397,12 +397,16 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
       (goto-char (point-min))
       (let* ((nesting (split-string name "::"))
              (cnt (1- (length nesting)))
-             case-fold-search)
-        (re-search-forward (concat "^[ \t]*\\(class\\|module\\) +.*\\_<"
+             (nesting-re (concat "\\_<"
                                    (cl-loop for i from 1 to cnt
                                             concat "\\(")
                                    (mapconcat #'identity nesting "::\\)?")
-                                   "\\_>")))
+                                   "\\_>"))
+             case-fold-search)
+        (re-search-forward (concat "^[ \t]*\\(class\\|module\\) +.*"
+                                   nesting-re
+                                   "\\|"
+                                   "^[ \t]*" nesting-re " *=[^=>]")))
       (back-to-indentation))))
 
 (defun robe-to-abbr-paths (list)

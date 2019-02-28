@@ -12,7 +12,7 @@ module Robe
       def all(name, mod)
         locations = {}
 
-        if (obj = visor.resolve_context(name, mod)) and obj.is_a?(Module)
+        if (obj = target_module(name, mod))
           methods = obj.methods(false).map { |m| obj.method(m) } +
                     obj.__instance_methods__(false).map { |m| obj.instance_method(m) }
 
@@ -44,6 +44,15 @@ module Robe
         filtered = files.select { |file| File.read(file).match(re) }
         return files unless filtered.any?
         filtered
+      end
+
+      # Ugly hack. Fix this.
+      def target_module(name, mod)
+        obj = visor.resolve_context(name, mod)
+        return obj if obj.is_a?(Module)
+        try_name = name[/^(.*)::[^:]*?/, 1]
+        obj = visor.resolve_context(try_name, mod)
+        return obj if obj.is_a?(Module)
       end
     end
   end
