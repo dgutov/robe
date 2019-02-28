@@ -15,24 +15,29 @@ module Robe
     end
 
     def resolve_context(name, mod)
-      return resolve_const(mod) unless name
+      resolve_context_path(name, mod).last
+    end
+
+    def resolve_context_path(name, mod)
+      return resolve_path(mod) unless name
+
       unless name =~ /\A::/
         nesting = mod ? mod.split("::") : []
-        resolve_path_elems(nesting).reverse.each do |elem|
-          begin
-            return elem.const_get(name)
-          rescue NameError
-          end
+
+        resolve_path_elems(nesting, Object).reverse.each do |elem|
+          path = resolve_path(name, elem)
+          return path if path.any?
         end
       end
-      resolve_const(name)
+
+      resolve_path(name)
     end
 
     def resolve_const(name)
       resolve_path(name).last
     end
 
-    def resolve_path(name)
+    def resolve_path(name, init = Object)
       return [] unless name
       return [ARGF.class] if name == "ARGF.class"
       if %w(IO::readable IO::writable).include?(name)
@@ -40,15 +45,17 @@ module Robe
       end
       nesting = name.split("::")
       nesting.shift if nesting[0].empty?
-      resolve_path_elems(nesting)
+      resolve_path_elems(nesting, init)
     end
 
-    def resolve_path_elems(nesting, init = Object)
+    def resolve_path_elems(nesting, init)
       c = init; ary = []
+
       begin
         nesting.each do |name|
           ary << (c = c.const_get(name))
         end
+
         ary
       rescue NameError
         []

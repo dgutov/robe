@@ -18,9 +18,13 @@ class ScopedVisor < Robe::Visor
     @modules.select { |m| fits?(type, m) }.each { |m| yield m if block_given? }
   end
 
-  def resolve_path_elems(nesting)
-    base = @namespace[nesting.shift]
-    [base] + super(nesting, base)
+  def resolve_path_elems(nesting, init)
+    if init == Object
+      base = @namespace[nesting.first]
+      [base] + super(nesting[1..-1], base)
+    else
+      super(nesting, init)
+    end
   end
 end
 

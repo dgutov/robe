@@ -81,11 +81,11 @@ describe Robe::Visor do
 
   context ".resolve_path_elems" do
     it "returns an array" do
-      expect(v.resolve_path_elems(["File", "Stat"])).to eq([File, File::Stat])
+      expect(v.resolve_path_elems(["File", "Stat"], Object)).to eq([File, File::Stat])
     end
 
     it "swallows NameError" do
-      expect(v.resolve_path_elems(["Foo", "Bar"])).to eq([])
+      expect(v.resolve_path_elems(["Foo", "Bar"], Object)).to eq([])
     end
   end
 

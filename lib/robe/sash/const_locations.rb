@@ -46,13 +46,9 @@ module Robe
         filtered
       end
 
-      # Ugly hack. Fix this.
       def target_module(name, mod)
-        obj = visor.resolve_context(name, mod)
-        return obj if obj.is_a?(Module)
-        try_name = name[/^(.*)::[^:]*?/, 1]
-        obj = visor.resolve_context(try_name, mod)
-        return obj if obj.is_a?(Module)
+        context_path = visor.resolve_context_path(name, mod)
+        context_path.reverse.find { |c| c.is_a?(Module) }
       end
     end
   end

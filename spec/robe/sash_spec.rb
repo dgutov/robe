@@ -22,7 +22,7 @@ describe Robe::Sash do
         end
       end
 
-      k = klass.new(double(resolve_context: cls))
+      k = klass.new(double(resolve_context_path: [cls]))
       expect(k.const_locations(nil, nil)).to eq([__FILE__])
     end
   end
