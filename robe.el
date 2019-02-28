@@ -379,7 +379,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 (defun robe-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
   (interactive `(,(robe-completing-read "Module: " (robe-request "modules"))))
-  (let ((paths (robe-request "class_locations" name (car (robe-context)))))
+  (let ((paths (robe-request "const_locations" name (car (robe-context)))))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
