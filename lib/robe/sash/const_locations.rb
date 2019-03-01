@@ -49,7 +49,16 @@ module Robe
       def full_scan(obj)
         files = $LOADED_FEATURES.select { |file| file.end_with?('.rb') && File.exist?(file) }
         re = definition_re(obj)
-        files.select { |f| File.read(f).match(re) }
+        require 'open3'
+        command = "xargs -0 grep -lZE '#{re.source}'"
+        output, _stderr, status = Open3.capture3(command, stdin_data: files.join("\0"))
+
+        if status.exitstatus == 127
+          puts "Install GNU grep and xargs for faster full scans"
+          files.select { |f| File.read(f).match(re) }
+        else
+          output.split("\0")
+        end
       end
 
       def filter_locations_by_module(files, obj)
