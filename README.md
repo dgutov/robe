@@ -58,13 +58,13 @@ then type <kbd>M-x package-install RET robe RET</kbd>.
 
 In the init file:
 
-```lisp
+```emacs
 (add-hook 'ruby-mode-hook 'robe-mode)
 ```
 
 or
 
-```lisp
+```emacs
 (global-robe-mode)
 ```
 
@@ -80,14 +80,14 @@ Note that if your project is using `Bundler`, the dependencies have to be added 
 
 ### [company-mode](http://company-mode.github.com/) ([screenshot](screenshots/company-robe.png)):
 
-```lisp
+```emacs
 (eval-after-load 'company
   '(push 'company-robe company-backends))
 ```
 
 ### [auto-complete](http://auto-complete.org/):
 
-```lisp
+```emacs
 (add-hook 'robe-mode-hook 'ac-robe-setup)
 ```
 
@@ -107,7 +107,7 @@ Either manually run <kbd>M-x rvm-activate-corresponding-ruby</kbd>
 before starting Robe, or advise `inf-ruby-console-auto` to activate
 rvm automatically.
 
-```lisp
+```emacs
 (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
   (rvm-activate-corresponding-ruby))
 ```
