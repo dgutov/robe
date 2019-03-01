@@ -36,6 +36,9 @@ module Robe
 
         return filtered if filtered.any?
 
+        # TODO: Deal with toplevel non-module constants.
+        return [] if obj.nil?
+
         full_scan(obj)
       end
 
