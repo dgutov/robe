@@ -21,7 +21,7 @@ type <kbd>C-c C-k</kbd> instead to reload the whole environment at once.
 
 * Jump to method definition
 * Jump to `super` or a constructor called at point
-* Jump to a module or class (provided it has at least one method defined)
+* Jump to a module/class/constant definition
 * Display method documentation
 * Display information about method called at point using ElDoc
 * Method and constant name completion

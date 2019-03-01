@@ -29,21 +29,33 @@ module Robe
           locations.delete(Class.method(:class_attribute).source_location[0])
         end
 
-        filter_locations_by_module(
+        filtered = filter_locations_by_module(
           locations.keys.sort { |k1, k2| -(locations[k1] <=> locations[k2]) },
           obj
         )
+
+        return filtered if filtered.any?
+
+        full_scan(obj)
       end
 
       private
 
+      def definition_re(obj)
+        obj_local_name = obj.name[/(\A|::)([^:]+)\z/, 2]
+        /^[ \t]*((class|module) *(.*?::)?#{obj_local_name}\b|#{obj_local_name} *=)/
+      end
+
+      def full_scan(obj)
+        files = $LOADED_FEATURES.select { |file| file.end_with?('.rb') && File.exist?(file) }
+        re = definition_re(obj)
+        files.select { |f| File.read(f).match(re) }
+      end
+
       def filter_locations_by_module(files, obj)
         return files if obj.nil?
-        obj_local_name = obj.name[/(\A|::)([^:]+)\z/, 2]
-        re = /^[ \t]*(class|module) *(.*?::)?#{obj_local_name}\b/
-        filtered = files.select { |file| File.read(file).match(re) }
-        return files unless filtered.any?
-        filtered
+        re = definition_re(obj)
+        files.select { |file| File.read(file).match(re) }
       end
 
       # Ugly hack. Fix this.

@@ -14,16 +14,12 @@ describe Robe::Sash do
 
   context "#const_locations" do
     it "shows location when class has methods" do
-      cls = Class.new do
-        def foo; end
-
-        def self.name
-          "Cls"
+      class TestExample
+        def foo
         end
       end
 
-      k = klass.new(double(resolve_context: cls))
-      expect(k.const_locations(nil, nil)).to eq([__FILE__])
+      expect(klass.new.const_locations('TestExample', nil)).to eq([__FILE__])
     end
   end
 

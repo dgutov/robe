@@ -10,9 +10,11 @@ describe Robe::Sash::ConstLocations do
     expect(k.all('SampleClass', nil)).to match([ending_with('fixtures/sample_class.rb')])
   end
 
-  it 'shows no location for class without methods' do
+  it 'shows location for class without methods' do
+    require 'fixtures/sample_methodless_class'
+
     k = described_class.new(Robe::Visor.new)
-    expect(k.all('ArgumentError', nil)).to be_empty
+    expect(k.all('SampleMethodlessClass', nil)).to match([ending_with('/sample_methodless_class.rb')])
   end
 
   it 'replaces value constants with parent modules' do
