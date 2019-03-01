@@ -978,12 +978,19 @@ The following commands are available:
         (kill-local-variable 'eldoc-documentation-function)
       (remove-function (local 'eldoc-documentation-function) #'robe-eldoc))))
 
+(defcustom robe-global-modes '(ruby-mode enh-ruby-mode)
+  "Modes for which `robe-mode' is automatically turned on.
+The value must be a list of major modes symbol names.
+`global-robe-mode' will enable it in the mentioned major modes
+and their derivatives."
+  :type '(repeat (symbol :tag "Major mode")))
+
 ;;;###autoload
 (define-globalized-minor-mode global-robe-mode robe-mode robe-mode-on)
 
 (defun robe-mode-on ()
   (when (and (not (or noninteractive (eq (aref (buffer-name) 0) ?\s)))
-             (derived-mode-p #'ruby-mode #'enh-ruby-mode))
+             (apply #'derived-mode-p robe-global-modes))
     (robe-mode 1)))
 
 (provide 'robe)
