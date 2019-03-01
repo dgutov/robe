@@ -62,6 +62,12 @@ In the init file:
 (add-hook 'ruby-mode-hook 'robe-mode)
 ```
 
+or
+
+```lisp
+(global-robe-mode)
+```
+
 ## Dependencies
 
 * `pry`
