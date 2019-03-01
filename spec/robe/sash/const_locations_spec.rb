@@ -12,6 +12,7 @@ describe Robe::Sash::ConstLocations do
 
   it 'shows location for class without methods' do
     require 'fixtures/sample_methodless_class'
+    require 'fixtures/sample_methodless_subclass'
 
     k = described_class.new(Robe::Visor.new)
     expect(k.all('SampleMethodlessClass', nil)).to match([ending_with('/sample_methodless_class.rb')])

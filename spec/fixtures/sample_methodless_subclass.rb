@@ -1,0 +1,2 @@
+class SampleMethodlessSubclass < ::SampleMethodlessClass
+end

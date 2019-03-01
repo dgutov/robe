@@ -43,7 +43,7 @@ module Robe
 
       def definition_re(obj)
         obj_local_name = obj.name[/(\A|::)([^:]+)\z/, 2]
-        /^[ \t]*((class|module) *(.*?::)?#{obj_local_name}\b|#{obj_local_name} *=)/
+        /^[ \t]*((class|module) *([^<]*?::)?#{obj_local_name}\b|#{obj_local_name} *=)/
       end
 
       def full_scan(obj)
