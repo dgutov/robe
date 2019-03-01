@@ -915,7 +915,7 @@ Only works with Rails, see e.g. `rinari-console'."
                       (+ (or (syntax ?w) (syntax ?_))))
                      (* ?\s)
                      ?=
-                     (not (in "=>"))))
+                     (not (in "=>~"))))
         (eol (line-end-position))
         vars)
     (save-excursion
