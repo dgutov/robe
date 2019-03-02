@@ -213,3 +213,11 @@ end")
     (should (equal
              (nth 1 (should-error (robe-jump nil)))
              "Method not found"))))
+
+(ert-deftest jump-to-var-not-method-call-2 ()
+  (with-temp-buffer
+    (insert "def foo\n  abc = abc()")
+    (forward-char -3)
+    (should (equal
+             (nth 1 (should-error (robe-jump nil)))
+             "Method not found"))))

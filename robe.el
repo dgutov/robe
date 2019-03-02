@@ -312,7 +312,10 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 
 (defun robe--jump-to-var (thing)
   (let ((call-context (robe-call-context)))
-    (unless (nth 0 call-context)
+    (unless (or (nth 0 call-context)
+                (save-excursion
+                  (goto-char (cdr (robe-complete-bounds)))
+                  (looking-at " *(")))
       (robe--jump-to-var-1 thing (nth 3 call-context)))))
 
 (defun robe--jump-to-var-1 (thing context)
