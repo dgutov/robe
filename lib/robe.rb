@@ -13,6 +13,11 @@ module Robe
       ['INT', 'TERM'].each do |signal|
         trap(signal) { stop }
       end
+
+      at_exit do
+        stop
+      end
+
       Thread.new do
         unless Thread.current[:__yard_registry__]
           Thread.current[:__yard_registry__] = Thread.main[:__yard_registry__]
@@ -26,7 +31,7 @@ module Robe
     end
 
     def stop
-      @server.shutdown
+      @server && @server.shutdown
       @server = nil
     end
 
