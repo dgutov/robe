@@ -334,7 +334,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (if (and thing
              (save-excursion
                (goto-char (car bounds))
-               (skip-chars-backward " \t\n\t")
+               (forward-comment (- (point)))
                (eq (preceding-char) ?.))
              (save-excursion
                (goto-char (cdr bounds))
