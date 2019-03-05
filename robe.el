@@ -715,6 +715,7 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-eldoc ()
   (when (robe-running-p)
     (let* ((context nil)
+           (throw-on-input nil)
            (call (save-excursion
                    (prog1
                        (robe-call-at-point)
