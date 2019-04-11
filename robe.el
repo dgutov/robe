@@ -257,7 +257,7 @@ project."
 
 (defun robe-retrieve (url)
   (defvar url-http-response-status)
-  (let ((buffer (condition-case nil (url-retrieve-synchronously url t)
+  (let ((buffer (condition-case nil (url-retrieve-synchronously url t t)
                   (file-error nil))))
     (if (and buffer
              (with-current-buffer buffer
