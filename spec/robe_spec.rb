@@ -27,7 +27,7 @@ describe Robe do
 
   it "proxies 'ping' to Sash" do
     resp = Net::HTTP.get("127.0.0.1", "/ping", Robe.server.port)
-    expect(resp).to eq("\"pong\"")
+    expect(resp).to eq("{\"pong\":true}")
   end
 
   it "returns 'robe on' when already running" do

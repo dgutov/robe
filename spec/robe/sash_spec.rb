@@ -384,7 +384,7 @@ describe Robe::Sash do
     end
   end
 
-  it { expect(klass.new.ping).to eq("pong") }
+  it { expect(klass.new.ping).to eq({pong: true}) }
 
   RSpec::Matchers.define :include_spec do |*specs|
     match do |candidates|
