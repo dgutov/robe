@@ -173,7 +173,7 @@ project."
               (accept-process-output proc))
             (set-process-sentinel proc #'robe-process-sentinel))
         (set-process-filter proc comint-filter)))
-    (when (robe-request "ping") ;; Should be always t when no error, though.
+    (when (robe-request "ping") ;; Meaning "no error".
       (robe-with-inf-buffer
        (setq robe-running t
              robe-load-path (mapcar #'file-name-as-directory
@@ -250,10 +250,27 @@ project."
             (with-temp-buffer
               (url-insert response-buffer)
               (goto-char (point-min))
-              (let ((json-array-type 'list))
-                (json-read)))
+              (robe--parse-buffer))
           (kill-buffer response-buffer))
       (error "Server doesn't respond"))))
+
+(defun robe--parse-buffer ()
+  (cond ((fboundp 'json-parse-buffer)
+         (condition-case err
+             (json-parse-buffer
+              :array-type 'list
+              :object-type 'alist
+              :null-object nil)
+           (error
+            (if (string-match-p "One of :object-type"
+                                (error-message-string err))
+                ;; Older Emacs 27.
+                (let ((json-array-type 'list))
+                  (json-read))
+              (error (error-message-string err))))))
+        (t
+         (let ((json-array-type 'list))
+           (json-read)))))
 
 (defun robe-retrieve (url)
   (defvar url-http-response-status)

@@ -174,7 +174,7 @@ module Robe
     end
 
     def ping
-      "pong"
+      {pong: true}
     end
 
     def call(path, body)
