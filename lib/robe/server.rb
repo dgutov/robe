@@ -76,12 +76,7 @@ module Robe
 
     def shutdown
       @running = false
-      begin
-        @server && @server.shutdown(Socket::SHUT_RDWR)
-      rescue Errno::ENOTCONN
-        # Hello JRuby
-        @server.close
-      end
+      @server && @server.close
     end
   end
 end
