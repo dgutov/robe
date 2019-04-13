@@ -251,8 +251,7 @@ project."
               (url-insert response-buffer)
               (goto-char (point-min))
               (robe--parse-buffer))
-          (kill-buffer response-buffer))
-      (error "Server doesn't respond"))))
+          (kill-buffer response-buffer)))))
 
 (defun robe--parse-buffer ()
   (cond ((fboundp 'json-parse-buffer)
@@ -274,14 +273,18 @@ project."
 
 (defun robe-retrieve (url)
   (defvar url-http-response-status)
-  (let ((buffer (condition-case nil (url-retrieve-synchronously url t t)
-                  (file-error nil))))
-    (if (and buffer
-             (with-current-buffer buffer
-               (memq url-http-response-status '(200 500))))
-        buffer
+  (let* ((buffer (condition-case nil (url-retrieve-synchronously url t t)
+                   (file-error nil)))
+         (status (and buffer
+                      (buffer-local-value 'url-http-response-status buffer))))
+    (cond
+     ((null status)
       (robe-with-inf-buffer
-       (setq robe-running nil)))))
+       (setq robe-running nil))
+      (error "Server doesn't respond"))
+     ((/= status 500)
+      buffer)
+     (t nil))))
 
 (cl-defstruct (robe-spec (:type list)) module inst-p method params file line)
 
@@ -747,17 +750,20 @@ Only works with Rails, see e.g. `rinari-console'."
           (when (consp list)
             (let* ((spec (car list))
                    (doc (robe-doc-for spec))
-                   (summary (with-temp-buffer
-                              (insert (cdr (assoc 'docstring doc)))
-                              (unless (= (point) (point-min))
-                                (goto-char (point-min))
-                                (save-excursion
-                                  (forward-sentence)
-                                  (delete-region (point) (point-max)))
-                                (robe-doc-apply-rules (point) (point-max))
-                                (while (search-forward "\n" nil t)
-                                  (replace-match " ")))
-                              (buffer-string)))
+                   (summary
+                    (if doc
+                        (with-temp-buffer
+                          (insert (cdr (assoc 'docstring doc)))
+                          (unless (= (point) (point-min))
+                            (goto-char (point-min))
+                            (save-excursion
+                              (forward-sentence)
+                              (delete-region (point) (point-max)))
+                            (robe-doc-apply-rules (point) (point-max))
+                            (while (search-forward "\n" nil t)
+                              (replace-match " ")))
+                          (buffer-string))
+                      ""))
                    (sig (robe-signature spec arg-num))
                    (msg (format "%s %s" sig summary)))
               (substring msg 0 (min (frame-width) (length msg))))))))))

@@ -37,15 +37,17 @@ module Robe
 
           begin
             body = @handler.call(req.path, req.body)
+            status = 200
           rescue Exception => e
             error_logger.error "Request failed: #{req.path}. Please file an issue."
             error_logger.error "#{e.message}\n#{e.backtrace.join("\n")}"
+            status = 500
           end
 
           resp = WEBrick::HTTPResponse.new(:OutputBufferSize => 1024,
                                            :Logger => error_logger,
                                            :HTTPVersion => "1.1")
-          resp.status = 200
+          resp.status = status
           resp.content_type = "application/json; charset=utf-8"
           resp.body = body
 
