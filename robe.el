@@ -111,6 +111,7 @@ nil means to use the global value of `completing-read-function'."
     (apply #'completing-read args)))      ; 2) allow completing-read override
 
 (defmacro robe-with-inf-buffer (&rest body)
+  (declare (debug t))
   `(let ((buf (robe-inf-buffer)))
      (when buf
        (with-current-buffer buf
