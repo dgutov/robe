@@ -106,3 +106,15 @@ class A
   (search-backward " = 2")
   (should (equal '("bar")
                  (robe-complete--variable-names t "foo"))))
+
+(ert-deftest complete-local-variables-multiple-assignment ()
+  (with-temp-buffer
+    (insert "
+class A
+  def foo
+    qux, tee = foobar(45)
+    ")
+    (ruby-mode)
+    (should (equal '("tee" "qux")
+                   (mapcar #'robe--variable-name
+                           (robe-complete--local-variables "foo"))))))

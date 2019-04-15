@@ -937,13 +937,22 @@ Only works with Rails, see e.g. `rinari-console'."
                      (or ?& (* ?*))
                      (group
                       (+ (or (syntax ?w) (syntax ?_))))))
-        (var-regexp (rx
-                     (or line-start (in ", \t("))
-                     (group
-                      (+ (or (syntax ?w) (syntax ?_))))
-                     (* ?\s)
-                     ?=
-                     (not (in "=>~"))))
+        (var-regexp (rx (group (+ (or (syntax ?w) (syntax ?_))))))
+        (vars-regexp (rx
+                      (or line-start ?\()
+                      (* (in " \t"))
+                      (group
+                       (+ (or (syntax ?w) (syntax ?_))))
+                      (* ?\s)
+                      (\?
+                       (group
+                        (+
+                         ?,
+                         (* ?\s)
+                         (+ (or (syntax ?w) (syntax ?_)))
+                         (* ?\s))))
+                      ?=
+                      (not (in "=>~"))))
         (eol (line-end-position))
         vars)
     (save-excursion
@@ -973,9 +982,14 @@ Only works with Rails, see e.g. `rinari-console'."
       ;; the original position.
       ;; `backward-up-list' can be slow-ish in large files,
       ;; but we could add a cache akin to syntax-ppss.
-      (while (re-search-forward var-regexp eol t)
+      (while (re-search-forward vars-regexp eol t)
         (when (robe--not-in-string-or-comment)
-          (push (robe--matched-variable) vars))))
+          (push (robe--matched-variable) vars)
+          (when (match-beginning 2)
+            (let ((pos (point)))
+              (goto-char (match-end 1))
+              (while (re-search-forward var-regexp pos 'move)
+                (push (robe--matched-variable) vars)))))))
     vars))
 
 (defvar robe-mode-map
