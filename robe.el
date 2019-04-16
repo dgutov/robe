@@ -832,7 +832,8 @@ Only works with Rails, see e.g. `rinari-console'."
          (all-completions
           thing
           (robe-complete--variable-names instance-method? name)))
-       (robe-complete--methods thing target module instance)))))
+       (let ((gc-cons-threshold most-positive-fixnum))
+         (robe-complete--methods thing target module instance))))))
 
 (defun robe-complete--methods (thing target module instance)
   (setq robe-specs-cache (make-hash-table :test 'equal))

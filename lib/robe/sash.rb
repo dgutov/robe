@@ -180,7 +180,12 @@ module Robe
     def call(path, body)
       _, endpoint, *args = path.split("/").map { |s| s == "-" ? nil : s }
       value = public_send(endpoint.to_sym, *args)
-      JSON.generate(value)
+
+      if defined?(MultiJson)
+        MultiJson.dump(value)
+      else
+        JSON.generate(value)
+      end
     end
 
     private
@@ -196,6 +201,13 @@ module Robe
     def init_name_cache
       # https://www.ruby-forum.com/topic/167055
       @name_cache = Hash.new { |h, mod| h[mod] = mod.__name__ }
+    end
+
+    def report(name, &op)
+      s = Time.now.to_f
+      res = op.call
+      puts "#{name} took: #{Time.now.to_f - s}"
+      res
     end
   end
 end
