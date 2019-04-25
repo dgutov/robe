@@ -256,18 +256,10 @@ project."
 
 (defun robe--parse-buffer ()
   (cond ((fboundp 'json-parse-buffer)
-         (condition-case err
-             (json-parse-buffer
-              :array-type 'list
-              :object-type 'alist
-              :null-object nil)
-           (error
-            (if (string-match-p "One of :object-type"
-                                (error-message-string err))
-                ;; Older Emacs 27.
-                (let ((json-array-type 'list))
-                  (json-read))
-              (error (error-message-string err))))))
+         (json-parse-buffer
+          :array-type 'list
+          :object-type 'alist
+          :null-object nil))
         (t
          (let ((json-array-type 'list))
            (json-read)))))
