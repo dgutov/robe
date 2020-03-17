@@ -85,7 +85,7 @@ Note that if your project is using `Bundler`, the dependencies have to be added 
   '(push 'company-robe company-backends))
 ```
 
-### [auto-complete](http://auto-complete.org/):
+### [auto-complete](https://github.com/auto-complete/auto-complete):
 
 ```emacs
 (add-hook 'robe-mode-hook 'ac-robe-setup)
