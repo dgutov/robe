@@ -46,7 +46,16 @@ describe Robe::Server do
     end
   end
 
-  def start_and_send(handler, request)
+  it 'aborts slow requests' do
+    start_and_yield(proc { "foo" }) do |server|
+      socket = TCPSocket.new('127.0.0.1', server.port)
+      sleep 0.2
+      socket.puts("GET / HTTP/1.1\r\n")
+      expect { socket.puts("\r\n") }.to raise_error(Errno::EPIPE)
+    end
+  end
+
+  def start_and_yield(handler)
     server = described_class.new(handler, '127.0.0.1', 0)
 
     Thread.new do
@@ -56,9 +65,15 @@ describe Robe::Server do
 
     server.wait_for_it
 
-    http = Net::HTTP.new("127.0.0.1", server.port)
-    http.request(request)
+    yield(server)
   ensure
     server.shutdown
+  end
+
+  def start_and_send(handler, request)
+    start_and_yield(handler) do |server|
+      http = Net::HTTP.new('127.0.0.1', server.port)
+      http.request(request)
+    end
   end
 end

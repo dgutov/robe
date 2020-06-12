@@ -8,6 +8,8 @@ module Robe
   class Server
     attr_reader :running, :port
 
+    REQUEST_TIMEOUT = 0.15
+
     def initialize(handler, host, port)
       @handler = handler
       @server = TCPServer.new(host, port)
@@ -28,10 +30,15 @@ module Robe
         begin
           client = @server.accept
 
-          next if client.eof?
+          if !client.to_io.wait_readable(REQUEST_TIMEOUT) ||
+             client.eof?
+            client.close
+            next
+          end
 
           req = WEBrick::HTTPRequest.new(:InputBufferSize => 1024,
-                                         :Logger => error_logger)
+                                         :Logger => error_logger,
+                                         :RequestTimeout => REQUEST_TIMEOUT)
           req.parse(client)
           access_logger.info "#{req.request_method} #{req.path}"
 
@@ -49,6 +56,7 @@ module Robe
                                            :HTTPVersion => "1.1")
           resp.status = status
           resp.content_type = "application/json; charset=utf-8"
+          # XXX: If freezes continue, try: resp.keep_alive = false
           resp.body = body
 
           begin
