@@ -3,7 +3,7 @@ require 'robe/server'
 
 module Robe
   class << self
-    attr_accessor :server
+    attr_accessor :server, :server_thread
 
     def start(port = 0, host = '127.0.0.1')
       return running_string if @server
@@ -19,10 +19,15 @@ module Robe
       end
 
       Thread.new do
-        unless Thread.current[:__yard_registry__]
-          Thread.current[:__yard_registry__] = Thread.main[:__yard_registry__]
+        @server_thread = Thread.current
+
+        unless server_thread[:__yard_registry__]
+          server_thread[:__yard_registry__] = Thread.main[:__yard_registry__]
         end
-        @server.start
+
+        server_thread.abort_on_exception = true
+
+        @server && @server.start
       end
 
       @server.wait_for_it
