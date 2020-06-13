@@ -30,8 +30,7 @@ module Robe
         begin
           client = @server.accept
 
-          if !client.to_io.wait_readable(REQUEST_TIMEOUT) ||
-             client.eof?
+          if !wait_readable(client) || client.eof?
             client.close
             next
           end
@@ -87,6 +86,17 @@ module Robe
     def shutdown
       @running = false
       @server && @server.close
+    end
+
+    private
+
+    # On 2.0+, can require 'io/wait' instead.
+    def wait_readable(socket)
+      if socket.respond_to?(:wait_readable)
+        socket.wait_readable(REQUEST_TIMEOUT)
+      else
+        IO.select([socket], nil, nil, REQUEST_TIMEOUT)
+      end
     end
   end
 end
