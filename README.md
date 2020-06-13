@@ -116,6 +116,10 @@ rvm automatically.
 * Tested in Emacs 24.4+, with Ruby 1.9.3-2.6, on GNU/Linux.
 * Essential features work with JRuby, though the startup is longer.
 * Mostly works on MS Windows, with minor glitches.
+* Built-in `ruby-mode` works best, `enh-ruby-mode` is not recommended
+  (it breaks the detection of the current context
+  ([#47](https://github.com/dgutov/robe/issues/47),
+  [enhanced-ruby-mode#86](https://github.com/zenspider/enhanced-ruby-mode/issues/96))).
 
 ## Notes
 
