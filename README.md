@@ -119,7 +119,7 @@ rvm automatically.
 * Built-in `ruby-mode` works best, `enh-ruby-mode` is not recommended
   (it breaks the detection of the current context, see
   [#47](https://github.com/dgutov/robe/issues/47) and
-  [enhanced-ruby-mode#86](https://github.com/zenspider/enhanced-ruby-mode/issues/96)).
+  [enhanced-ruby-mode#96](https://github.com/zenspider/enhanced-ruby-mode/issues/96)).
 
 ## Notes
 
