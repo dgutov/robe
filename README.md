@@ -108,8 +108,7 @@ before starting Robe, or advise `inf-ruby-console-auto` to activate
 rvm automatically.
 
 ```emacs
-(defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
-  (rvm-activate-corresponding-ruby))
+(advice-add 'inf-ruby-console-auto :before #'rvm-activate-corresponding-ruby)
 ```
 
 ## Compatibility
