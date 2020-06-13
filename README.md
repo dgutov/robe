@@ -72,7 +72,7 @@ or
 
 * `pry`
 * `pry-doc >= 0.6.0` (on MRI)
-* `method_source >= 0.8.2` (for compatibility with the latest Rubinius)
+* `method_source >= 0.8.2`
 
 Note that if your project is using `Bundler`, the dependencies have to be added to the `Gemfile`.
 
@@ -114,9 +114,7 @@ rvm automatically.
 ## Compatibility
 
 * Tested in Emacs 24.4+, with Ruby 1.9.3-2.6, on GNU/Linux.
-* Essential features work with JRuby and the latest Rubinius.
-  JRuby has longer startup, Rubinius is noticeably slower at runtime
-  ([rubinius/rubinius#2390](https://github.com/rubinius/rubinius/issues/2390)).
+* Essential features work with JRuby, though the startup is longer.
 * Mostly works on MS Windows, with minor glitches.
 
 ## Notes
