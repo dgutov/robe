@@ -13,31 +13,31 @@ describe Robe::MethodScanner do
   let(:modules) { [a, b, c, d] }
 
   it "completes instance methods" do
-    scanner = klass.new(:f, false)
+    scanner = klass.new(/^f/, false)
     scanner.scan(modules, true, false)
     expect(scanner.candidates).to have_names(:f, :foo, :foo)
   end
 
   it "completes module methods" do
-    scanner = klass.new(:b, false)
+    scanner = klass.new(/^b/, false)
     scanner.scan(modules, false, true)
     expect(scanner.candidates).to have_names(:b, :bar, :bar)
   end
 
   it "completes private instance methods" do
-    scanner = klass.new(:baz, true)
+    scanner = klass.new(/^baz/, true)
     scanner.scan(modules, true, false)
     expect(scanner.candidates).to have_names(:baz, :baz)
   end
 
   it "completes private module methods" do
-    scanner = klass.new(:tee, true)
+    scanner = klass.new(/^tee/, true)
     scanner.scan(modules, false, true)
     expect(scanner.candidates).to have_names(:tee, :tee)
   end
 
   it "completes nothing when shouldn't" do
-    scanner = klass.new(:foo, true)
+    scanner = klass.new(/^foo/, true)
     scanner.scan(modules, false, false)
     expect(scanner.candidates).to be_empty
   end

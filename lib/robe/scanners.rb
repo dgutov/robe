@@ -37,12 +37,12 @@ module Robe
   class MethodScanner < Scanner
     def initialize(*args)
       super
-      @re = /^#{Regexp.escape(@sym)}/ if !@sym.to_s.empty?
+      # @re = /^#{Regexp.escape(@sym)}/ if !@sym.to_s.empty?
     end
 
     def scan_methods(mod, coll)
       syms = mod.__send__(coll, false)
-      syms = syms.grep(@re) if @re
+      syms = syms.grep(@sym) if @sym # It's a regexp now.
       syms.each do |sym|
         candidates << mod.instance_method(sym)
       end

@@ -6,6 +6,7 @@ require 'robe/visor'
 require 'robe/jvisor'
 require 'robe/core_ext'
 require 'robe/sash/includes_tracker'
+require 'robe/sash/jaro_winkler'
 
 module Robe
   class Sash
@@ -120,7 +121,7 @@ module Robe
 
     def complete_method(prefix, target, mod, instance)
       space = TypeSpace.new(visor, target, mod, instance, nil)
-      scanner = MethodScanner.new(prefix, !target)
+      scanner = MethodScanner.new(prefix && to_fuzzy_re(prefix), !target)
 
       space.scan_with(scanner)
 
@@ -129,7 +130,12 @@ module Robe
         scanner.scan(visor.each_object(Module), true, true)
       end
 
-      scanner.candidates.map { |m| method_spec(m) }
+      # JaroWinkler.distance('a', 'zaz')
+      # => 0 ???
+      scanner.candidates.
+        select { |c| c.name }.
+        sort_by { |um| - JaroWinkler.distance(prefix || '', um.name.to_s) }.first(1000).
+        map { |m| method_spec(m) }
     end
 
     def complete_const(prefix, mod)
@@ -155,7 +161,11 @@ module Robe
     end
 
     def complete_const_in_module(tail, base)
-      base.constants.grep(/^#{Regexp.escape(tail)}/)
+      if !tail.empty?
+        base.constants.grep(to_fuzzy_re(tail))
+      else
+        base.constants
+      end
     end
 
     def rails_refresh
@@ -190,6 +200,11 @@ module Robe
     end
 
     private
+
+    def to_fuzzy_re(str)
+      chars = str.scan(/./).map(&Regexp.method(:escape))
+      /^#{chars.map { |c| "[^#{c}]*#{c}" }.join }/
+    end
 
     def pick_visor
       if RUBY_ENGINE == "jruby"

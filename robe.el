@@ -740,7 +740,7 @@ Only works with Rails, see e.g. `rinari-console'."
                (list (cl-loop for spec in (robe-jump-modules thing context)
                               when (robe-spec-module spec) collect spec)))
           (when (consp list)
-            (let* ((spec (car list))
+            (let* ((spec (car (last list)))
                    (doc (robe-doc-for spec))
                    (summary
                     (if doc
@@ -800,7 +800,7 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-complete-annotation (thing)
   (unless (get-text-property 0 'robe-type thing)
     (let ((params (robe-signature-params (robe-spec-params
-                                          (car (robe-cached-specs thing))))))
+                                          (car (last (robe-cached-specs thing)))))))
       (if robe-highlight-capf-candidates
           params
         (and params
@@ -839,8 +839,7 @@ Only works with Rails, see e.g. `rinari-console'."
                                   'font-lock-type-face
                                 'font-lock-function-name-face))
                 method)))
-          (reverse
-           (robe-request "complete_method" thing target module instance))))
+          (robe-request "complete_method" thing target module instance)))
 
 (defun robe-complete--variable-names (instance-method? method-name)
   (let* ((instance-vars (and instance-method?

@@ -9,19 +9,51 @@
     (prefix (and (boundp 'robe-mode)
                  robe-mode (robe-running-p)
                  (company-robe--prefix)))
-    (candidates (robe-complete-thing arg))
+    (candidates (delete-dups
+                 (robe-complete-thing arg)))
     (duplicates t)
     (meta (company-robe--meta arg))
+    (post-completion
+     (company-robe--post-completion arg))
     (location (let ((spec (company-robe--choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
     (annotation (robe-complete-annotation arg))
+    (no-cache t)
+    (match      (company-robe--match arg))
+    (sorted t)
     (doc-buffer (let ((spec (company-robe--choose-spec arg)))
                   (when spec
                     (save-window-excursion
                       (robe-show-doc spec)
                       (message nil)
                       (get-buffer "*robe-doc*")))))))
+
+(defun company-robe--post-completion (arg)
+  (let ((ann (robe-complete-annotation arg))
+        (pos (point))
+        (num 1))
+    (when ann
+      (yas-expand-snippet
+       (with-temp-buffer
+         (insert ann)
+         (goto-char (point-min))
+         (while (re-search-forward
+                 "\\([\(,] *\\)\\(\\(?:[\]*&.:\[]\\|\\sw\\|\\s_\\)+\\)"
+                 nil 'move)
+           (let ((comma (match-string 1))
+                 (ident (match-string 2)))
+             (replace-match
+              (if (memq (aref ident 0) '(?\[ ?* ?&))
+                  ""
+                (prog1
+                    (format "%s${%d:%s}" comma num ident)
+                  (setq num (1+ num)))))))
+         (when (= num 1)
+           (backward-delete-char 1))
+         (insert "$0")
+         (buffer-string))
+       pos pos nil))))
 
 (defun company-robe--meta (completion)
   (or
@@ -46,5 +78,23 @@
                              collect (cons module spec))))
             (cdr (assoc (robe-completing-read "Module: " alist nil t) alist)))
         (car specs)))))
+
+(defun company-robe--match (str)
+  (company-flex-highlights company-prefix str))
+
+(defun company-flex-highlights (input string)
+  (let ((re
+         (mapconcat
+          (lambda (c)
+            (format "[^%c]*\\(%s\\)" c (regexp-quote (string c))))
+          input ""))
+        (case-fold-search (company-call-backend 'ignore-case))
+        res ref)
+    (when (string-match re string)
+      (setq ref (nthcdr 2 (match-data)))
+      (while ref
+        (push (cons (car ref) (cadr ref)) res)
+        (setq ref (cddr ref)))
+      res)))
 
 (provide 'company-robe)
