@@ -25,6 +25,7 @@ type <kbd>C-c C-k</kbd> instead to reload the whole environment at once.
 * Display method documentation
 * Display information about method called at point using ElDoc
 * Method and constant name completion
+* Fuzzy completion (with `company-robe`)
 * Jumping and completion for instance and local variable names, using
   simple regexp search in the current file
 
