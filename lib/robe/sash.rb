@@ -181,7 +181,8 @@ module Robe
       _, endpoint, *args = path.split("/").map { |s| s == "-" ? nil : s }
       value = public_send(endpoint.to_sym, *args)
 
-      if defined?(MultiJson)
+      # Yajl 1.4.1 encoder is weirdly slow on our data.
+      if defined?(MultiJson) && MultiJson.adapter.name !~ /Yajl\z/
         MultiJson.dump(value)
       else
         JSON.generate(value)
