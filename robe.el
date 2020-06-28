@@ -1,11 +1,11 @@
 ;;; robe.el --- Code navigation, documentation lookup and completion for Ruby -*- lexical-binding: t -*-
 
 ;; Copyright © 2012 Phil Hagelberg
-;; Copyright © 2012-2019 Dmitry Gutov
+;; Copyright © 2012-2020 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
-;; Version: 0.8.2
+;; Version: 0.8.3
 ;; Keywords: ruby convenience rails
 ;; Package-Requires: ((inf-ruby "2.5.1") (emacs "24.4"))
 

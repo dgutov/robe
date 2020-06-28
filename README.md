@@ -71,9 +71,8 @@ or
 
 ## Dependencies
 
-* `pry`
-* `pry-doc >= 0.6.0` (on MRI)
-* `method_source >= 0.8.2`
+* `pry` >= 0.10
+* `pry-doc` >= 0.6.0 (for stdlib docs on MRI; optional)
 
 Note that if your project is using `Bundler`, the dependencies have to be added to the `Gemfile`.
 
