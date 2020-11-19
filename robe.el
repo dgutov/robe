@@ -907,7 +907,7 @@ Only works with Rails, see e.g. `rinari-console'."
                          "def"
                          (* (in " \t"))
                          (optional (+ (in "a-z" "A-Z" ?:)) ?.))
-                        method-name
+                        (and method-name (regexp-quote method-name))
                         (rx (* (in " \t"))
                             (or eol ?\( (syntax ?w)))))
         (block-regexp (rx
