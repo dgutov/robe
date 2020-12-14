@@ -384,13 +384,15 @@ describe Robe::Sash do
     end
 
     it 'converts Pathname entries' do
-      extra_element = Pathname.new('./lib')
+      begin
+        extra_element = Pathname.new('./lib')
 
-      $: << extra_element
+        $: << extra_element
 
-      expect(klass.new.load_path).to include(File.absolute_path('./lib'))
-    ensure
-      $:.delete(extra_element)
+        expect(klass.new.load_path).to include(File.absolute_path('./lib'))
+      ensure
+        $:.delete(extra_element)
+      end
     end
   end
 
