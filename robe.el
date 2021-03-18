@@ -180,7 +180,13 @@ project."
              robe-load-path (mapcar #'file-name-as-directory
                                     (robe-request "load_path")))
        (when (file-exists-p ".robe")
-         (ruby-load-file ".robe")))
+         (let ((last-pos (point-max)))
+           (ruby-load-file ".robe")
+           (accept-process-output (inf-ruby-proc) 0.01)
+           (when (string-match-p "Error\\>"
+                                 (buffer-substring last-pos (point-max)))
+             (ruby-switch-to-inf t)
+             (error "Some problem loading .robe")))))
       (message "Robe connection established"))))
 
 (defun robe-start-call ()

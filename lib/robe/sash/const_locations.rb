@@ -37,7 +37,7 @@ module Robe
         return filtered if filtered.any?
 
         # TODO: Deal with toplevel non-module constants.
-        return [] if obj.nil?
+        return [] if obj.nil? || obj.name.nil?
 
         full_scan(obj)
       end
@@ -65,7 +65,7 @@ module Robe
       end
 
       def filter_locations_by_module(files, obj)
-        return files if obj.nil?
+        return files if obj.nil? || obj.name.nil?
         re = definition_re(obj)
         files.select { |file| File.read(file).match(re) }
       end

@@ -382,6 +382,18 @@ describe Robe::Sash do
     it 'returns an appropriate value' do
       expect(klass.new.load_path).to eq($:)
     end
+
+    it 'converts Pathname entries' do
+      begin
+        extra_element = Pathname.new('./lib')
+
+        $: << extra_element
+
+        expect(klass.new.load_path).to include(File.absolute_path('./lib'))
+      ensure
+        $:.delete(extra_element)
+      end
+    end
   end
 
   it { expect(klass.new.ping).to eq({pong: true}) }

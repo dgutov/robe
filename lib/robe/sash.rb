@@ -180,7 +180,7 @@ module Robe
     end
 
     def load_path
-      $LOAD_PATH
+      $LOAD_PATH.map { |e| File.absolute_path(e) }
     end
 
     def ping
