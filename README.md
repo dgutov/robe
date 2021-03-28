@@ -73,6 +73,7 @@ or
 
 * `pry` >= 0.10
 * `pry-doc` >= 0.6.0 (for stdlib docs on MRI; optional)
+* `webrick` >= 1.5.0 (for ruby >= 3.0.0; WEBrick was removed from the standard library in [3.0.0](https://rubyreferences.github.io/rubychanges/3.0.html#libraries-excluded-from-the-standard-library))
 
 Note that if your project is using `Bundler`, the dependencies have to be added to the `Gemfile`.
 
