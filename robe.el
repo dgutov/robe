@@ -648,7 +648,7 @@ Only works with Rails, see e.g. `rinari-console'."
                     (block "block")
                     (t (format "arg%s" cnt)))))
           (push (propertize (format (cl-case kind
-                                      (rest "%s...")
+                                      (rest "*%s")
                                       (block "&%s")
                                       (opt "[%s]")
                                       (keyreq "%s:")

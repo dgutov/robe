@@ -7,7 +7,7 @@
 
 (ert-deftest signature-for-rest ()
   (should (string= (robe-signature '("C" t "foo" (("rest" "items"))))
-                   "C#foo(items...)")))
+                   "C#foo(*items)")))
 
 (ert-deftest signature-for-keyrest ()
   (should (string= (robe-signature '("C" t "foo" (("keyrest" "params"))))
@@ -24,7 +24,7 @@
 (ert-deftest signature-for-nameless-args ()
   (should (string= (robe-signature '("C" t "foo"
                                      (("req") ("req") ("rest") ("block"))))
-                   "C#foo(arg1, arg2, args..., &block)")))
+                   "C#foo(arg1, arg2, *args, &block)")))
 
 (ert-deftest signature-for-class-method ()
   (should (string= (robe-signature '("A::B" nil "bar" nil)) "A::B.bar")))
@@ -37,7 +37,7 @@
             `(face ,font-lock-type-face) "B" nil "#"
             `(face ,font-lock-function-name-face) "foo" nil "("
             `(face ,robe-em-face) "a" nil ", "
-            `(face ,robe-em-face) "b..." nil ")"))))
+            `(face ,robe-em-face) "*b" nil ")"))))
 
 (ert-deftest signature-current-arg-in-bold ()
   (let* ((sig (robe-signature '("C" nil "foo"
