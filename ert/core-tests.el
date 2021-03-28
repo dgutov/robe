@@ -9,6 +9,10 @@
   (should (string= (robe-signature '("C" t "foo" (("rest" "items"))))
                    "C#foo(items...)")))
 
+(ert-deftest signature-for-keyrest ()
+  (should (string= (robe-signature '("C" t "foo" (("keyrest" "params"))))
+                   "C#foo(**params)")))
+
 (ert-deftest signature-for-block ()
   (should (string= (robe-signature '("C" t "foo" (("block" "pred"))))
                    "C#foo(&pred)")))

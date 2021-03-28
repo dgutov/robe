@@ -653,7 +653,9 @@ Only works with Rails, see e.g. `rinari-console'."
                                       (opt "[%s]")
                                       (keyreq "%s:")
                                       (key "[%s:]")
-                                      (t "%s")) name)
+                                      (keyrest "**%s")
+                                      (t "%s"))
+                                    name)
                             'face (if (and arg-num
                                            (not (memq kind '(keyreq key)))
                                            (or (= arg-num cnt)
