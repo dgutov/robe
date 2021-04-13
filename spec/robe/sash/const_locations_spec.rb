@@ -10,6 +10,14 @@ describe Robe::Sash::ConstLocations do
     expect(k.all('SampleClass', nil)).to match([ending_with('fixtures/sample_class.rb')])
   end
 
+  it 'shows location for class with only private methods' do
+    require 'fixtures/sample_private_class'
+    require 'fixtures/sample_module'
+
+    k = described_class.new(Robe::Visor.new)
+    expect(k.all('SamplePrivateClass', nil)).to match([ending_with('fixtures/sample_private_class.rb')])
+  end
+
   it 'shows location for class without methods' do
     require 'fixtures/sample_methodless_class'
     require 'fixtures/sample_methodless_subclass'

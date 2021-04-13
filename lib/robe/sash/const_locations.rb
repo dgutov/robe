@@ -14,7 +14,8 @@ module Robe
 
         if (obj = target_module(name, mod))
           methods = obj.methods(false).map { |m| obj.method(m) } +
-                    obj.__instance_methods__(false).map { |m| obj.instance_method(m) }
+                    (obj.__instance_methods__(false) +
+                     obj.private_instance_methods(false)).map { |m| obj.instance_method(m) }
 
           methods.each do |m|
             if (loc = m.source_location)
