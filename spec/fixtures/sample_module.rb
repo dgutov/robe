@@ -5,4 +5,7 @@ module SampleModule
       end
     end
   end
+
+  class SamplePrivateClass
+  end
 end
