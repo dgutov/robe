@@ -30,7 +30,7 @@ GEM
     pry-doc (0.8.0)
       pry (~> 0.9)
       yard (~> 0.8)
-    rake (10.3.0)
+    rake (12.3.3)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
       rspec-expectations (~> 3.4.0)
@@ -67,7 +67,7 @@ DEPENDENCIES
   minitest (~> 5.11.3)
   pry (~> 0.10.3)
   pry-doc (>= 0.8.0)
-  rake (~> 10.3.0)
+  rake (~> 12.3.3)
   rspec (~> 3.4.0)
   simplecov
   yard (~> 0.9.11)
