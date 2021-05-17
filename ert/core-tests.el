@@ -55,7 +55,7 @@
 (ert-deftest signature-ellipsis-arg-in-bold ()
   (let* ((sig (robe-signature '("C" t "foo" (("rest" "*") ("block" "&"))) 4))
          (value (get-text-property 6 'face sig)))
-    (should (equal "C#foo(*, &)" sig))
+    (should (equal "C#foo(...)" sig))
     (should (consp value))
     (should (memq 'bold value))))
 

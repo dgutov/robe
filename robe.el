@@ -636,6 +636,8 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-signature-params (params &optional arg-num)
   (when params
+    (when (equal params '(("rest" "*") ("block" "&")))
+      (setq params '(("forward" "..."))))
     (let ((cnt 0) args)
       (dolist (pair params)
         (let ((kind (intern (car pair)))
@@ -647,8 +649,7 @@ Only works with Rails, see e.g. `rinari-console'."
                     (rest "args")
                     (block "block")
                     (t (format "arg%s" cnt)))))
-          (push (propertize (format (cl-case (unless (member name '("*" "&"))
-                                               kind)
+          (push (propertize (format (cl-case kind
                                       (rest "*%s")
                                       (block "&%s")
                                       (opt "[%s]")
@@ -660,7 +661,7 @@ Only works with Rails, see e.g. `rinari-console'."
                             'face (if (and arg-num
                                            (not (memq kind '(keyreq key)))
                                            (or (= arg-num cnt)
-                                               (and (eq kind 'rest)
+                                               (and (memq kind '(rest forward))
                                                     (> arg-num cnt))))
                                       (list robe-em-face 'bold)
                                     robe-em-face))
