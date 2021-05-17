@@ -1007,7 +1007,7 @@ Only works with Rails, see e.g. `rinari-console'."
 The following commands are available:
 
 \\{robe-mode-map}"
-  nil " robe" robe-mode-map
+  :lighter " robe"
   (if robe-mode
       (progn
         (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
