@@ -15,6 +15,7 @@
     (location (let ((spec (company-robe--choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
+    (kind (company-robe--kind arg))
     (annotation (robe-complete-annotation arg))
     (doc-buffer (let ((spec (company-robe--choose-spec arg)))
                   (when spec
@@ -46,5 +47,18 @@
                              collect (cons module spec))))
             (cdr (assoc (robe-completing-read "Module: " alist nil t) alist)))
         (car specs)))))
+
+(defun company-robe--kind (arg)
+  (let (case-fold-search)
+    (cond
+     ((string-match "\\`[A-Z]\\([A-Z_]*\\'\\)?" arg)
+      (if (match-beginning 1)
+          'constant
+        'module))
+     ((string-match-p "\\`@" arg)
+      'variable)
+     ((eq (get-text-property 0 'robe-type arg) 'variable)
+      'value)
+     (t 'method))))
 
 (provide 'company-robe)
