@@ -636,6 +636,8 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-signature-params (params &optional arg-num)
   (when params
+    (when (equal (last params 2) '(("rest" "*") ("block" "&")))
+      (setq params (nconc (butlast params 2) '(("forward" "...")))))
     (let ((cnt 0) args)
       (dolist (pair params)
         (let ((kind (intern (car pair)))
@@ -659,7 +661,7 @@ Only works with Rails, see e.g. `rinari-console'."
                             'face (if (and arg-num
                                            (not (memq kind '(keyreq key)))
                                            (or (= arg-num cnt)
-                                               (and (eq kind 'rest)
+                                               (and (memq kind '(rest forward))
                                                     (> arg-num cnt))))
                                       (list robe-em-face 'bold)
                                     robe-em-face))
@@ -1006,7 +1008,7 @@ Only works with Rails, see e.g. `rinari-console'."
 The following commands are available:
 
 \\{robe-mode-map}"
-  nil " robe" robe-mode-map
+  :lighter " robe"
   (if robe-mode
       (progn
         (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)

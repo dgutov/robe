@@ -18,6 +18,7 @@
     (location (let ((spec (company-robe--choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
+    (kind (company-robe--kind arg))
     (annotation (robe-complete-annotation arg))
     (no-cache t)
     (match      (company-robe--match arg))
@@ -96,5 +97,18 @@
         (push (cons (car ref) (cadr ref)) res)
         (setq ref (cddr ref)))
       res)))
+
+(defun company-robe--kind (arg)
+  (let (case-fold-search)
+    (cond
+     ((string-match "\\`[A-Z]\\([A-Z_]*\\'\\)?" arg)
+      (if (match-beginning 1)
+          'constant
+        'module))
+     ((string-match-p "\\`@" arg)
+      'variable)
+     ((eq (get-text-property 0 'robe-type arg) 'variable)
+      'value)
+     (t 'method))))
 
 (provide 'company-robe)
