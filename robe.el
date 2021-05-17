@@ -647,7 +647,8 @@ Only works with Rails, see e.g. `rinari-console'."
                     (rest "args")
                     (block "block")
                     (t (format "arg%s" cnt)))))
-          (push (propertize (format (cl-case kind
+          (push (propertize (format (cl-case (unless (member name '("*" "&"))
+                                               kind)
                                       (rest "*%s")
                                       (block "&%s")
                                       (opt "[%s]")
