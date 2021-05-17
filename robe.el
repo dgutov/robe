@@ -636,8 +636,8 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-signature-params (params &optional arg-num)
   (when params
-    (when (equal params '(("rest" "*") ("block" "&")))
-      (setq params '(("forward" "..."))))
+    (when (equal (last params 2) '(("rest" "*") ("block" "&")))
+      (setq params (nconc (butlast params 2) '(("forward" "...")))))
     (let ((cnt 0) args)
       (dolist (pair params)
         (let ((kind (intern (car pair)))

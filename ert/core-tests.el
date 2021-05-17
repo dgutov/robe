@@ -52,12 +52,18 @@
     (should (consp value))
     (should (memq 'bold value))))
 
-(ert-deftest signature-ellipsis-arg-in-bold ()
+(ert-deftest signature-tripledot-arg-in-bold ()
   (let* ((sig (robe-signature '("C" t "foo" (("rest" "*") ("block" "&"))) 4))
          (value (get-text-property 6 'face sig)))
     (should (equal "C#foo(...)" sig))
     (should (consp value))
     (should (memq 'bold value))))
+
+(ert-deftest signature-tripledot-with-leading-arg ()
+  (let* ((sig (robe-signature '("C" t "foo" (("req" "a") ("opt" "b")
+                                             ("rest" "*") ("block" "&")))
+                              4)))
+    (should (equal "C#foo(a, [b], ...)" sig))))
 
 (ert-deftest call-at-point-simple ()
   (should (equal (with-temp-buffer
