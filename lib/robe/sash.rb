@@ -141,6 +141,7 @@ module Robe
     def complete_const(prefix, mod)
       colons = prefix.rindex("::")
       tail = colons ? prefix[colons + 2..-1] : prefix
+
       if !colons
         path = [Object]
         path += visor.resolve_path(mod) if mod
@@ -157,7 +158,9 @@ module Robe
                  end
                end
         complete_const_in_module(tail, base || Object)
-      end.map { |c| "#{base_name}#{c}" }
+      end
+        .sort_by { |c| - JaroWinkler.distance(tail || '', c.to_s) }
+        .map { |c| "#{base_name}#{c}" }
     end
 
     def complete_const_in_module(tail, base)
