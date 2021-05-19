@@ -772,12 +772,11 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-complete-symbol-p (beginning)
   (not (or (and
-            ;; Implement symbol completion using Symbol.all_symbols.
+            ;; TODO: Implement symbol completion using Symbol.all_symbols.
             (eq (char-after beginning) ?:)
             (not (eq (char-after (1+ beginning)) ?:)))
            (memq (get-text-property beginning 'face)
-                 (list font-lock-keyword-face
-                       font-lock-function-name-face
+                 (list font-lock-function-name-face
                        font-lock-comment-face
                        font-lock-string-face)))))
 
@@ -821,10 +820,18 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-complete-thing (thing)
   (robe-start)
-  (if (robe-const-p thing)
-      (progn
-        (robe-complete-exit)
-        (robe-request "complete_const" thing (car (robe-context))))
+  (cond
+   ((and non-essential
+         (not (eq ?. (char-before (- (point) (length thing)))))
+         (or (member thing ruby-block-beg-keywords)
+             (member thing ruby-block-mid-keywords)
+             (member thing ruby-block-op-keywords)
+             (member thing '("in" "next" "end"))))
+    (list thing))
+   ((robe-const-p thing)
+    (robe-complete-exit)
+    (robe-request "complete_const" thing (car (robe-context))))
+   (t
     (cl-destructuring-bind
         (target module instance (_ instance-method? name)) (robe-call-context)
       (append
@@ -834,7 +841,7 @@ Only works with Rails, see e.g. `rinari-console'."
           thing
           (robe-complete--variable-names instance-method? name)))
        (let ((gc-cons-threshold most-positive-fixnum))
-         (robe-complete--methods thing target module instance))))))
+         (robe-complete--methods thing target module instance)))))))
 
 (defun robe-complete--methods (thing target module instance)
   (setq robe-specs-cache (make-hash-table :test 'equal))
