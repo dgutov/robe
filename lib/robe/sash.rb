@@ -133,7 +133,7 @@ module Robe
       # JaroWinkler.distance('a', 'zaz')
       # => 0 ???
       scanner.candidates.
-        select { |c| c.name }.
+        uniq(&:name).
         sort_by { |um| - JaroWinkler.distance(prefix || '', um.name.to_s) }.first(1000).
         map { |m| method_spec(m) }
     end

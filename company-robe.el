@@ -9,9 +9,7 @@
     (prefix (and (boundp 'robe-mode)
                  robe-mode (robe-running-p)
                  (company-robe--prefix)))
-    (candidates (delete-dups
-                 (robe-complete-thing arg)))
-    (duplicates t)
+    (candidates (robe-complete-thing arg))
     (meta (company-robe--meta arg))
     (post-completion
      (company-robe--post-completion arg))
