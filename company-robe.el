@@ -51,7 +51,7 @@
 (defun company-robe--kind (arg)
   (let (case-fold-search)
     (cond
-     ((string-match "\\`[A-Z]\\([A-Z_]*\\'\\)?" arg)
+     ((string-match "\\(\\`\\|::\\)[A-Z]\\([A-Z_0-9]*\\)?\\'" arg)
       (if (match-beginning 1)
           'constant
         'module))
