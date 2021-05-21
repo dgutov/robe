@@ -837,9 +837,10 @@ Only works with Rails, see e.g. `rinari-console'."
       (append
        (unless target
          ;; For company-robe mostly.  capf will call all-completions anyway.
-         (all-completions
-          thing
-          (robe-complete--variable-names instance-method? name)))
+         (delete-dups
+          (all-completions
+           thing
+           (robe-complete--variable-names instance-method? name))))
        (let ((gc-cons-threshold most-positive-fixnum))
          (robe-complete--methods thing target module instance)))))))
 
