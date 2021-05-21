@@ -771,10 +771,8 @@ Only works with Rails, see e.g. `rinari-console'."
               (substring msg 0 (min (frame-width) (length msg))))))))))
 
 (defun robe-complete-symbol-p (beginning)
-  (not (or (and
-            ;; TODO: Implement symbol completion using Symbol.all_symbols.
-            (eq (char-after beginning) ?:)
-            (not (eq (char-after (1+ beginning)) ?:)))
+  (not (or (eq (char-before beginning) ?:)
+           ;; TODO: Implement symbol completion using Symbol.all_symbols.
            (memq (get-text-property beginning 'face)
                  (list font-lock-function-name-face
                        font-lock-comment-face
@@ -785,6 +783,8 @@ Only works with Rails, see e.g. `rinari-console'."
    (save-excursion
      (while (or (not (zerop (skip-syntax-backward "w_")))
                 (not (zerop (skip-chars-backward ":")))))
+     (when (looking-at-p ":[^:]")
+       (forward-char 1))
      (skip-chars-backward "@")
      (point))
    (save-excursion
@@ -837,9 +837,10 @@ Only works with Rails, see e.g. `rinari-console'."
       (append
        (unless target
          ;; For company-robe mostly.  capf will call all-completions anyway.
-         (all-completions
-          thing
-          (robe-complete--variable-names instance-method? name)))
+         (delete-dups
+          (all-completions
+           thing
+           (robe-complete--variable-names instance-method? name))))
        (let ((gc-cons-threshold most-positive-fixnum))
          (robe-complete--methods thing target module instance)))))))
 
