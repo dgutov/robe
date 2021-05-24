@@ -557,7 +557,7 @@ Only works with Rails, see e.g. `rinari-console'."
         (insert (robe-signature spec))
         (when file
           (insert " is defined in ")
-          (insert-text-button (file-name-nondirectory file)
+          (insert-text-button (robe-doc-format-file-name file)
                               'type 'robe-method-def
                               'help-args (list spec t)))
         (when (equal visibility "public")
@@ -569,6 +569,17 @@ Only works with Rails, see e.g. `rinari-console'."
         (when visibility
           (insert "\nVisibility: " visibility)))
       (visual-line-mode 1))))
+
+(defun robe-doc-format-file-name (file)
+  ;; TODO: Resolve this dynamically, perhaps (only when no match is
+  ;; found?), or update on a timer.
+  (let* ((lp (robe-with-inf-buffer robe-load-path))
+         (dir (cl-find-if
+               (lambda (lpe) (string-prefix-p lpe file))
+               lp)))
+    (if dir
+        (file-relative-name file dir)
+      (file-name-nondirectory file))))
 
 (defun robe-doc-fontify-regions ()
   (let (last-pos)
