@@ -387,13 +387,50 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                (eq ?. (char-before)))
                         (progn (forward-char -1)
                                (skip-chars-backward " \n\r\t")
-                               (or (robe--jump-thing)
-                                   "!")))))
+                               (or
+                                (let ((type (robe-call-target-type)))
+                                  (if type (cons t type)))
+                                (robe--jump-thing)
+                                "!")))))
          (ctx (robe-context))
          (module (car ctx))
-         (_ (when (string= target "self") (setq target nil)))
+         (_ (when (equal target "self") (setq target nil)))
          (instance (unless target (nth 1 ctx))))
+    (when (eq (car-safe target) t)
+      (setq target (cdr target)
+            instance t))
     (list target module instance ctx)))
+
+(defun robe-call-target-type ()
+  (save-excursion
+    (let (forward-sexp-function)
+      (cond
+       ((eq (char-before) ?\])
+        "Array")
+       ;; FIXME: Handle percent literals better, e.g. %w().
+       ((nth 3 (parse-partial-sexp (1- (point)) (point)))
+        "String")
+       ((and (eq (char-before) ?\})
+             (save-excursion
+               (backward-sexp)
+               (skip-chars-backward " \t")
+               (memq (char-before) '(?, ?\; ?= ?\( ?> ?: ?{ ?| ?\n nil))))
+        "Hash")
+       ((and (progn
+               (when (eq (char-before) ?\))
+                 (backward-sexp))
+               (equal (thing-at-point 'symbol) "new"))
+             (progn
+               (skip-syntax-backward "w_")
+               (skip-chars-backward " \n\r\t")
+               (eq ?. (char-before)))
+             (progn
+               (forward-char -1)
+               (skip-chars-backward " \n\r\t")
+               (let ((bounds (robe-complete-bounds)))
+                 (and bounds
+                      (not (eq (char-before (car bounds)) ?:))
+                      (buffer-substring (car bounds) (cdr bounds)))))))))))
 
 (defun robe-decorate-modules (list)
   (cl-loop for spec in list

@@ -218,6 +218,37 @@ end")
                        (insert "(bar + tee).qux")
                        (car (robe-call-context))))))
 
+(ert-deftest call-context-after-string ()
+  (with-temp-buffer
+    (insert "\"\"\.tee")
+    (should (equal '("String" nil t)
+                   (butlast (robe-call-context))))))
+
+(ert-deftest call-context-after-hash ()
+  (with-temp-buffer
+    (ruby-mode)
+    (insert "{a: 1}.ea")
+    (should (equal '("Hash" nil t)
+                   (butlast (robe-call-context))))))
+
+(ert-deftest call-context-after-block ()
+  (with-temp-buffer
+    (ruby-mode)
+    (insert "class C
+  def foo
+    bar {}.qux")
+    (save-excursion (insert "\n\n"))
+    (should (equal '("!" "C" nil)
+                   (butlast (robe-call-context))))))
+
+(ert-deftest call-context-after-dot-new ()
+  (with-temp-buffer
+    (insert "M::Foo
+  .new(bar: tee)
+  .qux")
+    (should (equal '("M::Foo" nil t)
+                   (butlast (robe-call-context))))))
+
 (ert-deftest jump-to-var ()
   (with-temp-buffer
     (insert "def foo\n  abc = 1\n  abc")

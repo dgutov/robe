@@ -8,17 +8,18 @@ module Robe
       @visor = visor
       @instance = instance
       @superc = superc
+      @target = target
       guess_target_type(target, mod)
     end
 
     def scan_with(scanner)
-      return unless obj = target_type
+      return unless (obj = target_type)
       modules = obj.ancestors
       modules -= obj.included_modules unless instance
 
       if @superc
         modules -= [obj]
-      else
+      elsif !@target
         modules += visor.descendants(obj).to_a
       end
 
