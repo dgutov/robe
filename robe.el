@@ -1018,8 +1018,7 @@ Only works with Rails, see e.g. `rinari-console'."
                          (* (in " \t"))
                          (optional (+ (in "a-z" "A-Z" ?:)) ?.))
                         (and method-name (regexp-quote method-name))
-                        (rx (* (in " \t"))
-                            (or eol ?\( (syntax ?w)))))
+                        (rx symbol-end)))
         (block-regexp (rx
                        (or
                         (syntax ?w) (syntax ?_) ?\))
@@ -1059,8 +1058,10 @@ Only works with Rails, see e.g. `rinari-console'."
     (save-excursion
       (when (and method-name
                  (re-search-backward method-regexp nil)
-                 (eq ?\( (char-before (match-end 0))))
-        (goto-char (1- (match-end 0)))
+                 (progn
+                   (goto-char (match-end 0))
+                   (skip-chars-forward " \t")
+                   (eq ?\( (char-after))))
         (let* ((beg (1+ (point)))
                (forward-sexp-function nil)
                (end (progn
