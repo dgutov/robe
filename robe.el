@@ -955,7 +955,7 @@ Only works with Rails, see e.g. `rinari-console'."
            (robe-request "complete_method" thing target module instance))))
 
 (defun robe-complete--variable-names (vars)
-  (cl-delete-duplicates
+  (delete-dups
    (mapcar
     (lambda (var)
       (let ((str (robe--variable-name var)))
