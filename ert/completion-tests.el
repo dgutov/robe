@@ -86,6 +86,16 @@ class A
                    (mapcar #'robe--variable-name
                            (robe-complete--local-variables "foo")))))
 
+(ert-deftest complete-local-variables-includes-blocks-with-parenless-calls ()
+  (insert "
+class A
+  def foo
+    tee \"abc\" do |a, b|
+")
+  (should (equal '("b" "a")
+                 (mapcar #'robe--variable-name
+                           (robe-complete--local-variables "foo")))))
+
 (ert-deftest complete-local-variables-after-paren ()
   (insert "
 class A

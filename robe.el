@@ -1055,7 +1055,7 @@ Only works with Rails, see e.g. `rinari-console'."
                         (rx symbol-end)))
         (block-regexp (rx
                        (or
-                        (syntax ?w) (syntax ?_) ?\))
+                        (syntax ?w) (syntax ?_) (syntax ?\)) (syntax ?\") (syntax ?|))
                        (+ (in " \t"))
                        (or
                         (sequence "do" symbol-end)
