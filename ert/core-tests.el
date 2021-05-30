@@ -259,6 +259,29 @@ end")
     (should (equal '("String" "C" t)
                    (butlast (robe-call-context) 2)))))
 
+(ert-deftest call-context-inside-class-body ()
+  (with-temp-buffer
+    (insert "class C
+  do_weird_stuff do
+  end
+
+  def foo
+  end
+
+  ")
+    (ruby-mode)
+    (should (equal '(nil "C" nil)
+                   (butlast (robe-call-context) 2)))))
+
+(ert-deftest call-context-with-dsl ()
+  (with-temp-buffer
+    (insert "class FooApi
+  get do
+    ")
+    (ruby-mode)
+    (should (equal '(nil nil nil)
+                   (butlast (robe-call-context) 2)))))
+
 (ert-deftest jump-to-var ()
   (with-temp-buffer
     (insert "def foo\n  abc = 1\n  abc")

@@ -411,7 +411,42 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (when (eq (car-safe target) t)
       (setq target (cdr target)
             instance t))
+    (when (and (not target) (not in-instance-def) (robe-context-self-unknown?))
+      (setq module nil))
     (list target module instance ctx variables)))
+
+(defun robe-context-self-unknown? ()
+  ;; Heuristic to find out whether we are inside some DSL-style block,
+  ;; where it's popular to change the value of 'self' to something
+  ;; more convenient, but impossible to determine statically.
+  ;; Assume being outside of any method definitions (that check is
+  ;; performed by the caller).
+  (save-excursion
+    (let ((start (point))
+          (re (rx (or (sequence line-start (* (in " \t"))
+                                (group
+                                 (or "def" "module" "class"))
+                                symbol-end)
+                      (sequence (or (syntax ?w) (syntax ?_) (syntax ?\))
+                                    (syntax ?\") (syntax ?|))
+                                (+ (in " \t"))
+                                (group
+                                 (or
+                                  (sequence "do" symbol-end)
+                                  ?\{))))))
+          res)
+      (while (and (not res)
+                  (re-search-backward re nil 'move))
+        (unless (nth 8 (syntax-ppss (point)))
+          (cond
+           ((match-beginning 1)
+            (setq res 'def))
+           ((save-excursion
+              (goto-char (match-beginning 2))
+              (ignore-errors (forward-sexp))
+              (>= (point) start))
+            (setq res 'block)))))
+      (eq res 'block))))
 
 (defun robe-call-target-type ()
   (save-excursion
