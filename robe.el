@@ -1,7 +1,7 @@
 ;;; robe.el --- Code navigation, documentation lookup and completion for Ruby -*- lexical-binding: t -*-
 
 ;; Copyright © 2012 Phil Hagelberg
-;; Copyright © 2012-2020 Dmitry Gutov
+;; Copyright © 2012-2021 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
@@ -929,7 +929,7 @@ Only works with Rails, see e.g. `rinari-console'."
     (robe-request "complete_const" thing (car (robe-context))))
    (t
     (cl-destructuring-bind
-        (target module instance (_ instance-method? name) vars) (robe-call-context)
+        (target module instance _ctx vars) (robe-call-context)
       (append
        (unless target
          ;; For company-robe mostly.  capf will call all-completions anyway.
