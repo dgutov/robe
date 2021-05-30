@@ -105,7 +105,8 @@ class A
     ")
   (search-backward " = 2")
   (should (equal '("bar")
-                 (robe-complete--variable-names t "foo"))))
+                 (mapcar #'robe--variable-name
+                         (robe-complete--local-variables "foo")))))
 
 (ert-deftest complete-local-variables-multiple-assignment ()
   (with-temp-buffer
