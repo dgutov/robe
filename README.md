@@ -143,7 +143,7 @@ rvm automatically.
 * For methods defined through macros, optionally jump to where the macro was
   called, instead of its definition?
 * Apropos search for classes and methods.
-* Type inference.
+* Better type inference.
 
 ## Copying
 

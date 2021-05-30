@@ -371,7 +371,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                   alist)))))
 
 (defun robe-jump-modules (thing context)
-  (cl-destructuring-bind (target module instance ctx) context
+  (cl-destructuring-bind (target module instance ctx _vars) context
     (let (super)
       (unless target
         (when (string= thing "super")
@@ -382,7 +382,10 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                        robe-jump-conservative))))
 
 (defun robe-call-context ()
-  (let* ((target (save-excursion
+  (let* ((ctx (robe-context))
+         (in-instance-def (nth 1 ctx))
+         (variables (robe-complete--variables in-instance-def (nth 2 ctx)))
+         (target (save-excursion
                    (and (progn (ignore-errors (beginning-of-thing 'symbol))
                                (eq ?. (char-before)))
                         (progn (forward-char -1)
@@ -390,16 +393,25 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                (or
                                 (let ((type (robe-call-target-type)))
                                   (if type (cons t type)))
-                                (robe--jump-thing)
+                                (let ((thing (robe--jump-thing))
+                                      var)
+                                  (if (setq var (cl-find-if
+                                                 (lambda (var)
+                                                   (and
+                                                    (robe--variable-type var)
+                                                    (equal (robe--variable-name var)
+                                                           thing)))
+                                                 variables))
+                                      (cons t (robe--variable-type var))
+                                    thing))
                                 "!")))))
-         (ctx (robe-context))
          (module (car ctx))
          (_ (when (equal target "self") (setq target nil)))
-         (instance (unless target (nth 1 ctx))))
+         (instance (unless target in-instance-def)))
     (when (eq (car-safe target) t)
       (setq target (cdr target)
             instance t))
-    (list target module instance ctx)))
+    (list target module instance ctx variables)))
 
 (defun robe-call-target-type ()
   (save-excursion
@@ -882,14 +894,12 @@ Only works with Rails, see e.g. `rinari-console'."
     (robe-request "complete_const" thing (car (robe-context))))
    (t
     (cl-destructuring-bind
-        (target module instance (_ instance-method? name)) (robe-call-context)
+        (target module instance (_ instance-method? name) vars) (robe-call-context)
       (append
        (unless target
          ;; For company-robe mostly.  capf will call all-completions anyway.
          (delete-dups
-          (all-completions
-           thing
-           (robe-complete--variable-names instance-method? name))))
+          (all-completions thing (robe-complete--variable-names vars))))
        (let ((gc-cons-threshold most-positive-fixnum))
          (robe-complete--methods thing target module instance)))))))
 
@@ -909,36 +919,68 @@ Only works with Rails, see e.g. `rinari-console'."
           (reverse
            (robe-request "complete_method" thing target module instance))))
 
-(defun robe-complete--variable-names (instance-method? method-name)
-  (let* ((instance-vars (and instance-method?
-                             (robe-complete--instance-variables)))
-         (local-vars (robe-complete--local-variables method-name))
-         (local-vars (cl-delete-if-not
-                      (lambda (v) (< (+ (robe--variable-position v)
-                                   (length (robe--variable-name v)))
-                                (point)))
-                      local-vars)))
-    (mapcar
-     (lambda (str)
-       (put-text-property 0 1 'robe-type 'variable str)
-       str)
-     (cl-delete-duplicates
-      (mapcar #'robe--variable-name
-              (nconc instance-vars local-vars))))))
+(defun robe-complete--variable-names (vars)
+  (cl-delete-duplicates
+   (mapcar
+    (lambda (var)
+      (let ((str (robe--variable-name var)))
+        (put-text-property 0 1 'robe-type 'variable str)
+        (put-text-property 0 1 'robe-variable-type (robe--variable-type var) str)
+        str))
+    vars)))
 
 (defun robe-complete--variables (instance-method? method-name)
   (let ((instance-vars (and instance-method?
                             (robe-complete--instance-variables)))
         (local-vars (robe-complete--local-variables method-name)))
-    (nconc instance-vars local-vars)))
+    (nconc instance-vars
+           (cl-delete-if
+            (lambda (v) (>= (robe--variable-end v) (point)))
+            local-vars))))
 
 (cl-defstruct (robe--variable
-               (:constructor robe--make-variable (name position)))
-  name position)
+               (:constructor robe--make-variable (name position end type)))
+  name position end type)
 
 (defun robe--matched-variable ()
-  (robe--make-variable (match-string-no-properties 1)
-                       (match-beginning 1)))
+  (let ((name (match-string-no-properties 1))
+        (pos (match-beginning 1))
+        (end (match-end 1))
+        type)
+    (save-excursion
+      (goto-char end)
+      (when (looking-at "\\(?::\\| *=>\\| *=\\) *")
+        (goto-char (match-end 0))
+        (setq type (robe--matched-variable-type))))
+    (robe--make-variable name pos end type)))
+
+(defun robe--matched-variable-type ()
+  (let (case-fold-search)
+    (cond
+     ((eq (char-after) ?\[)
+      (when (robe--matched-variable-eostmt? t)
+        "Array"))
+     ;; FIXME: Handle percent literals better, e.g. %w().
+     ((nth 3 (prog1 (parse-partial-sexp (point) (1+ (point)))
+               (forward-char -1)))
+      (when (robe--matched-variable-eostmt? t)
+        "String"))
+     ((eq (char-after) ?\{)
+      (when (robe--matched-variable-eostmt? t)
+        "Hash"))
+     ((and
+       (looking-at "\\(\\(?::\\{0,2\\}[A-Z][A-Za-z0-9]*\\)+\\)\\.new\\_>")
+       (let ((type (match-string 1)))
+         (goto-char (match-end 0))
+         (when (robe--matched-variable-eostmt? (eq (char-after) ?\())
+           type)))))))
+
+(defun robe--matched-variable-eostmt? (forward-sexp-p)
+  (when forward-sexp-p
+    (let (forward-sexp-function)
+      (forward-sexp)))
+  (skip-chars-forward " \t\n\r")
+  (not (eq (char-after) ?.)))
 
 (defun robe-complete--instance-variables ()
   (let ((bol (line-beginning-position))
