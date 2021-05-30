@@ -411,7 +411,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (when (eq (car-safe target) t)
       (setq target (cdr target)
             instance t))
-    (when (and (not target) (not in-instance-def) (robe-context-self-unknown-p))
+    (when (and module (not target) (not in-instance-def) (robe-context-self-unknown-p))
       (setq module nil))
     (list target module instance ctx variables)))
 
