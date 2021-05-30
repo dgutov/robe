@@ -411,11 +411,11 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (when (eq (car-safe target) t)
       (setq target (cdr target)
             instance t))
-    (when (and (not target) (not in-instance-def) (robe-context-self-unknown?))
+    (when (and (not target) (not in-instance-def) (robe-context-self-unknown-p))
       (setq module nil))
     (list target module instance ctx variables)))
 
-(defun robe-context-self-unknown? ()
+(defun robe-context-self-unknown-p ()
   ;; Heuristic to find out whether we are inside some DSL-style block,
   ;; where it's popular to change the value of 'self' to something
   ;; more convenient, but impossible to determine statically.
@@ -993,24 +993,24 @@ Only works with Rails, see e.g. `rinari-console'."
   (let (case-fold-search)
     (cond
      ((eq (char-after) ?\[)
-      (when (robe--matched-variable-eostmt? t)
+      (when (robe--matched-variable-eostmt-p t)
         "Array"))
      ;; FIXME: Handle percent literals better, e.g. %w().
      ((nth 3 (prog1 (parse-partial-sexp (point) (1+ (point)))
                (forward-char -1)))
-      (when (robe--matched-variable-eostmt? t)
+      (when (robe--matched-variable-eostmt-p t)
         "String"))
      ((eq (char-after) ?\{)
-      (when (robe--matched-variable-eostmt? t)
+      (when (robe--matched-variable-eostmt-p t)
         "Hash"))
      ((and
        (looking-at "\\(\\(?::\\{0,2\\}[A-Z][A-Za-z0-9]*\\)+\\)\\.new\\_>")
        (let ((type (match-string 1)))
          (goto-char (match-end 0))
-         (when (robe--matched-variable-eostmt? (eq (char-after) ?\())
+         (when (robe--matched-variable-eostmt-p (eq (char-after) ?\())
            type)))))))
 
-(defun robe--matched-variable-eostmt? (forward-sexp-p)
+(defun robe--matched-variable-eostmt-p (forward-sexp-p)
   (when forward-sexp-p
     (let (forward-sexp-function)
       (forward-sexp)))
