@@ -136,7 +136,7 @@ class A
 class A
   def foo
     bar = Array.new.first
-    qux = 'abc'
+    qux ||= 'abc'
     tee = Array.new
     ")
     (ruby-mode)

@@ -983,7 +983,7 @@ Only works with Rails, see e.g. `rinari-console'."
         type)
     (save-excursion
       (goto-char end)
-      (when (looking-at "\\(?::\\| *=>\\| *=\\) *")
+      (when (looking-at "\\(?::\\| *=>\\| *|\\{0,2\\}=\\) *")
         (goto-char (match-end 0))
         (setq type (robe--matched-variable-type))))
     (robe--make-variable name pos end type)))
@@ -1085,6 +1085,7 @@ Only works with Rails, see e.g. `rinari-console'."
                          (* ?\s)
                          (+ (or (syntax ?w) (syntax ?_)))
                          (* ?\s))))
+                      (* ?|)
                       ?=
                       (not (in "=>~"))))
         (eol (line-end-position))
