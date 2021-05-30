@@ -46,8 +46,14 @@ describe Robe::TypeSpace do
         space.scan_with(scanner)
       end
 
-      it "passes the descendants" do
+      it "passes the descendants when without target" do
+        space = described_class.new(visor, nil, "C", true, nil)
         expect(scanner).to receive(:scan).with(include(*kids), true, false)
+        space.scan_with(scanner)
+      end
+
+      it "doesn't pass the descendants with explicit target" do
+        expect(scanner).not_to receive(:scan).with(include(*kids), true, false)
         space.scan_with(scanner)
       end
 
@@ -94,8 +100,17 @@ describe Robe::TypeSpace do
         space.scan_with(scanner)
       end
 
-      it "passes the descendants" do
+      it "passes the descendants when without target" do
+        # Receiver implicit, meaning the exact type could be descendant.
+        space = described_class.new(visor, nil, "C", nil, nil)
         expect(scanner).to receive(:scan).with(include(*kids), be_falsey, true)
+        expect(scanner).to receive(:scan).with(anything, true, be_falsey)
+        space.scan_with(scanner)
+      end
+
+      it "doesn't pass the descendants with explicit target" do
+        # Receiver explicit, meaning we detected the exact type.
+        expect(scanner).not_to receive(:scan).with(include(*kids), be_falsey, true)
         expect(scanner).to receive(:scan).with(anything, true, be_falsey)
         space.scan_with(scanner)
       end

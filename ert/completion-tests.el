@@ -86,6 +86,16 @@ class A
                    (mapcar #'robe--variable-name
                            (robe-complete--local-variables "foo")))))
 
+(ert-deftest complete-local-variables-includes-blocks-with-parenless-calls ()
+  (insert "
+class A
+  def foo
+    tee \"abc\" do |a, b|
+")
+  (should (equal '("b" "a")
+                 (mapcar #'robe--variable-name
+                           (robe-complete--local-variables "foo")))))
+
 (ert-deftest complete-local-variables-after-paren ()
   (insert "
 class A
@@ -105,7 +115,8 @@ class A
     ")
   (search-backward " = 2")
   (should (equal '("bar")
-                 (robe-complete--variable-names t "foo"))))
+                 (mapcar #'robe--variable-name
+                         (robe-complete--local-variables "foo")))))
 
 (ert-deftest complete-local-variables-multiple-assignment ()
   (with-temp-buffer
@@ -118,3 +129,21 @@ class A
     (should (equal '("tee" "qux")
                    (mapcar #'robe--variable-name
                            (robe-complete--local-variables "foo"))))))
+
+(ert-deftest complete-local-variables-detect-types ()
+  (with-temp-buffer
+    (insert "
+class A
+  def foo
+    bar = Array.new.first
+    qux ||= 'abc'
+    tee = Array.new
+    ")
+    (ruby-mode)
+    (let ((vars (robe-complete--local-variables "foo")))
+      (should (equal (robe--variable-name (nth 0 vars)) "tee"))
+      (should (equal (robe--variable-type (nth 0 vars)) "Array"))
+      (should (equal (robe--variable-name (nth 1 vars)) "qux"))
+      (should (equal (robe--variable-type (nth 1 vars)) "String"))
+      (should (equal (robe--variable-name (nth 2 vars)) "bar"))
+      (should (null (robe--variable-type (nth 2 vars)))))))

@@ -114,7 +114,7 @@ rvm automatically.
 
 ## Compatibility
 
-* Tested in Emacs 24.4+, with Ruby 1.9.3-2.6, on GNU/Linux.
+* Tested in Emacs 24.4+, with Ruby 1.9.3-3.0, on GNU/Linux.
 * Essential features work with JRuby, though the startup is longer.
 * Mostly works on MS Windows, with minor glitches.
 * Built-in `ruby-mode` works best, `enh-ruby-mode` is not recommended
@@ -144,7 +144,7 @@ rvm automatically.
 * For methods defined through macros, optionally jump to where the macro was
   called, instead of its definition?
 * Apropos search for classes and methods.
-* Type inference.
+* Better type inference.
 
 ## Copying
 
