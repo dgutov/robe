@@ -55,10 +55,12 @@
        pos pos nil))))
 
 (defun company-robe--meta (completion)
-  (or
-   (get-text-property 0 'robe-type completion)
-   (let ((spec (car (robe-cached-specs completion))))
-     (when spec (robe-signature spec)))))
+  (if-let ((type (get-text-property 0 'robe-type completion)))
+      (if-let ((vtype (get-text-property 0 'robe-variable-type completion)))
+          (format "%s => %s" type (propertize vtype 'face 'font-lock-type-face))
+        type)
+    (let ((spec (car (robe-cached-specs completion))))
+      (when spec (robe-signature spec)))))
 
 (defun company-robe--prefix ()
   (let ((bounds (robe-complete-bounds)))
