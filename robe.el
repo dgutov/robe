@@ -960,6 +960,7 @@ Only works with Rails, see e.g. `rinari-console'."
     (lambda (var)
       (let ((str (robe--variable-name var)))
         (put-text-property 0 1 'robe-type 'variable str)
+        (put-text-property 0 1 'robe-variable-type (robe--variable-type var) str)
         str))
     vars)))
 
