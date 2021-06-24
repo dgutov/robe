@@ -101,13 +101,13 @@
 (defun company-robe--kind (arg)
   (let (case-fold-search)
     (cond
-     ((string-match "\\(\\`\\|::\\)[A-Z]\\([A-Z_0-9]*\\)?\\'" arg)
+     ((string-match "\\(?:\\`\\|::\\)\\(?:[A-Z_0-9]*\\|\\([A-Z][A-Z_a-z0-9]*\\)\\)\\'" arg)
       (if (match-beginning 1)
-          'constant
-        'module))
+          'module
+        'constant))
      ((string-match-p "\\`@" arg)
       'variable)
-     ((eq (get-text-property 0 'robe-type arg) 'variable)
+     ((get-text-property 0 'robe-type arg)
       'value)
      (t 'method))))
 

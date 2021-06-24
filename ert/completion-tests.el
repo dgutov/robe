@@ -147,3 +147,38 @@ class A
       (should (equal (robe--variable-type (nth 1 vars)) "String"))
       (should (equal (robe--variable-name (nth 2 vars)) "bar"))
       (should (null (robe--variable-type (nth 2 vars)))))))
+
+(ert-deftest complete-rspec-bindings ()
+  (with-temp-buffer
+    (insert "RSpec.describe SomeClass do
+  let(:foo) { [1, 2, 3] }
+  subject(:bar) { tee }
+  let!(:qux) { StringIO.new }
+
+  it 'foo bar' do
+    ")
+    (ruby-mode)
+    (let ((vars (robe-complete--rspec-bindings)))
+      (should (equal (robe--variable-name (nth 0 vars)) "qux"))
+      (should (equal (robe--variable-type (nth 0 vars)) "StringIO"))
+      (should (equal (robe--variable-name (nth 1 vars)) "bar"))
+      (should (null (robe--variable-type (nth 1 vars))))
+      (should (equal (robe--variable-name (nth 2 vars)) "foo"))
+      (should (equal (robe--variable-type (nth 2 vars)) "Array")))))
+
+(ert-deftest complete-rspec-bindings-skips-over-nested-scopes ()
+  (with-temp-buffer
+    (insert "RSpec.describe SomeClass do
+  let(:foo) { [1, 2, 3] }
+
+  describe 'stuff' do
+    let(:bar) { tee }
+    let(:qux) { StringIO.new }
+  end
+
+  it 'foo bar' do
+    ")
+    (ruby-mode)
+    (let ((vars (robe-complete--rspec-bindings)))
+      (should (not (cdr vars)))
+      (should (equal (robe--variable-name (nth 0 vars)) "foo")))))
