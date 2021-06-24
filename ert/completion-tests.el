@@ -152,8 +152,8 @@ class A
   (with-temp-buffer
     (insert "RSpec.describe SomeClass do
   let(:foo) { [1, 2, 3] }
-  let(:bar) { tee }
-  let(:qux) { StringIO.new }
+  subject(:bar) { tee }
+  let!(:qux) { StringIO.new }
 
   it 'foo bar' do
     ")
