@@ -452,7 +452,11 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   (save-excursion
     (let (forward-sexp-function)
       (cond
-       ((eq (char-before) ?\])
+       ((and (eq (char-before) ?\])
+             (save-excursion
+               (backward-sexp)
+               (or (looking-at-p "%[wWiI]")
+                   (robe--beginning-of-expr-p))))
         "Array")
        ;; FIXME: Handle percent literals better, e.g. %w().
        ((nth 3 (parse-partial-sexp (1- (point)) (point)))
@@ -460,8 +464,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
        ((and (eq (char-before) ?\})
              (save-excursion
                (backward-sexp)
-               (skip-chars-backward " \t")
-               (memq (char-before) '(?, ?\; ?= ?\( ?> ?: ?{ ?| ?\n nil))))
+               (robe--beginning-of-expr-p)))
         "Hash")
        ((and (progn
                (when (eq (char-before) ?\))
@@ -478,6 +481,12 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                  (and bounds
                       (not (eq (char-before (car bounds)) ?:))
                       (buffer-substring (car bounds) (cdr bounds)))))))))))
+
+(defun robe--beginning-of-expr-p ()
+  ;; Does not account for the possibility of condinuation method call
+  ;; (. on the previous line), but neither caller allows that.
+  (skip-chars-backward " \t")
+  (memq (char-before) '(?, ?\; ?= ?\( ?> ?: ?{ ?| ?\n nil)))
 
 (defun robe-decorate-modules (list)
   (cl-loop for spec in list

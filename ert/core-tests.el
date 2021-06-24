@@ -231,6 +231,26 @@ end")
     (should (equal '("Hash" nil t)
                    (butlast (robe-call-context) 2)))))
 
+(ert-deftest call-context-after-array ()
+  (with-temp-buffer
+    (ruby-mode)
+    (insert "[a, b].ea")
+    (should (equal '("Array" nil t)
+                   (butlast (robe-call-context) 2)))
+    (insert "\nfoo[2].ea")
+    (should (equal '("!" nil nil)
+                   (butlast (robe-call-context) 2)))
+    (insert "\n%w[].ea")
+    (should (equal '("Array" nil t)
+                   (butlast (robe-call-context) 2)))))
+
+(ert-deftest call-context-after-percent-literal ()
+  (with-temp-buffer
+    (ruby-mode)
+    (insert "\n%w[].ea")
+    (should (equal '("Array" nil t)
+                   (butlast (robe-call-context) 2)))))
+
 (ert-deftest call-context-after-block ()
   (with-temp-buffer
     (ruby-mode)
