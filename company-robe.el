@@ -59,7 +59,7 @@
         'constant))
      ((string-match-p "\\`@" arg)
       'variable)
-     ((eq (get-text-property 0 'robe-type arg) 'variable)
+     ((get-text-property 0 'robe-type arg)
       'value)
      (t 'method))))
 
