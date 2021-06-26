@@ -44,14 +44,20 @@ module Robe
     end
 
     def resolve_path_elems(nesting, init = Object)
-      c = init; ary = []
+      c = init
+      ary = []
+
       begin
         nesting.each do |name|
           ary << (c = c.const_get(name))
         end
+
         ary
       rescue NameError
-        []
+        # This creates weird semantics, but both end users of this
+        # code seem to benefit from it.
+        # The previous semantics wasn't great either, FWIW.
+        ary
       end
     end
   end
