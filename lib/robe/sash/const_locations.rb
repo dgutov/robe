@@ -20,6 +20,9 @@ module Robe
           methods.each do |m|
             if (loc = m.source_location)
               path = loc[0]
+
+              next if path.start_with?('<internal:') # Kernel.instance_method(:warn).source_location[0], Ruby 3
+
               locations[path] ||= 0
               locations[path] += 1
             end
