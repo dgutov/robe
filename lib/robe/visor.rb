@@ -18,7 +18,7 @@ module Robe
       return resolve_const(mod) unless name
       unless name =~ /\A::/
         nesting = mod ? mod.split("::") : []
-        resolve_path_elems(nesting).reverse.each do |elem|
+        resolve_path_elems(nesting, true).reverse.each do |elem|
           begin
             return elem.const_get(name)
           rescue NameError
@@ -43,7 +43,7 @@ module Robe
       resolve_path_elems(nesting)
     end
 
-    def resolve_path_elems(nesting, init = Object)
+    def resolve_path_elems(nesting, lax = false, init = Object)
       c = init
       ary = []
 
@@ -54,10 +54,7 @@ module Robe
 
         ary
       rescue NameError
-        # This creates weird semantics, but both end users of this
-        # code seem to benefit from it.
-        # The previous semantics wasn't great either, FWIW.
-        ary
+        lax ? ary : []
       end
     end
   end

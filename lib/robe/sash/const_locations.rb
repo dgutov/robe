@@ -77,7 +77,7 @@ module Robe
       # Ugly hack. Fix this.
       def target_module(name, mod)
         obj = visor.resolve_context(name, mod)
-        return obj if obj.is_a?(Module)
+        return obj if obj.is_a?(Module) || obj.nil?
         try_name = name[/^(.*)::[^:]*?/, 1]
         obj = visor.resolve_context(try_name, mod)
         return obj if obj.is_a?(Module)
