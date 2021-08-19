@@ -33,4 +33,11 @@ describe Robe::Sash::ConstLocations do
     expect(k.all('SampleClass::SILLY_CONSTANT', nil))
       .to match([ending_with('fixtures/sample_class.rb')])
   end
+
+  it 'no location for non-existing constant' do
+    require 'fixtures/sample_class'
+
+    k = described_class.new(Robe::Visor.new)
+    expect(k.all('SampleClass::BUZZ_BUZZ', nil)).to eq([])
+  end
 end

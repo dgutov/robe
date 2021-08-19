@@ -77,6 +77,10 @@ describe Robe::Visor do
     it "swallows NameError" do
       expect(v.resolve_context("String", "Foo::Bar")).to be(String)
     end
+
+    it "continues after NameError" do
+      expect(v.resolve_context("Constants", "File::Foo")).to eq(File::Constants)
+    end
   end
 
   context ".resolve_path_elems" do
