@@ -817,7 +817,7 @@ Only works with Rails, see e.g. `rinari-console'."
         (catch 'stop
           (unless (eobp) (forward-char 1))
           (while (re-search-backward "\\S-\\([ ]+\\)\\S-" nil t)
-            (let ((state (parse-partial-sexp start (match-beginning 1))))
+            (let ((state (parse-partial-sexp (match-beginning 1) start)))
               (goto-char (match-beginning 1))
               (when (and (zerop (nth 0 state)) (not (nth 8 state)))
                 (cond
