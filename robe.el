@@ -7,7 +7,7 @@
 ;; URL: https://github.com/dgutov/robe
 ;; Version: 0.8.3
 ;; Keywords: ruby convenience rails
-;; Package-Requires: ((inf-ruby "2.5.1") (emacs "24.4"))
+;; Package-Requires: ((inf-ruby "2.5.1") (emacs "25.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -346,7 +346,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
          (var (cl-member-if (lambda (v) (equal thing (robe--variable-name v)))
                             vars)))
     (when var
-      (ring-insert find-tag-marker-ring (point-marker))
+      (xref-push-marker-stack)
       (goto-char (robe--variable-position (car var))))))
 
 (defun robe--jump-thing ()
@@ -581,7 +581,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (error "'%s' does not exist" file))
   (if pop-to-buffer
       (pop-to-buffer (find-file-noselect file))
-    (ring-insert find-tag-marker-ring (point-marker))
+    (xref-push-marker-stack)
     (find-file file))
   (run-hooks 'robe-find-file-hook))
 
@@ -1228,8 +1228,8 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defvar robe-mode-map
   (let ((map (make-sparse-keymap)))
+    ;; FIXME: Add better Xref support.
     (define-key map (kbd "M-.") 'robe-jump)
-    (define-key map (kbd "M-,") 'pop-tag-mark)
     (define-key map (kbd "C-c C-d") 'robe-doc)
     (define-key map (kbd "C-c C-k") 'robe-rails-refresh)
     map))
