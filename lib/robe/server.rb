@@ -2,6 +2,7 @@ require 'json'
 require 'tmpdir'
 require 'socket'
 require 'logger'
+require 'uri'
 
 module Robe
   class Server
@@ -37,6 +38,8 @@ module Robe
           # Only read the first line. To support reading the body,
           # we'll have to parse the headers.
           /\A(?<request_method>[A-Z]+) (?<path>[^ ]+)/ =~ client.gets
+
+          path = URI.decode_www_form_component(path)
 
           access_logger.info "#{request_method} #{path}"
 
