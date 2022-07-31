@@ -246,7 +246,7 @@ project."
 
 (defun robe-request (endpoint &rest args)
   (let* ((base-url (robe-with-inf-buffer
-                    (format "http://%s:%s/" robe-host robe-port)))
+                    (format "http://%s:%s" robe-host robe-port)))
          (url (format "%s/%s/%s" base-url endpoint
                       (mapconcat (lambda (arg)
                                    (cond ((eq arg t) "yes")

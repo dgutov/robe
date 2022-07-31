@@ -1,7 +1,6 @@
 require 'json'
 require 'tmpdir'
 require 'socket'
-require 'webrick'
 require 'logger'
 
 module Robe
@@ -35,31 +34,28 @@ module Robe
             next
           end
 
-          req = WEBrick::HTTPRequest.new(:InputBufferSize => 1024,
-                                         :Logger => error_logger,
-                                         :RequestTimeout => REQUEST_TIMEOUT)
-          req.parse(client)
-          access_logger.info "#{req.request_method} #{req.path}"
+          # Only read the first line. To support reading the body,
+          # we'll have to parse the headers.
+          /\A(?<request_method>[A-Z]+) (?<path>[^ ]+)/ =~ client.gets
+
+          access_logger.info "#{request_method} #{path}"
 
           begin
-            body = @handler.call(req.path, req.body)
+            body = @handler.call(path, nil)
             status = 200
           rescue Exception => e
-            error_logger.error "Request failed: #{req.path}. Please file an issue."
-            error_logger.error "#{e.message}\n#{e.backtrace.join("\n")}"
+            body = "#{e.message}\n#{e.backtrace.join("\n")}"
+            error_logger.error "Request failed: #{path}. Please file an issue."
+            error_logger.error body
             status = 500
           end
 
-          resp = WEBrick::HTTPResponse.new(:OutputBufferSize => 1024,
-                                           :Logger => error_logger,
-                                           :HTTPVersion => "1.1")
-          resp.status = status
-          resp.content_type = "application/json; charset=utf-8"
           # XXX: If freezes continue, try: resp.keep_alive = false
-          resp.body = body
-
           begin
-            resp.send_response(client)
+            client.write("HTTP/1.1 #{status} OK\r\n" +
+"Content-Length: #{body.bytesize}\r\n" +
+"Connection: close\r\n\r\n")
+            client.write(body)
             client.close
           rescue Errno::EPIPE
             error_logger.error "Connection lost, unsent response:"
