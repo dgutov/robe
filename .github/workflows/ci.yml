@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - '**.el'
+      - '**.rb'
+      - '**ci.yml'
+      - 'Rakefile'
+      - 'Makefile'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+    branches:
+      - master
+      - gh_workflows
+
+  pull_request:
+    paths:
+      - '**.el'
+      - '**.rb'
+      - '**ci.yml'
+      - 'Rakefile'
+      - 'Makefile'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+    branches:
+      - master
+
+jobs:
+  rspec:
+    if: github.repository_owner == 'dgutov'
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_WITHOUT: metrics
+    continue-on-error: ${{ matrix.experimental }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: [1.9.3, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 3.0, 3.1]
+        experimental: [false]
+        include:
+          - ruby: jruby-head
+            experimental: true
+          - ruby: truffleruby-head
+            experimental: true
+
+    steps:
+      - name: Checkout Robe
+        uses: actions/checkout@v2
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - name: Run Ruby tests
+        run: bundle exec rake spec_for_build
+
+  ert:
+    if: github.repository_owner == 'dgutov'
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        emacs_version: [25.1, 25.3, 26.3, 27.2, 28.1, snapshot]
+
+    steps:
+      - name: Setup Emacs
+        uses: purcell/setup-emacs@v3.0
+        with:
+          version: ${{ matrix.emacs_version }}
+
+      - name: Checkout Robe
+        uses: actions/checkout@v2
+
+      - name: Install inf-ruby
+        run: make deps
+
+      - name: Run Emacs tests
+        run: make ert
