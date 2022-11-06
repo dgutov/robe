@@ -57,7 +57,7 @@ module Robe
         files = $LOADED_FEATURES.select { |file| file.end_with?('.rb') && File.exist?(file) }
         re = definition_re(obj)
         require 'open3'
-        command = "xargs -0 grep -lZE '#{re.source}'"
+        command = "xargs -0 grep --null -lE '#{re.source}'"
         output, _stderr, status = Open3.capture3(command, stdin_data: files.join("\0"))
 
         if status.exitstatus == 127
