@@ -99,7 +99,7 @@ module Robe
           next 2 if file.start_with?(builtin_dir)
 
           # Sorting system gems to the end.
-          next 3 if gem_dirs.any? { |dir| file.start_with?(dir) } ? 1 : 0
+          next 3 if gem_dirs.any? { |dir| file.start_with?(dir) }
 
           # Linked projects, gems inside monorepo, random files.
           1

@@ -506,27 +506,19 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
 (defun robe-jump-to-module (name)
   "Prompt for module, jump to a file where it has method definitions."
   (interactive `(,(robe-completing-read "Module: " (robe-request "modules"))))
-  (let ((paths (robe-request "const_locations" name (car (robe-context)))))
+  (let* ((context-module (car (robe-context)))
+         (paths
+          (robe--filter-const-files
+           (robe-request "const_locations" name context-module)
+           name context-module)))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
-                  (let* ((alist (robe-to-abbr-paths paths)))
+                  (let ((alist (robe-to-abbr-paths paths)))
                     (cdr (assoc (robe-completing-read "File: " alist nil t)
                                 alist))))))
       (robe-find-file file)
-      (goto-char (point-min))
-      (let* ((nesting (split-string name "::"))
-             (cnt (1- (length nesting)))
-             (nesting-re (concat "\\_<"
-                                   (cl-loop for i from 1 to cnt
-                                            concat "\\(")
-                                   (mapconcat #'identity nesting "::\\)?")
-                                   "\\_>"))
-             case-fold-search)
-        (re-search-forward (concat "^[ \t]*\\(class\\|module\\) +.*"
-                                   nesting-re
-                                   "\\|"
-                                   "^[ \t]*" nesting-re " *=[^=>]")))
+      (robe--scan-to-const name)
       (back-to-indentation))))
 
 (defun robe-to-abbr-paths (list)
@@ -540,6 +532,53 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
     (unless (zerop len)
       (while (/= (aref first (1- len)) ?/) (cl-decf len)))
     (mapcar (lambda (path) (cons (substring path len) path)) list)))
+
+(defun robe--scan-to-const (name)
+  (goto-char (point-min))
+  (let* ((nesting (split-string name "::"))
+         (cnt (1- (length nesting)))
+         (nesting-re (concat "\\_<\\("
+                             (cl-loop for i from 1 to cnt
+                                      concat "\\(?:")
+                             (mapconcat #'identity nesting "::\\)?")
+                             "\\_>\\)"))
+         case-fold-search)
+    (re-search-forward (concat "^[ \t]*\\(?:class\\|module\\) +.*"
+                               nesting-re
+                               "\\|"
+                               "^[ \t]*" nesting-re " *=[^=>]"))))
+
+(defun robe--filter-const-files (files name context-module)
+  (cl-delete-if-not
+   (lambda (file)
+     (with-temp-buffer
+       (insert-file-contents file)
+       (ruby-mode)
+       (condition-case nil
+           (let* ((_ (robe--scan-to-const name))
+                  (found-name (or (match-string 2) (match-string 1)))
+                  new-module
+                  (full-name (if (match-beginning 1)
+                                 ;; Working around a bug in
+                                 ;; ruby-add-log-current-method
+                                 ;; where it can look at the preceding
+                                 ;; module when at bol.
+                                 (car (robe-context))
+                               (goto-char (match-beginning 2))
+                               (setq new-module (car (robe-context)))
+                               (if new-module
+                                   (concat new-module "::" found-name)
+                                 found-name)))
+                  (possible-names (cons
+                                   name
+                                   (cl-maplist
+                                    (lambda (mm)
+                                      (string-join (append mm (list name)) "::"))
+                                    (reverse
+                                     (split-string (or context-module "") "::" t))))))
+             (member full-name possible-names))
+         (search-failed nil))))
+   files))
 
 (defun robe-context ()
   (let* ((ruby-symbol-re "[a-zA-Z0-9_?!]")
