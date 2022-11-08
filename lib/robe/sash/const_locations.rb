@@ -1,4 +1,5 @@
 require 'robe/core_ext'
+require 'rubygems'
 
 module Robe
   class Sash
@@ -38,12 +39,12 @@ module Robe
           obj
         )
 
-        return filtered if filtered.any?
+        return sort_by_dir_category(filtered) if filtered.any?
 
         # TODO: Deal with toplevel non-module constants.
         return [] if obj.nil? || obj.name.nil?
 
-        full_scan(obj)
+        sort_by_dir_category(full_scan(obj))
       end
 
       private
@@ -81,6 +82,28 @@ module Robe
         try_name = name[/^(.*)::[^:]*?/, 1]
         obj = visor.resolve_context(try_name, mod)
         return obj if obj.is_a?(Module)
+      end
+
+      def sort_by_dir_category(files)
+        gem_dirs = Gem.path.map { |d| d + '/' }
+        builtin_dir = RbConfig::CONFIG['rubylibdir'] + '/'
+        project_dir = Dir.pwd + '/'
+
+        # XXX: We could also try sorting by how the names match the
+        # autoloading convention.
+
+        files.sort_by! do |file|
+          next 0 if file.start_with?(project_dir)
+
+          # Libs and bundled gems.
+          next 2 if file.start_with?(builtin_dir)
+
+          # Sorting system gems to the end.
+          next 3 if gem_dirs.any? { |dir| file.start_with?(dir) } ? 1 : 0
+
+          # Linked projects, gems inside monorepo, random files.
+          1
+        end
       end
     end
   end
