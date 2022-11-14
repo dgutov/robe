@@ -569,13 +569,16 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                (if new-module
                                    (concat new-module "::" found-name)
                                  found-name)))
-                  (possible-names (cons
-                                   name
-                                   (cl-maplist
-                                    (lambda (mm)
-                                      (string-join (append mm (list name)) "::"))
-                                    (reverse
-                                     (split-string (or context-module "") "::" t))))))
+                  (possible-names
+                   (if (string-prefix-p "::" name)
+                       (list (substring name 2))
+                     (cons
+                      name
+                      (cl-maplist
+                       (lambda (mm)
+                         (string-join (append mm (list name)) "::"))
+                       (reverse
+                        (split-string (or context-module "") "::" t)))))))
              (member full-name possible-names))
          (search-failed nil))))
    files))
