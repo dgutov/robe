@@ -19,7 +19,7 @@ describe Robe::Sash do
         end
       end
 
-      expect(klass.new.const_locations('TestExample', nil)).to eq([__FILE__])
+      expect(klass.new.const_locations('TestExample', nil)[:files]).to eq([__FILE__])
     end
   end
 

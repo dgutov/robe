@@ -507,10 +507,12 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
   "Prompt for module, jump to a file where it has method definitions."
   (interactive `(,(robe-completing-read "Module: " (robe-request "modules"))))
   (let* ((context-module (car (robe-context)))
-         (paths
-          (robe--filter-const-files
-           (robe-request "const_locations" name context-module)
-           name context-module)))
+         (search-result (robe-request "const_locations" name context-module))
+         (resolved-name (assoc-default 'resolved_name search-result))
+         (full-scan (assoc-default 'full_scan search-result))
+         (paths (assoc-default 'files search-result)))
+    (when full-scan
+      (setq paths (robe--filter-const-files paths resolved-name)))
     (when (null paths) (error "Can't find the location"))
     (let ((file (if (= (length paths) 1)
                     (car paths)
@@ -518,7 +520,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                     (cdr (assoc (robe-completing-read "File: " alist nil t)
                                 alist))))))
       (robe-find-file file)
-      (robe--scan-to-const name)
+      (robe--scan-to-const resolved-name)
       (back-to-indentation))))
 
 (defun robe-to-abbr-paths (list)
@@ -548,14 +550,14 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                "\\|"
                                "^[ \t]*" nesting-re " *=[^=>]"))))
 
-(defun robe--filter-const-files (files name context-module)
+(defun robe--filter-const-files (files resolved-name)
   (cl-delete-if-not
    (lambda (file)
      (with-temp-buffer
        (insert-file-contents file)
        (ruby-mode)
        (condition-case nil
-           (let* ((_ (robe--scan-to-const name))
+           (let* ((_ (robe--scan-to-const resolved-name))
                   (found-name (or (match-string 2) (match-string 1)))
                   new-module
                   (full-name (if (match-beginning 1)
@@ -568,18 +570,8 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                (setq new-module (car (robe-context)))
                                (if new-module
                                    (concat new-module "::" found-name)
-                                 found-name)))
-                  (possible-names
-                   (if (string-prefix-p "::" name)
-                       (list (substring name 2))
-                     (cons
-                      name
-                      (cl-maplist
-                       (lambda (mm)
-                         (string-join (append mm (list name)) "::"))
-                       (reverse
-                        (split-string (or context-module "") "::" t)))))))
-             (member full-name possible-names))
+                                 found-name))))
+             (equal full-name resolved-name))
          (search-failed nil))))
    files))
 

@@ -7,7 +7,7 @@ describe Robe::Sash::ConstLocations do
     require 'fixtures/sample_class'
 
     k = described_class.new(Robe::Visor.new)
-    expect(k.all('SampleClass', nil)).to match([ending_with('fixtures/sample_class.rb')])
+    expect(k.all('SampleClass', nil)[:files]).to match([ending_with('fixtures/sample_class.rb')])
   end
 
   it 'shows location for class with only private methods' do
@@ -15,7 +15,7 @@ describe Robe::Sash::ConstLocations do
     require 'fixtures/sample_module'
 
     k = described_class.new(Robe::Visor.new)
-    expect(k.all('SamplePrivateClass', nil)).to match([ending_with('fixtures/sample_private_class.rb')])
+    expect(k.all('SamplePrivateClass', nil)[:files]).to match([ending_with('fixtures/sample_private_class.rb')])
   end
 
   it 'shows location for class without methods' do
@@ -23,14 +23,14 @@ describe Robe::Sash::ConstLocations do
     require 'fixtures/sample_methodless_subclass'
 
     k = described_class.new(Robe::Visor.new)
-    expect(k.all('SampleMethodlessClass', nil)).to match([ending_with('/sample_methodless_class.rb')])
+    expect(k.all('SampleMethodlessClass', nil)[:files]).to match([ending_with('/sample_methodless_class.rb')])
   end
 
   it 'replaces value constants with parent modules' do
     require 'fixtures/sample_class'
 
     k = described_class.new(Robe::Visor.new)
-    expect(k.all('SampleClass::SILLY_CONSTANT', nil))
+    expect(k.all('SampleClass::SILLY_CONSTANT', nil)[:files])
       .to match([ending_with('fixtures/sample_class.rb')])
   end
 
@@ -38,6 +38,6 @@ describe Robe::Sash::ConstLocations do
     require 'fixtures/sample_class'
 
     k = described_class.new(Robe::Visor.new)
-    expect(k.all('SampleClass::BUZZ_BUZZ', nil)).to eq([])
+    expect(k.all('SampleClass::BUZZ_BUZZ', nil)[:files]).to eq([])
   end
 end

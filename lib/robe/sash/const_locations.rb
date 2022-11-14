@@ -39,12 +39,12 @@ module Robe
           obj
         )
 
-        return sort_by_dir_category(filtered) if filtered.any?
+        return search_result(filtered, obj&.name) if filtered.any?
 
         # TODO: Deal with toplevel non-module constants.
-        return [] if obj.nil? || obj.name.nil?
+        return search_result([], nil) if obj.nil? || obj.name.nil?
 
-        sort_by_dir_category(full_scan(obj))
+        search_result(full_scan(obj), obj.name, true)
       end
 
       private
@@ -104,6 +104,14 @@ module Robe
           # Linked projects, gems inside monorepo, random files.
           1
         end
+      end
+
+      def search_result(files, resolved_name, full_scan = nil)
+        {
+          files: sort_by_dir_category(files),
+          resolved_name: resolved_name,
+          full_scan: full_scan
+        }
       end
     end
   end
