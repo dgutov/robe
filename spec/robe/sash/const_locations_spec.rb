@@ -30,8 +30,18 @@ describe Robe::Sash::ConstLocations do
     require 'fixtures/sample_class'
 
     k = described_class.new(Robe::Visor.new)
-    expect(k.all('SampleClass::SILLY_CONSTANT', nil)[:files])
-      .to match([ending_with('fixtures/sample_class.rb')])
+    res = k.all('SampleClass::SILLY_CONSTANT', nil)
+    expect(res[:files]).to match([ending_with('fixtures/sample_class.rb')])
+    expect(res[:resolved_name]).to eq('SampleClass::SILLY_CONSTANT')
+  end
+
+  it 'resolves unqualified constant too' do
+    require 'fixtures/sample_class'
+
+    k = described_class.new(Robe::Visor.new)
+    res = k.all('SILLY_CONSTANT', 'SampleClass')
+    expect(res[:files]).to match([ending_with('fixtures/sample_class.rb')])
+    expect(res[:resolved_name]).to eq('SampleClass::SILLY_CONSTANT')
   end
 
   it 'no location for non-existing constant' do

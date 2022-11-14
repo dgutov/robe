@@ -12,8 +12,9 @@ module Robe
 
       def all(name, mod)
         locations = {}
+        resolved_name, obj = resolve_name(name, mod)
 
-        if (obj = target_module(name, mod))
+        if obj
           methods = obj.methods(false).map { |m| obj.method(m) } +
                     (obj.__instance_methods__(false) +
                      obj.private_instance_methods(false)).map { |m| obj.instance_method(m) }
@@ -39,12 +40,12 @@ module Robe
           obj
         )
 
-        return search_result(filtered, obj&.name) if filtered.any?
+        return search_result(filtered, resolved_name) if filtered.any?
 
         # TODO: Deal with toplevel non-module constants.
         return search_result([], nil) if obj.nil? || obj.name.nil?
 
-        search_result(full_scan(obj), obj.name, true)
+        search_result(full_scan(obj), resolved_name, true)
       end
 
       private
@@ -75,13 +76,18 @@ module Robe
         files.select { |file| File.read(file).match(re) }
       end
 
-      # Ugly hack. Fix this.
-      def target_module(name, mod)
+      def resolve_name(name, mod)
         obj = visor.resolve_context(name, mod)
-        return obj if obj.is_a?(Module) || obj.nil?
-        try_name = name[/^(.*)::[^:]*?/, 1]
-        obj = visor.resolve_context(try_name, mod)
-        return obj if obj.is_a?(Module)
+        # FIXME: nil is not a useful return value: it does not let us
+        # distinguish between undefined constants and those set to nil.
+        return [obj.name, obj] if obj.is_a?(Module)
+        return [nil, nil] if obj.nil?
+        matches = /^(?:(.*)::)?([^:]*)/.match(name)
+        mod_part = matches[1]
+        base_name = matches[2]
+        obj = visor.resolve_context(mod_part, mod)
+        return ["#{obj.name}::#{base_name}", obj] if obj.is_a?(Module)
+        [nil, nil]
       end
 
       def sort_by_dir_category(files)
