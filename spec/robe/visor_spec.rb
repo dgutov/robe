@@ -37,7 +37,7 @@ describe Robe::Visor do
     end
 
     it "swallows NameError" do
-      expect(v.resolve_const("Foo::Bar")).to be_nil
+      expect { v.resolve_const("Foo::Bar") }.to raise_error(described_class::SearchError)
     end
   end
 
@@ -59,7 +59,7 @@ describe Robe::Visor do
     end
 
     it "returns nil when not found" do
-      expect(v.resolve_context("Boo", "File::Constants")).to be_nil
+      expect { v.resolve_context("Boo", "File::Constants") }.to raise_error(described_class::SearchError)
     end
 
     it "prioritizes deeper nesting" do
@@ -89,7 +89,7 @@ describe Robe::Visor do
     end
 
     it "swallows NameError" do
-      expect(v.resolve_path_elems(["Foo", "Bar"])).to eq([])
+      expect { v.resolve_path_elems(["Foo", "Bar"]) }.to raise_error(described_class::SearchError)
     end
   end
 

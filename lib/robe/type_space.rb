@@ -53,6 +53,8 @@ module Robe
       if @target_type && !(@target_type.is_a? Module)
         @target_type, @instance = @target_type.class, true
       end
+    rescue Visor::SearchError
+      # skip
     end
   end
 end

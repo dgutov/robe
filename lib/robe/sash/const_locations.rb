@@ -78,15 +78,13 @@ module Robe
 
       def resolve_name(name, mod)
         obj = visor.resolve_context(name, mod)
-        # FIXME: nil is not a useful return value: it does not let us
-        # distinguish between undefined constants and those set to nil.
         return [obj.name, obj] if obj.is_a?(Module)
-        return [nil, nil] if obj.nil?
         matches = /^(?:(.*)::)?([^:]*)/.match(name)
         mod_part = matches[1]
         base_name = matches[2]
         obj = visor.resolve_context(mod_part, mod)
-        return ["#{obj.name}::#{base_name}", obj] if obj.is_a?(Module)
+        ["#{obj.name}::#{base_name}", obj]
+      rescue Visor::SearchError
         [nil, nil]
       end
 

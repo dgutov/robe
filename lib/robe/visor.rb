@@ -5,6 +5,8 @@ module Robe
   class Visor
     extend Forwardable
 
+    SearchError = Class.new(StandardError)
+
     def each_object(*args)
       ObjectSpace.each_object(*args).reject { |m| m.__singleton_class__? }
     end
@@ -54,7 +56,7 @@ module Robe
 
         ary
       rescue NameError
-        lax ? ary : []
+        lax ? ary : raise(SearchError)
       end
     end
   end
