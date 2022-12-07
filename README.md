@@ -53,7 +53,7 @@ together.
 
 ## Install
 
-Set up [MELPA](http://melpa.milkbox.net/#installing) if you haven't already,
+Set up [MELPA](https://melpa.org/#/getting-started) if you haven't already,
 then type <kbd>M-x package-install RET robe RET</kbd>.
 
 In the init file:
@@ -77,7 +77,7 @@ Note that if your project is using `Bundler`, the dependencies have to be added 
 
 ## Completion
 
-### [company-mode](http://company-mode.github.com/) ([screenshot](screenshots/company-robe.png)):
+### [company-mode](https://company-mode.github.io/) ([screenshot](screenshots/company-robe.png)):
 
 ```emacs
 (eval-after-load 'company
