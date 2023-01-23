@@ -6,22 +6,23 @@ require 'uri'
 
 module Robe
   class Server
-    attr_reader :running, :port
+    attr_reader :running, :port, :error_logdev
 
     REQUEST_TIMEOUT = 0.15
 
-    def initialize(handler, host, port)
+    def initialize(handler, host, port, error_logdev = nil)
       @handler = handler
       @server = TCPServer.new(host, port)
       @running = true
       @port = @server.addr[1]
+      @error_logdev = error_logdev
     end
 
     def start
       access = File.open("#{Dir.tmpdir}/robe-access-#{@port}.log", "w")
       access.sync = true
 
-      error_logger = Logger.new($stderr)
+      error_logger = Logger.new(error_logdev || $stderr)
       access_logger = Logger.new(access)
 
       client = nil

@@ -5,10 +5,10 @@ module Robe
   class << self
     attr_accessor :server, :server_thread
 
-    def start(port = 0, host = '127.0.0.1')
+    def start(port = 0, host = '127.0.0.1', error_logdev = nil)
       return running_string if @server
 
-      @server = Server.new(Sash.new, host, port)
+      @server = Server.new(Sash.new, host, port, error_logdev)
 
       ['INT', 'TERM'].each do |signal|
         trap(signal) { stop }

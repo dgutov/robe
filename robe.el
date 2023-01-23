@@ -107,6 +107,13 @@ nil means to use the global value of `completing-read-function'."
   "Non-nil to recognize RSpec/Minitest spec files."
   :type 'boolean)
 
+(defcustom robe-error-log nil
+  "Nil means log errors to the standard error stream in the REPL.
+
+Alternatively, this can be set to a file name (string) to write to."
+  :type '(choice (const :tag "Standard error" nil)
+                 (string :tag "File name")))
+
 (defun robe-completing-read (&rest args)
   (let ((completing-read-function
          ; 1) allow read-function override
@@ -195,6 +202,7 @@ project."
 
 (defun robe-start-call ()
   (let (args)
+    (when robe-error-log (push (format "'%s'" robe-error-log) args))
     (when robe-host (push (format "'%s'" robe-host) args))
     (push (or robe-port "0") args)
     (format "Robe.start(%s)\n" (mapconcat #'identity args ", "))))
