@@ -1285,7 +1285,7 @@ The following commands are available:
         (kill-local-variable 'eldoc-documentation-function)
       (remove-function (local 'eldoc-documentation-function) #'robe-eldoc))))
 
-(defcustom robe-global-modes '(ruby-mode enh-ruby-mode)
+(defcustom robe-global-modes '(ruby-mode ruby-ts-mode enh-ruby-mode)
   "Modes for which `robe-mode' is automatically turned on.
 The value must be a list of major modes symbol names.
 `global-robe-mode' will enable it in the mentioned major modes
