@@ -17,7 +17,8 @@
                       (robe-spec-line spec))))
     (kind (company-robe--kind arg))
     (annotation (robe-complete-annotation arg))
-    (doc-buffer (let ((spec (company-robe--choose-spec arg)))
+    (doc-buffer (let ((spec (company-robe--choose-spec arg))
+                      (inhibit-redisplay t))
                   (when spec
                     (save-window-excursion
                       (robe-show-doc spec)
