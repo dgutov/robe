@@ -1,7 +1,7 @@
 ;;; robe.el --- Code navigation, documentation lookup and completion for Ruby -*- lexical-binding: t -*-
 
 ;; Copyright © 2012 Phil Hagelberg
-;; Copyright © 2012-2021 Dmitry Gutov
+;; Copyright © 2012-2023 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
@@ -106,6 +106,15 @@ nil means to use the global value of `completing-read-function'."
 (defcustom robe-rspec-support t
   "Non-nil to recognize RSpec/Minitest spec files."
   :type 'boolean)
+
+(defcustom robe-show-doc-source 'auto
+  "Whether to show the method source in the doc buffer.
+When other non-nil, it's shown right away.
+When nil, the source can be shown by pressing the button.
+When auto, the source will be shown when there is no doc."
+  :type '(choice (const :tag "Hidden by default" nil)
+                 (const :tag "Shown by default" t)
+                 (const :tag "When there is not doc" auto)))
 
 (defun robe-completing-read (&rest args)
   (let ((completing-read-function
@@ -675,7 +684,10 @@ Only works with Rails, see e.g. `rinari-console'."
                 (insert source)
                 (robe-doc-fontify-ruby beg (point)))
             (insert (robe-doc-fontify-c-string source)))
-          (robe-toggle-source button)))
+          (when (or (not robe-show-doc-source)
+                    (and (eq robe-show-doc-source 'auto)
+                         (> (length docstring) 0)))
+            (robe-toggle-source button))))
       (goto-char (point-min))
       (save-excursion
         (insert (robe-signature spec))
