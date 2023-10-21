@@ -1,7 +1,7 @@
 (eval-when-compile (require 'robe))
 
 ;;;###autoload
-(defun company-robe (command &optional arg &rest ignore)
+(defun company-robe (command &optional arg &rest rest)
   "A `company-mode' completion back-end for `robe-mode'."
   (interactive (list 'interactive))
   (cl-case command
@@ -11,13 +11,14 @@
                  (company-robe--prefix)))
     (candidates (robe-complete-thing arg))
     (duplicates t)
-    (meta (company-robe--meta arg))
+    (meta (company-robe--meta arg rest))  ; To support nils too
     (location (let ((spec (company-robe--choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
     (kind (company-robe--kind arg))
     (annotation (robe-complete-annotation arg))
-    (doc-buffer (let ((spec (company-robe--choose-spec arg))
+    (variants (mapcar #'robe-spec-module (robe-cached-specs arg)))
+    (doc-buffer (let ((spec (company-robe--choose-spec arg rest))
                       (inhibit-redisplay t)
                       ;; XXX: Maybe revisit company-mode/company-mode#548.
                       (timer-list nil))
@@ -27,13 +28,20 @@
                       (message nil)
                       (get-buffer "*robe-doc*")))))))
 
-(defun company-robe--meta (completion)
+(defun company-robe--meta (completion &optional rest)
   (if-let ((type (get-text-property 0 'robe-type completion)))
       (if-let ((vtype (get-text-property 0 'robe-variable-type completion)))
           (format "%s => %s" type (propertize vtype 'face 'font-lock-type-face))
         type)
-    (let ((spec (car (robe-cached-specs completion))))
-      (when spec (robe-signature spec)))))
+    (let* ((specs (robe-cached-specs completion))
+           (spec (if rest
+                     (cl-find (car rest) specs :key #'robe-spec-module)
+                   (car specs)))
+           (count (length specs))
+           (variant-format (if (cdr specs) (format "%i/%i "
+                                                   (1+ (- count (length (memq spec specs))))
+                                                   count))))
+      (when spec (concat variant-format (robe-signature spec))))))
 
 (defun company-robe--prefix ()
   (let ((bounds (robe-complete-bounds)))
@@ -42,15 +50,18 @@
                (robe-complete-symbol-p (car bounds)))
       (buffer-substring (car bounds) (cdr bounds)))))
 
-(defun company-robe--choose-spec (thing)
+(defun company-robe--choose-spec (thing &optional rest)
   (let ((specs (robe-cached-specs thing)))
     (when specs
       (if (cdr specs)
-          (let ((alist (cl-loop for spec in specs
-                             for module = (robe-spec-module spec)
-                             when module
-                             collect (cons module spec))))
-            (cdr (assoc (robe-completing-read "Module: " alist nil t) alist)))
+          (if rest
+              (cl-find (car rest) specs :key #'robe-spec-module)
+            (let ((alist (cl-loop for spec in specs
+                                  for module = (robe-spec-module spec)
+                                  when module
+                                  collect (cons module spec))))
+              (cdr (assoc (robe-completing-read "Module: " alist nil t)
+                          alist))))
         (car specs)))))
 
 (defun company-robe--kind (arg)
