@@ -18,7 +18,9 @@
     (kind (company-robe--kind arg))
     (annotation (robe-complete-annotation arg))
     (doc-buffer (let ((spec (company-robe--choose-spec arg))
-                      (inhibit-redisplay t))
+                      (inhibit-redisplay t)
+                      ;; XXX: Maybe revisit company-mode/company-mode#548.
+                      (timer-list nil))
                   (when spec
                     (save-window-excursion
                       (robe-show-doc spec)
