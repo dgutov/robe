@@ -11,7 +11,7 @@
                  (company-robe--prefix)))
     (candidates (robe-complete-thing arg))
     (duplicates t)
-    (meta (company-robe--meta arg rest))  ; To support nils too
+    (meta (company-robe--meta arg rest)) ; To support nils too
     (location (let ((spec (company-robe--choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
@@ -26,7 +26,29 @@
                     (save-window-excursion
                       (robe-show-doc spec)
                       (message nil)
-                      (get-buffer "*robe-doc*")))))))
+                      (let* ((buffer (get-buffer "*robe-doc*"))
+                             (window (get-buffer-window buffer)))
+                        (company--print-variants arg buffer window rest)
+                        buffer)))))))
+
+(defun company--print-variants (arg buffer window &optional rest)
+  (let ((variant (car rest))
+        (inhibit-read-only t)
+        specs tail)
+    (when rest
+      (setq specs (robe-cached-specs arg))
+      (when (cdr specs)
+        (with-current-buffer buffer
+          (goto-char (point-min))
+          (insert ">> ")
+          (while specs
+            (let* ((module (robe-spec-module (car specs)))
+                   (faces '(font-lock-type-face)))
+              (if (eq module variant) (push 'bold faces))
+              (insert (format "%s " (propertize (or module "?") 'face faces))))
+            (setq specs (cdr specs)))
+          (insert "<<")
+          (insert "\n"))))))
 
 (defun company-robe--meta (completion &optional rest)
   (if-let ((type (get-text-property 0 'robe-type completion)))
