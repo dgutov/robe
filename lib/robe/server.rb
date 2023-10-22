@@ -57,6 +57,7 @@ module Robe
           begin
             client.write("HTTP/1.1 #{status} OK\r\n" +
 "Content-Length: #{body.bytesize}\r\n" +
+"Content-Type: application/json; charset=utf-8\r\n" +
 "Connection: close\r\n\r\n")
             client.write(body)
             client.close
