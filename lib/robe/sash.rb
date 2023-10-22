@@ -51,6 +51,7 @@ module Robe
     def method_spec(method)
       owner, inst = method.owner, nil
       if owner.__singleton_class__?
+        # FIXME: Use https://docs.ruby-lang.org/en/3.2/Class.html#method-i-attached_object
         name = owner.to_s[/Class:([A-Z][^\(> ]*)/, 1] # defined in an eigenclass
       elsif name = name_cache[owner]
         inst = true
