@@ -750,8 +750,12 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-doc-fontify-ruby (from to)
   (let ((major-mode 'ruby-mode)
+        (font-lock-set-defaults nil)
+        (font-lock-syntax-table nil)
         (syntax-propertize-function #'ruby-syntax-propertize-function)
-        (font-lock-defaults '((ruby-font-lock-keywords) nil nil ((?_ . "w"))))
+        (font-lock-defaults '((ruby-font-lock-keywords) nil nil ((?_ . "w")
+                                                                 (?# . "<")
+                                                                 (?\n . ">"))))
         (font-lock-dont-widen t))
     (save-restriction
       (narrow-to-region from to)
