@@ -113,7 +113,10 @@ rvm automatically.
 
 ## Compatibility
 
-* Tested in Emacs 24.4+, with Ruby 1.9.3-3.0, on GNU/Linux.
+* Tested in Emacs 24.4+, with Ruby 1.9.3-3.3, on GNU/Linux.
+* With Ruby 3.3, you either need to add `readline-ext` to the bundle,
+or configure the app not to use the Pry shell (maybe just when inside
+Emacs), while the gem remains in the bundle (it's still a dependency).
 * Essential features work with JRuby, though the startup is longer.
 * Mostly works on MS Windows, with minor glitches.
 * Built-in `ruby-mode` or `ruby-ts-mode` (Emacs 29+) work best,
