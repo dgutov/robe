@@ -138,7 +138,13 @@ module Robe
       tail = colons ? prefix[colons + 2..-1] : prefix
       if !colons
         path = [Object]
-        path += visor.resolve_path(mod) if mod
+
+        begin
+          path += visor.resolve_path(mod) if mod
+        rescue Visor::SearchError
+          # Containing module not resolved, but we can still search globally.
+        end
+
         path.flat_map do |m|
           complete_const_in_module(tail, m)
         end

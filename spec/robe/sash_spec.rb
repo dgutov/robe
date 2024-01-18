@@ -376,6 +376,11 @@ describe Robe::Sash do
       k = klass.new
       expect(k.complete_const("::Obj", nil)).to match_array(["::Object", "::ObjectSpace"])
     end
+
+    it 'completes global constant even when nesting does not resolve' do
+      k = klass.new
+      expect(k.complete_const("Cla", "ZZZZZ")).to eq(["Class"])
+    end
   end
 
   context "#load_path" do
