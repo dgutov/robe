@@ -28,7 +28,6 @@ on:
 
 jobs:
   rspec:
-    if: github.repository_owner == 'dgutov'
     runs-on: ubuntu-latest
     env:
       BUNDLE_WITHOUT: metrics
@@ -59,7 +58,6 @@ jobs:
         run: bundle exec rake spec_for_build
 
   ert:
-    if: github.repository_owner == 'dgutov'
     runs-on: ubuntu-latest
 
     strategy:
