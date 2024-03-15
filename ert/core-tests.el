@@ -311,14 +311,16 @@ end")
 (ert-deftest jump-to-var-not-method-call ()
   (with-temp-buffer
     (insert "def foo\n  abc = 1\n  t.abc")
-    (should (equal
-             (nth 1 (should-error (robe-jump nil)))
-             "Method not found"))))
+    (cl-letf (((symbol-function 'robe-start) (lambda () (error "Not found"))))
+      (should (equal
+               (nth 1 (should-error (robe-jump nil)))
+               "Not found")))))
 
 (ert-deftest jump-to-var-not-method-call-2 ()
   (with-temp-buffer
     (insert "def foo\n  abc = abc()")
     (forward-char -3)
-    (should (equal
-             (nth 1 (should-error (robe-jump nil)))
-             "Method not found"))))
+    (cl-letf (((symbol-function 'robe-start) (lambda () (error "Not found"))))
+      (should (equal
+               (nth 1 (should-error (robe-jump nil)))
+               "Not found")))))
