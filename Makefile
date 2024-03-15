@@ -9,4 +9,4 @@ ert:
 
 deps:
 	wget https://raw.githubusercontent.com/nonsequitur/inf-ruby/master/inf-ruby.el
-	${EMACS} --batch --eval "(package-install-file \"inf-ruby.el\")"
+	${EMACS} --batch --eval "(package-initialize)" --eval "(package-install-file \"inf-ruby.el\")"
