@@ -105,6 +105,11 @@ module Robe
         targets = scanner.candidates
       end
 
+      if !target
+        scanner.scan_methods(Object, :__instance_methods__)
+        scanner.scan_methods(Object, :__private_instance_methods__)
+      end
+
       targets.map { |method| method_spec(method) }
         .sort_by { |(mname)| mname ? mname.scan(/::/).length : 99 }
     end
@@ -124,6 +129,11 @@ module Robe
       scanner = MethodScanner.new(prefix, !target)
 
       space.scan_with(scanner)
+
+      if !target
+        scanner.scan_methods(Object, :__instance_methods__)
+        scanner.scan_methods(Object, :__private_instance_methods__)
+      end
 
       if scanner.candidates.empty?
         scanner.check_private = false

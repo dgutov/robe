@@ -276,6 +276,13 @@ describe Robe::Sash do
           .to have_one_spec("Kernel#puts")
       end
 
+      it 'finds top-level methods' do
+        require 'fixtures/sample_toplevel_method'
+
+        expect(k.method_targets("foobar", nil, nil, true, nil, nil))
+          .to have_one_spec("Object#foobar")
+      end
+
       it "sorts results list" do
         extend ScannerHelper
 
@@ -295,6 +302,12 @@ describe Robe::Sash do
     it "completes instance methods" do
       expect(k.complete_method("gs", nil, nil, true))
         .to include_spec("String#gsub", "String#gsub!")
+    end
+
+    it 'completes top-level methods' do
+      require 'fixtures/sample_toplevel_method'
+
+      expect(k.complete_method("foob", nil, nil, true)).to have_one_spec("Object#foobar")
     end
 
     context "class methods" do
