@@ -37,6 +37,8 @@ module Robe
         begin
           info = Pry::Method.new(method)
 
+          aliases = info.aliases.map(&:to_sym)
+
           if info.dynamically_defined?
             doc = ""
             source = "# This method was defined outside of a source file."
@@ -46,10 +48,10 @@ module Robe
           end
 
           OpenStruct.new(docstring: doc, source: source,
-                         aliases: info.aliases.map(&:to_sym))
+                         aliases: aliases)
         rescue Pry::CommandError
           message = $!.message =~ /pry-doc/ ? $!.message : ""
-          return OpenStruct.new(docstring: message)
+          return OpenStruct.new(docstring: message, aliases: aliases)
         end
       end
     end
