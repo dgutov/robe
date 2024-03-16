@@ -1,4 +1,4 @@
-# Robe [![Build Status](https://github.com/dgutov/robe/actions/workflows/ci.yml/badge.svg)](https://github.com/dgutov/robe/actions/workflows/ci.yml) [![Build Status](https://travis-ci.org/dgutov/robe.png?branch=master)](https://travis-ci.org/dgutov/robe) [![MELPA](http://melpa.org/packages/robe-badge.svg)](http://melpa.org/#/robe)
+# Robe [![Build Status](https://github.com/dgutov/robe/actions/workflows/ci.yml/badge.svg)](https://github.com/dgutov/robe/actions/workflows/ci.yml) [![MELPA](http://melpa.org/packages/robe-badge.svg)](http://melpa.org/#/robe)
 
 Robe is a code assistance tool that uses a Ruby REPL subprocess with
 your application or gem code loaded, to provide information about
