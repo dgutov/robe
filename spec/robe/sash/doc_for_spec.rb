@@ -94,18 +94,17 @@ describe Robe::Sash::DocFor do
       it { expect(struct.aliases).to include(:member?)}
     end
 
-    context "Know the appropriate amount about Kernel#is_a?" do
-      let(:struct) { c.method_struct(Kernel.instance_method(:is_a?)) }
+    context "Know the appropriate amount about Kernel#send" do
+      let(:struct) { c.method_struct(Kernel.instance_method(:send)) }
 
       it { expect(struct.visibility).to be_nil }
+      it { expect(struct.aliases).to eq([]) }
 
       if RUBY_ENGINE == "ruby"
-        it { expect(struct.docstring).to include("one of the superclasses") }
-        it { expect(struct.aliases).to eq([:kind_of?]) }
-        it { expect(struct.source).to start_with("VALUE\nrb_obj_is_kind_of") }
+        it { expect(struct.docstring).to include('Invokes the method') }
+        it { expect(struct.source).to start_with("VALUE\nrb_f_send") }
       else
         it { expect(struct.docstring).to include("class or superclass") }
-        it { expect(struct.aliases).to eq([:kind_of?]) }
         it { expect(struct.source).to start_with("def kind_of?(") }
       end
     end
