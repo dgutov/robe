@@ -69,7 +69,8 @@ describe Robe::Sash::DocFor do
     end
   end
 
-  context "native methods" do
+  # FIXME: Drop compatibility with Ruby < 2.3 and upgrade pry-doc and bundler.
+  context "native methods", RUBY_VERSION >= "2.4" && :skip do
     let(:c) { described_class }
 
     context "String#gsub info fields" do
