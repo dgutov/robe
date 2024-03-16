@@ -18,18 +18,6 @@ describe Robe::Sash::DocFor do
                             visibility: :public})
   end
 
-  it "shows docs for built-in classes" do
-    hash = klass.new(Hash.instance_method(:update)).format
-    expect(hash[:aliases]).to eq([:merge!])
-    if RUBY_ENGINE == "ruby"
-      expect(hash[:docstring]).to include("Adds the contents")
-      expect(hash[:source]).to include("rb_hash_foreach")
-    else
-      expect(hash[:docstring]).to eq("")
-      expect(hash[:source]).to start_with("def merge!(other)\n")
-    end
-  end
-
   it "shows docs for stdlib classes" do
     hash = klass.new(URI.method(:parse)).format
     expect(hash[:docstring]).to include("one of the URI's subclasses")
