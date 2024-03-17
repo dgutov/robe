@@ -73,8 +73,17 @@ or
 
 * `pry` >= 0.10
 * `pry-doc` >= 0.6.0 (for stdlib docs on MRI; optional)
+* Ruby [must be](https://github.com/dgutov/robe/issues/148) compiled
+  with Readline support ([how to
+  check](https://github.com/dgutov/robe/wiki/How-to-check-that-Ruby-is-built-with-Readline-support)).
+* With Ruby 3.3, the gem `readline-ext` is [also
+  needed](https://github.com/dgutov/robe/issues/147).
 
-Note that if your project is using `Bundler`, the dependencies have to be added to the `Gemfile`.
+The alternative to the last two items is to configure the app not to
+use the Pry shell (at least when inside Emacs) while still keeping
+`pry` available for loading.
+
+Note that if your project is using `Bundler`, all dependencies have to be in the `Gemfile`.
 
 ## Completion
 
@@ -114,9 +123,7 @@ rvm automatically.
 ## Compatibility
 
 * Tested in Emacs 24.4+, with Ruby 1.9.3-3.3, on GNU/Linux.
-* With Ruby 3.3, you either need to add `readline-ext` to the bundle,
-or configure the app not to use the Pry shell (maybe just when inside
-Emacs), while the gem remains in the bundle (it's still a dependency).
+* But see the section [Dependencies](#dependencies) above.
 * Essential features work with JRuby, though the startup is longer.
 * Mostly works on MS Windows, with minor glitches.
 * Built-in `ruby-mode` or `ruby-ts-mode` (Emacs 29+) work best,
