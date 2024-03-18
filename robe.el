@@ -949,7 +949,11 @@ Only works with Rails, see e.g. `rinari-console'."
       (when (robe-complete-symbol-p (car bounds))
         (list (car bounds) (cdr bounds) fn
               :annotation-function #'robe-complete-annotation
-              :exit-function #'robe-complete-exit)))))
+              :exit-function #'robe-complete-exit
+              :company-doc-buffer #'robe-complete-doc-buffer
+              :company-location #'robe-complete-location
+              :company-dogsig #'robe-complete-docsig
+              :company-kind #'robe-complete-kind)))))
 
 (defvar robe-specs-cache nil)
 
@@ -968,6 +972,54 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-complete-exit (&rest _)
   (setq robe-specs-cache nil))
+
+(defun robe-complete--choose-spec (thing)
+  (let ((specs (robe-cached-specs thing)))
+    (when specs
+      (if (cdr specs)
+          (let ((alist (cl-loop for spec in specs
+                                for module = (robe-spec-module spec)
+                                when module
+                                collect (cons module spec))))
+            (cdr (assoc (robe-completing-read "Module: " alist nil t) alist)))
+        (car specs)))))
+
+(defun robe-complete-doc-buffer (thing)
+  (let ((spec (robe-complete--choose-spec thing))
+        (inhibit-redisplay t)
+        ;; XXX: Maybe revisit company-mode/company-mode#548.
+        (timer-list nil))
+    (when spec
+      (save-window-excursion
+        (robe-show-doc spec)
+        (message nil)
+        (get-buffer "*robe-doc*")))))
+
+(defun robe-complete-location (thing)
+  (let ((spec (robe-complete--choose-spec thing)))
+    (cons (robe-spec-file spec)
+          (robe-spec-line spec))))
+
+(defun robe-complete-docsig (thing)
+  (if-let ((type (get-text-property 0 'robe-type thing)))
+      (if-let ((vtype (get-text-property 0 'robe-variable-type thing)))
+          (format "%s => %s" type (propertize vtype 'face 'font-lock-type-face))
+        type)
+    (let ((spec (car (robe-cached-specs thing))))
+      (when spec (robe-signature spec)))))
+
+(defun robe-complete-kind (thing)
+  (let (case-fold-search)
+    (cond
+     ((string-match "\\(?:\\`\\|::\\)\\(?:[A-Z_0-9]*\\|\\([A-Z][A-Z_a-z0-9]*\\)\\)\\'" thing)
+      (if (match-beginning 1)
+          'module
+        'constant))
+     ((string-match-p "\\`@" thing)
+      'variable)
+     ((get-text-property 0 'robe-type thing)
+      'value)
+     (t 'method))))
 
 (defun robe-complete-thing (thing)
   (robe-start)
@@ -1267,6 +1319,30 @@ Only works with Rails, see e.g. `rinari-console'."
                                         (* (any "A-Z" "a-z" "0-9")))))
                                 500 t)
          (match-string 1))))))
+
+;;;###autoload
+(defun company-robe (command &optional arg &rest ignore)
+  "A `company-mode' completion back-end for `robe-mode'."
+  (interactive (list 'interactive))
+  (cl-case command
+    (interactive (company-begin-backend 'company-robe))
+    (prefix (and (boundp 'robe-mode)
+                 robe-mode (robe-running-p)
+                 (company-robe--prefix)))
+    (candidates (robe-complete-thing arg))
+    (duplicates t)
+    (meta (robe-complete-docsig arg))
+    (location (robe-complete-location arg))
+    (kind (robe-complete-kind arg))
+    (annotation (robe-complete-annotation arg))
+    (doc-buffer (robe-complete-doc-buffer arg))))
+
+(defun company-robe--prefix ()
+  (let ((bounds (robe-complete-bounds)))
+    (when (and bounds
+               (equal (point) (cdr bounds))
+               (robe-complete-symbol-p (car bounds)))
+      (buffer-substring (car bounds) (cdr bounds)))))
 
 (defvar robe-mode-map
   (let ((map (make-sparse-keymap)))

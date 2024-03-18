@@ -94,18 +94,12 @@ Note that if your project is using `Bundler`, all dependencies have to be in the
   '(push 'company-robe company-backends))
 ```
 
-### [auto-complete](https://github.com/auto-complete/auto-complete):
-
-```emacs
-(add-hook 'robe-mode-hook 'ac-robe-setup)
-```
+Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported,
+no extra setup required.
 
 Both of the above work only when the connection to the Ruby subprocess has
 been established. To do that, either use one of the core Robe commands, or
 type <kbd>M-x robe-start</kbd>.
-
-Built-in completion (triggered with <kbd>C-M-i</kbd>) is also supported,
-no extra setup required.
 
 ## Integration with rvm.el
 
