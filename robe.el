@@ -1384,10 +1384,14 @@ Only works with Rails, see e.g. `rinari-console'."
      (lambda (spec)
        (xref-make (concat
                    (robe-signature spec)
-                   (when (null (robe-spec-file spec))
+                   (when (robe--xref-method-nofile-p spec)
                      (propertize " <no location>" 'face 'shadow)))
                   (xref-make-robe-method-location spec)))
      specs)))
+
+(defun robe--xref-method-nofile-p (spec)
+  (or (null (robe-spec-file spec))
+      (string-prefix-p "<internal:" (robe-spec-file spec))))
 
 (defun robe--xref-module-definitions (name context-module)
   (let* ((search-result (robe-request "const_locations" name context-module))
@@ -1432,7 +1436,7 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (cl-defmethod xref-location-marker ((l xref-robe-method-location))
   (pcase-let (((cl-struct xref-robe-method-location spec) l))
-    (if (null (robe-spec-file spec))
+    (if (robe--xref-method-nofile-p spec)
         (user-error
          (substitute-command-keys
           "Can't jump to a C method. Use `\\[robe-doc]' instead."))
