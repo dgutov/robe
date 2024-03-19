@@ -58,6 +58,7 @@
 (require 'url-http)
 (require 'url-handlers)
 (require 'cl-lib)
+(require 'cl-generic)
 (require 'thingatpt)
 (require 'eldoc)
 (require 'help-mode)
@@ -323,6 +324,7 @@ project."
 (defun robe-const-p (thing)
   (let (case-fold-search) (string-match "\\`\\([A-Z]\\|::\\)" thing)))
 
+;; TODO: Mark as obsolete.
 (defun robe-jump (arg)
   "Jump to the identifier at point, prompt for module or file if necessary.
 Identifier can be a constant, or a variable, or a method call.
@@ -1344,10 +1346,138 @@ Only works with Rails, see e.g. `rinari-console'."
                (robe-complete-symbol-p (car bounds)))
       (buffer-substring (car bounds) (cdr bounds)))))
 
+(defun robe--xref-backend () 'robe)
+
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql 'robe)))
+  (let ((context (robe-context))
+        ;; TODO: Optimize.
+        (specs (robe-request "complete_method" "" "a" nil t)))
+    (mapcar (lambda (spec)
+              ;; Much faster than `robe-signature'.
+              (propertize (concat (or (robe-spec-module spec) "?")
+                                  (if (robe-spec-inst-p spec) "#" ".")
+                                  (robe-spec-method spec))
+                          'robe-spec spec))
+            specs)))
+
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'robe)))
+  (robe--jump-thing))
+
+(cl-defmethod xref-backend-definitions ((_backend (eql 'robe)) identifier)
+  (require 'find-func)
+  (let ((spec (and identifier
+                   (get-text-property 0 'robe-spec identifier)))
+        (context (robe-call-context)))
+    (if spec
+        (list
+         (xref-make "foo" (xref-make-robe-method-location spec)))
+      (or (robe--xref-variable-definition identifier (nth 3 context))
+          ;; FIXME: Probably move this check to `robe--xref-backend'.
+          (ignore (robe-start))
+          (append
+           (robe--xref-method-definitions identifier context)
+           (robe--xref-module-definitions identifier (nth 1 context)))))))
+
+(defun robe--xref-method-definitions (name call-context)
+  (let* ((specs (robe-jump-modules name call-context)))
+    (mapcar
+     (lambda (spec)
+       (xref-make (concat
+                   (robe-signature spec)
+                   (when (null (robe-spec-file spec))
+                     (propertize " <no location>" 'face 'shadow)))
+                  (xref-make-robe-method-location spec)))
+     specs)))
+
+(defun robe--xref-module-definitions (name context-module)
+  (let* ((search-result (robe-request "const_locations" name context-module))
+         (resolved-name (assoc-default 'resolved_name search-result))
+         (full-scan (assoc-default 'full_scan search-result))
+         (paths (assoc-default 'files search-result)))
+    (when full-scan
+      (setq paths (robe--filter-const-files paths resolved-name)))
+    (mapcar
+     (lambda (file)
+       (xref-make
+        (robe--xref-module-highlight resolved-name)
+        (xref-make-robe-module-location resolved-name file)))
+     paths)))
+
+(defun robe--xref-module-highlight (name)
+  (mapconcat (lambda (s) (propertize s 'face font-lock-type-face))
+             (split-string name "::" t) "::"))
+
+(defun robe--xref-variable-definition (name context)
+  (let* ((vars (robe-complete--variables (nth 1 context) (nth 2 context)))
+         (var (car (cl-member-if (lambda (v) (equal name (robe--variable-name v)))
+                                 vars))))
+    (when var
+      (list
+       (xref-make name var)))))
+
+(cl-defmethod xref-location-marker ((var robe--variable))
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (robe--variable-position var))
+      (point-marker))))
+
+(cl-defmethod xref-location-group ((_var robe--variable))
+  "Variable")
+
+(cl-defstruct (xref-robe-method-location
+               (:constructor xref-make-robe-method-location (spec)))
+  "Location of a Ruby method."
+  spec)
+
+(cl-defmethod xref-location-marker ((l xref-robe-method-location))
+  (pcase-let (((cl-struct xref-robe-method-location spec) l))
+    (if (null (robe-spec-file spec))
+        (user-error
+         (substitute-command-keys
+          "Can't jump to a C method. Use `\\[robe-doc]' instead."))
+      (with-current-buffer (find-file-noselect (robe-spec-file spec))
+        (save-excursion
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            (forward-line (1- (robe-spec-line spec)))
+            (back-to-indentation)
+            (point-marker)))))))
+
+(cl-defmethod xref-location-group ((_l xref-robe-method-location))
+  "Methods")
+
+(cl-defstruct (xref-robe-module-location
+               (:constructor xref-make-robe-module-location (name file)))
+  "Location of a Ruby module."
+  name file)
+
+(cl-defmethod xref-location-marker ((l xref-robe-module-location))
+  (pcase-let (((cl-struct xref-robe-module-location name file) l))
+    (with-current-buffer (find-file-noselect file)
+      (save-excursion
+        (save-restriction
+          (widen)
+          (robe--scan-to-const name)
+          (back-to-indentation)
+          (point-marker))))))
+
+(cl-defmethod xref-location-group ((l xref-robe-module-location))
+  (let* ((file (xref-robe-module-location-file l))
+         (load-path (robe-with-inf-buffer robe-load-path))
+         ;; Very compact, though might not be ideal for some.
+         (dir (cl-find-if
+               (lambda (dir) (string-prefix-p dir file))
+               load-path)))
+    (if dir
+        (file-relative-name file dir)
+      file)))
+
+;; TODO: `xref-backend-references' across LOAD_PATH.
+
 (defvar robe-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; FIXME: Add better Xref support.
-    (define-key map (kbd "M-.") 'robe-jump)
     (define-key map (kbd "C-c C-d") 'robe-doc)
     (define-key map (kbd "C-c C-k") 'robe-rails-refresh)
     map))
@@ -1363,6 +1493,7 @@ The following commands are available:
   (if robe-mode
       (progn
         (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)
+        (add-hook 'xref-backend-functions #'robe--xref-backend nil t)
         ;; Compose to work together with `yard-eldoc-message'
         ;; (though `yard-mode' has to be enabled first).
         ;; TODO: Adapt the code to use :before-until, for reliability.
@@ -1372,6 +1503,7 @@ The following commands are available:
                           #'robe-eldoc)
           (setq-local eldoc-documentation-function #'robe-eldoc)))
     (remove-hook 'completion-at-point-functions 'robe-complete-at-point t)
+    (remove-hook 'xref-backend-functions #'robe--xref-backend t)
     (if (eq eldoc-documentation-function #'robe-eldoc)
         (kill-local-variable 'eldoc-documentation-function)
       (remove-function (local 'eldoc-documentation-function) #'robe-eldoc))))
