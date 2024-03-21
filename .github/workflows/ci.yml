@@ -57,7 +57,7 @@ jobs:
           bundler-cache: true
 
       - name: Run Ruby tests
-        run: bundle exec rake spec_for_build
+        run: bundle exec rake spec
 
   ert:
     runs-on: ubuntu-latest
