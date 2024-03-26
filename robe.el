@@ -1352,34 +1352,43 @@ Only works with Rails, see e.g. `rinari-console'."
   (let ((context (robe-context))
         ;; TODO: Optimize.
         (method_specs (robe-request "complete_method" "" "a" nil t))
+        (modules (robe-request "modules"))
         str)
-    (mapcar (lambda (spec)
-              ;; Much faster than `robe-signature'.
-              (setq str
-                    (concat (or (robe-spec-module spec) "?")
-                            (if (robe-spec-inst-p spec) "#" ".")
-                            (robe-spec-method spec)))
-              (put-text-property 0 1 'robe-spec spec str)
-              str)
-            method_specs)))
+    (nconc
+     (mapcar (lambda (spec)
+               ;; Much faster than `robe-signature'.
+               (setq str
+                     (concat (or (robe-spec-module spec) "?")
+                             (if (robe-spec-inst-p spec) "#" ".")
+                             (robe-spec-method spec)))
+               (put-text-property 0 1 'robe-spec spec str)
+               str)
+             method_specs)
+     modules)))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'robe)))
-  (robe--jump-thing))
+  (let ((thing (robe--jump-thing)))
+    (and thing (propertize thing 'robe-at-pt t))))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql 'robe)) identifier)
   (require 'find-func)
   (let ((spec (and identifier
                    (get-text-property 0 'robe-spec identifier)))
+        (at-pt (get-text-property 0 'robe-at-pt identifier))
         (context (robe-call-context)))
-    (if spec
-        (list
-         (xref-make "foo" (xref-make-robe-method-location spec)))
+    (cond
+     (at-pt
       (or (robe--xref-variable-definition identifier (nth 3 context))
           ;; FIXME: Probably move this check to `robe--xref-backend'.
           (ignore (robe-start))
           (append
            (robe--xref-method-definitions identifier context)
-           (robe--xref-module-definitions identifier (nth 1 context)))))))
+           (robe--xref-module-definitions identifier (nth 1 context)))))
+     (spec
+      (list
+       (xref-make "foo" (xref-make-robe-method-location spec))))
+     (t                                 ;module/constant
+      (robe--xref-module-definitions identifier (nth 1 context))))))
 
 (defun robe--xref-method-definitions (name call-context)
   (let* ((specs (robe-jump-modules name call-context)))
