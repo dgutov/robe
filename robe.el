@@ -1351,14 +1351,17 @@ Only works with Rails, see e.g. `rinari-console'."
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql 'robe)))
   (let ((context (robe-context))
         ;; TODO: Optimize.
-        (specs (robe-request "complete_method" "" "a" nil t)))
+        (method_specs (robe-request "complete_method" "" "a" nil t))
+        str)
     (mapcar (lambda (spec)
               ;; Much faster than `robe-signature'.
-              (propertize (concat (or (robe-spec-module spec) "?")
-                                  (if (robe-spec-inst-p spec) "#" ".")
-                                  (robe-spec-method spec))
-                          'robe-spec spec))
-            specs)))
+              (setq str
+                    (concat (or (robe-spec-module spec) "?")
+                            (if (robe-spec-inst-p spec) "#" ".")
+                            (robe-spec-method spec)))
+              (put-text-property 0 1 'robe-spec spec str)
+              str)
+            method_specs)))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'robe)))
   (robe--jump-thing))
