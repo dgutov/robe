@@ -1346,7 +1346,7 @@ Only works with Rails, see e.g. `rinari-console'."
                (robe-complete-symbol-p (car bounds)))
       (buffer-substring (car bounds) (cdr bounds)))))
 
-(defun robe--xref-backend () 'robe)
+(defun robe--xref-backend () (and (robe-running-p) 'robe))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql 'robe)))
   (let ((context (robe-context))
@@ -1379,8 +1379,6 @@ Only works with Rails, see e.g. `rinari-console'."
     (cond
      (at-pt
       (or (robe--xref-variable-definition identifier (nth 3 context))
-          ;; FIXME: Probably move this check to `robe--xref-backend'.
-          (ignore (robe-start))
           (append
            (robe--xref-method-definitions identifier context)
            (robe--xref-module-definitions identifier (nth 1 context)))))
@@ -1430,6 +1428,11 @@ Only works with Rails, see e.g. `rinari-console'."
     (when var
       (list
        (xref-make name var)))))
+
+;; XXX: Search across the full LOAD_PATH as well?
+(cl-defmethod xref-backend-references ((backend (eql 'robe)) identifier)
+  ;; FIXME: Do more filtering by scope, to remove definite non-matches.
+  (cl-call-next-method backend (car (last (string-split identifier "::\\|#\\|\\.")))))
 
 (cl-defmethod xref-location-marker ((var robe--variable))
   (save-excursion
@@ -1489,8 +1492,6 @@ Only works with Rails, see e.g. `rinari-console'."
     (if dir
         (file-relative-name file dir)
       file)))
-
-;; TODO: `xref-backend-references' across LOAD_PATH.
 
 (defvar robe-mode-map
   (let ((map (make-sparse-keymap)))

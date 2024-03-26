@@ -4,9 +4,10 @@ Robe is a code assistance tool that uses a Ruby REPL subprocess with
 your application or gem code loaded, to provide information about
 loaded classes and modules, and where each method is defined.
 
-Generally, you'll want to start with `M-x inf-ruby-console-auto`.
-If there's no Ruby console running, most interactive commands provided
-by Robe will offer to launch it automatically.
+Generally, you'll want to start with `M-x inf-ruby-console-auto` or
+with `M-x robe-start` (which will offer to call the former function as
+well if there is no Ruby console running). Some interactive commands
+provided by Robe will also offer to launch it first.
 
 The exceptions are code completion and eldoc, which only work if the
 server is already running. To launch it, type `M-x robe-start`.
