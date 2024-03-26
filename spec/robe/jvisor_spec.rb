@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'robe/jvisor'
+require 'set'
 
 describe Robe::JVisor do
   subject { Robe::JVisor.new }
