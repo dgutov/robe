@@ -20,7 +20,7 @@ describe Robe::Sash::DocFor do
 
   it "shows docs for stdlib classes" do
     hash = klass.new(URI.method(:parse)).format
-    expect(hash[:docstring]).to include("one of the URI's subclasses")
+    expect(hash[:docstring]).to match(/URI.*from.*string/)
   end
 
   it "returns private visibility for Kernel#puts" do
