@@ -117,7 +117,7 @@ rvm automatically.
 
 ## Compatibility
 
-* Tested in Emacs 24.4+, with Ruby 1.9.3-3.3, on GNU/Linux.
+* Tested in Emacs 24.4+, with Ruby 2.3-3.3, on GNU/Linux.
 * But see the section [Dependencies](#dependencies) above.
 * Essential features work with JRuby, though the startup is longer.
 * Mostly works on MS Windows, with minor glitches.
