@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'robe/sash/const_locations'
 require 'robe/visor'
 require 'spec_helper'

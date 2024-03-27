@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'robe/core_ext'
 
 module Robe
@@ -32,12 +34,12 @@ module Robe
             sc.included_modules.each { |imod| hosts[imod] << [mod, nil] }
           end
 
-          self.hosts
+          hosts
         end
 
         def current_vm_stats
           if RUBY_ENGINE == 'jruby'
-            JRuby::Util::cache_stats
+            JRuby::Util.cache_stats
           else
             RubyVM.stat
           end

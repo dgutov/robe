@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'robe/sash'
 require 'robe/server'
 
@@ -10,7 +12,7 @@ module Robe
 
       @server = Server.new(Sash.new, host, port)
 
-      ['INT', 'TERM'].each do |signal|
+      %w[INT TERM].each do |signal|
         trap(signal) { stop }
       end
 
@@ -27,7 +29,7 @@ module Robe
 
         server_thread.abort_on_exception = true
 
-        @server && @server.start
+        @server&.start
       end
 
       @server.wait_for_it
@@ -36,7 +38,7 @@ module Robe
     end
 
     def stop
-      @server && @server.shutdown
+      @server&.shutdown
       @server = nil
     end
 

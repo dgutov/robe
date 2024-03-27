@@ -1,29 +1,21 @@
+# frozen_string_literal: true
+
 class Module
-  unless method_defined?(:__name__)
-    alias_method :__name__, :name
-  end
+  alias __name__ name unless method_defined?(:__name__)
 
-  unless method_defined?(:__singleton_class__)
-    alias_method :__singleton_class__, :singleton_class
-  end
+  alias __singleton_class__ singleton_class unless method_defined?(:__singleton_class__)
 
-  unless method_defined?(:__include__?)
-    alias_method :__include__?, :include?
-  end
+  alias __include__? include? unless method_defined?(:__include__?)
 
-  unless method_defined?(:__instance_methods__)
-    alias_method :__instance_methods__, :instance_methods
-  end
+  alias __instance_methods__ instance_methods unless method_defined?(:__instance_methods__)
 
-  unless method_defined?(:__public_instance_methods__)
-    alias_method :__public_instance_methods__, :public_instance_methods
-  end
+  alias __public_instance_methods__ public_instance_methods unless method_defined?(:__public_instance_methods__)
 
   unless method_defined?(:__protected_instance_methods__)
-    alias_method :__protected_instance_methods__, :protected_instance_methods
+    alias __protected_instance_methods__ protected_instance_methods
   end
 
   unless method_defined?(:__private_instance_methods__)
-    alias_method :__private_instance_methods__, :private_instance_methods
+    alias __private_instance_methods__ private_instance_methods
   end
 end

@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 class SamplePrivateClass
   private
 
-  def foo
-  end
+  def foo; end
 end

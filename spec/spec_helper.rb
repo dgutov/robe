@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'pry'
 
 begin
   require 'simplecov'
   SimpleCov.start if RSpec.configuration.files_to_run.size > 1
 rescue LoadError
-  puts "simplecov not loaded"
+  puts 'simplecov not loaded'
 end
 
 RSpec.configure do |config|

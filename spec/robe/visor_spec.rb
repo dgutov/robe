@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'robe/visor'
 
 describe Robe::Visor do
   let(:v) { described_class.new }
 
-  context ".resolve_const" do
-    it "resolves ARGF.class" do
-      expect(v.resolve_const("ARGF.class")).to be(ARGF.class)
+  context '.resolve_const' do
+    it 'resolves ARGF.class' do
+      expect(v.resolve_const('ARGF.class')).to be(ARGF.class)
     end
 
-    if RUBY_ENGINE == "ruby" && RUBY_VERSION < "2.1"
-      it "resolves IO::readable and IO::writable" do
-        readable = v.resolve_const("IO::readable")
-        writable = v.resolve_const("IO::writable")
+    if RUBY_ENGINE == 'ruby' && RUBY_VERSION < '2.1'
+      it 'resolves IO::readable and IO::writable' do
+        readable = v.resolve_const('IO::readable')
+        writable = v.resolve_const('IO::writable')
         expect(readable.method_defined?(:readline)).to eq(true)
         expect(writable.method_defined?(:puts)).to eq(true)
         expect(writable.method_defined?(:readline)).to eq(false)
@@ -20,49 +22,49 @@ describe Robe::Visor do
       end
     end
 
-    it "silently fails on nil" do
+    it 'silently fails on nil' do
       expect(v.resolve_const(nil)).to be_nil
     end
 
-    it "resolves simple constant" do
-      expect(v.resolve_const("Object")).to be(Object)
+    it 'resolves simple constant' do
+      expect(v.resolve_const('Object')).to be(Object)
     end
 
-    it "resolves explicit global scope" do
-      expect(v.resolve_const("::String")).to be(String)
+    it 'resolves explicit global scope' do
+      expect(v.resolve_const('::String')).to be(String)
     end
 
-    it "resolves nested class" do
-      expect(v.resolve_const("File::Stat")).to be(File::Stat)
+    it 'resolves nested class' do
+      expect(v.resolve_const('File::Stat')).to be(File::Stat)
     end
 
-    it "swallows NameError" do
-      expect { v.resolve_const("Foo::Bar") }.to raise_error(described_class::SearchError)
+    it 'swallows NameError' do
+      expect { v.resolve_const('Foo::Bar') }.to raise_error(described_class::SearchError)
     end
   end
 
-  context ".resolve_context" do
-    it "defaults to the module if no name" do
-      expect(v.resolve_context(nil, "File")).to be(File)
+  context '.resolve_context' do
+    it 'defaults to the module if no name' do
+      expect(v.resolve_context(nil, 'File')).to be(File)
     end
 
-    it "accepts explicit scope qualifier" do
-      expect(v.resolve_context("::String", "File")).to be(String)
+    it 'accepts explicit scope qualifier' do
+      expect(v.resolve_context('::String', 'File')).to be(String)
     end
 
-    it "sees nested constants" do
-      expect(v.resolve_context("Stat", "File")).to be(File::Stat)
+    it 'sees nested constants' do
+      expect(v.resolve_context('Stat', 'File')).to be(File::Stat)
     end
 
-    it "sees constants in containing scopes" do
-      expect(v.resolve_context("Stat", "File::Constants")).to be(File::Stat)
+    it 'sees constants in containing scopes' do
+      expect(v.resolve_context('Stat', 'File::Constants')).to be(File::Stat)
     end
 
-    it "returns nil when not found" do
-      expect { v.resolve_context("Boo", "File::Constants") }.to raise_error(described_class::SearchError)
+    it 'returns nil when not found' do
+      expect { v.resolve_context('Boo', 'File::Constants') }.to raise_error(described_class::SearchError)
     end
 
-    it "prioritizes deeper nesting" do
+    it 'prioritizes deeper nesting' do
       m = Module.new do
         module self::A; end
         module self::N
@@ -70,37 +72,37 @@ describe Robe::Visor do
           end
         end
       end
-      stub_const("M", m)
-      expect(v.resolve_context("A", "M::N")).to be(m::N::A)
+      stub_const('M', m)
+      expect(v.resolve_context('A', 'M::N')).to be(m::N::A)
     end
 
-    it "swallows NameError" do
-      expect(v.resolve_context("String", "Foo::Bar")).to be(String)
+    it 'swallows NameError' do
+      expect(v.resolve_context('String', 'Foo::Bar')).to be(String)
     end
 
-    it "continues after NameError" do
-      expect(v.resolve_context("Constants", "File::Foo")).to eq(File::Constants)
+    it 'continues after NameError' do
+      expect(v.resolve_context('Constants', 'File::Foo')).to eq(File::Constants)
     end
   end
 
-  context ".resolve_path_elems" do
-    it "returns an array" do
-      expect(v.resolve_path_elems(["File", "Stat"])).to eq([File, File::Stat])
+  context '.resolve_path_elems' do
+    it 'returns an array' do
+      expect(v.resolve_path_elems(%w[File Stat])).to eq([File, File::Stat])
     end
 
-    it "swallows NameError" do
-      expect { v.resolve_path_elems(["Foo", "Bar"]) }.to raise_error(described_class::SearchError)
+    it 'swallows NameError' do
+      expect { v.resolve_path_elems(%w[Foo Bar]) }.to raise_error(described_class::SearchError)
     end
   end
 
   context '#descendants' do
-    it "returns descendants of a module" do
+    it 'returns descendants of a module' do
       res = subject.descendants(Enumerable)
       expect(res).to include(Array)
       expect(res).not_to include(String)
     end
 
-    it "returns descendants of a class" do
+    it 'returns descendants of a class' do
       res = subject.descendants(Numeric)
       expect(res).to include(Integer, Complex)
       expect(res).not_to include(String)

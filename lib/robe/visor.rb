@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'forwardable'
 require 'robe/core_ext'
 
@@ -8,7 +10,7 @@ module Robe
     SearchError = Class.new(StandardError)
 
     def each_object(*args)
-      ObjectSpace.each_object(*args).reject { |m| m.singleton_class? }
+      ObjectSpace.each_object(*args).reject(&:singleton_class?)
     end
 
     # Returns descendants and (modules only) also includers.
@@ -18,8 +20,9 @@ module Robe
 
     def resolve_context(name, mod)
       return resolve_const(mod) unless name
+
       unless name =~ /\A::/
-        nesting = mod ? mod.split("::") : []
+        nesting = mod ? mod.split('::') : []
         resolve_path_elems(nesting, true).reverse.each do |elem|
           begin
             return elem.const_get(name)
@@ -36,11 +39,12 @@ module Robe
 
     def resolve_path(name)
       return [] unless name
-      return [ARGF.class] if name == "ARGF.class"
-      if %w(IO::readable IO::writable).include?(name)
+      return [ARGF.class] if name == 'ARGF.class'
+      if %w[IO::readable IO::writable].include?(name)
         return [StringIO.included_modules.find { |m| m.name == name }]
       end
-      nesting = name.split("::")
+
+      nesting = name.split('::')
       nesting.shift if nesting[0].empty?
       resolve_path_elems(nesting)
     end

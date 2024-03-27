@@ -1,17 +1,19 @@
+# frozen_string_literal: true
+
 require 'robe/visor'
 
 class ScopedVisor < Robe::Visor
   def initialize(*modules)
-    if modules.last.is_a? Hash
-      @namespace = modules.pop
-    else
-      @namespace = {}
-    end
+    @namespace = if modules.last.is_a? Hash
+                   modules.pop
+                 else
+                   {}
+                 end
     @modules = modules + @namespace.values
   end
 
   def fits?(type, m)
-    m.kind_of? type
+    m.is_a? type
   end
 
   def each_object(type)
@@ -25,7 +27,7 @@ class ScopedVisor < Robe::Visor
 end
 
 class BlindVisor < ScopedVisor
-  def fits?(type, m)
+  def fits?(_type, _m)
     true
   end
 end

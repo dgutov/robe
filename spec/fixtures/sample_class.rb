@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fixtures/sample_module'
 
 class SampleClass
@@ -5,6 +7,5 @@ class SampleClass
 
   SILLY_CONSTANT = 3
 
-  def foo
-  end
+  def foo; end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'robe/core_ext'
 require 'rubygems'
 
@@ -20,16 +22,16 @@ module Robe
                      obj.private_instance_methods(false)).map { |m| obj.instance_method(m) }
 
           methods.each do |m|
-            if (loc = m.source_location)
-              path = loc[0]
+            next unless (loc = m.source_location)
 
-              # Kernel.instance_method(:warn).source_location[0], Ruby 3
-              # or Sinatra::Base.sessions
-              next if path.start_with?('<internal:', '(eval)')
+            path = loc[0]
 
-              locations[path] ||= 0
-              locations[path] += 1
-            end
+            # Kernel.instance_method(:warn).source_location[0], Ruby 3
+            # or Sinatra::Base.sessions
+            next if path.start_with?('<internal:', '(eval)')
+
+            locations[path] ||= 0
+            locations[path] += 1
           end
         end
 
@@ -65,7 +67,7 @@ module Robe
         output, _stderr, status = Open3.capture3(command, stdin_data: files.join("\0"))
 
         if status.exitstatus == 127
-          puts "Install GNU grep and xargs for faster full scans"
+          puts 'Install GNU grep and xargs for faster full scans'
           files.select { |f| File.read(f).match(re) }
         else
           output.split("\0")
@@ -74,6 +76,7 @@ module Robe
 
       def filter_locations_by_module(files, obj)
         return files if obj.nil? || obj.name.nil?
+
         re = definition_re(obj)
         files.select { |file| File.read(file).match(re) }
       end
@@ -81,6 +84,7 @@ module Robe
       def resolve_name(name, mod)
         obj = visor.resolve_context(name, mod)
         return [obj.name, obj] if obj.is_a?(Module)
+
         matches = /^(?:(.*)::)?([^:]*)/.match(name)
         mod_part = matches[1]
         base_name = matches[2]

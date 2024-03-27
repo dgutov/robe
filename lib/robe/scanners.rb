@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'robe/core_ext'
 
 module Robe
@@ -28,16 +30,14 @@ module Robe
 
   class ModuleScanner < Scanner
     def scan_methods(mod, coll)
-      if mod.__send__(coll, false).include?(@sym)
-        candidates << mod.instance_method(@sym)
-      end
+      candidates << mod.instance_method(@sym) if mod.__send__(coll, false).include?(@sym)
     end
   end
 
   class MethodScanner < Scanner
     def initialize(*args)
       super
-      @re = /^#{Regexp.escape(@sym)}/ if !@sym.to_s.empty?
+      @re = /^#{Regexp.escape(@sym)}/ unless @sym.to_s.empty?
     end
 
     def scan_methods(mod, coll)

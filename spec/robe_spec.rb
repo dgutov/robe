@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'robe'
 require 'net/http'
 
 describe Robe do
   before do
-    $stderr = File.new(IO::NULL, "w")
+    $stderr = File.new(IO::NULL, 'w')
     Robe.start
   end
 
@@ -13,28 +15,28 @@ describe Robe do
     $stderr = STDERR
   end
 
-  it "has a server attribute" do
+  it 'has a server attribute' do
     expect(Robe.server).to be_a(Robe::Server)
   end
 
-  it "has the server running" do
+  it 'has the server running' do
     expect(Robe.server.running).to eq(true)
   end
 
-  it "has a stop method" do
+  it 'has a stop method' do
     expect { Robe.stop }.to stop_it
   end
 
   it "proxies 'ping' to Sash" do
-    resp = Net::HTTP.get("127.0.0.1", "/ping", Robe.server.port)
-    expect(resp).to eq("{\"pong\":true}")
+    resp = Net::HTTP.get('127.0.0.1', '/ping', Robe.server.port)
+    expect(resp).to eq('{"pong":true}')
   end
 
   it "returns 'robe on' when already running" do
-    expect(Robe.start).to start_with("robe on")
+    expect(Robe.start).to start_with('robe on')
   end
 
-  %w(INT TERM).each do |signal|
+  %w[INT TERM].each do |signal|
     it "shuts down on #{signal}" do
       expect { Process.kill(signal, Process.pid) }.to stop_it
     end

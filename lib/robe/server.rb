@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'tmpdir'
 require 'socket'
@@ -18,7 +20,7 @@ module Robe
     end
 
     def start
-      access = File.open("#{Dir.tmpdir}/robe-access-#{@port}.log", "w")
+      access = File.open("#{Dir.tmpdir}/robe-access-#{@port}.log", 'w')
       access.sync = true
 
       error_logger = Logger.new($stderr)
@@ -55,14 +57,14 @@ module Robe
 
           # XXX: If freezes continue, try: resp.keep_alive = false
           begin
-            client.write("HTTP/1.1 #{status} OK\r\n" +
-"Content-Length: #{body.bytesize}\r\n" +
-"Content-Type: application/json; charset=utf-8\r\n" +
+            client.write("HTTP/1.1 #{status} OK\r\n" \
+"Content-Length: #{body.bytesize}\r\n" \
+"Content-Type: application/json; charset=utf-8\r\n" \
 "Connection: close\r\n\r\n")
             client.write(body)
             client.close
           rescue Errno::EPIPE
-            error_logger.error "Connection lost, unsent response:"
+            error_logger.error 'Connection lost, unsent response:'
             error_logger.error body
           end
         rescue Errno::EINVAL
@@ -75,17 +77,15 @@ module Robe
     end
 
     def wait_for_it
-      begin
-        TCPSocket.new("127.0.0.1", @port).close
-      rescue
-        sleep 0.05
-        retry
-      end
+      TCPSocket.new('127.0.0.1', @port).close
+    rescue StandardError
+      sleep 0.05
+      retry
     end
 
     def shutdown
       @running = false
-      @server && @server.close
+      @server&.close
     end
 
     private

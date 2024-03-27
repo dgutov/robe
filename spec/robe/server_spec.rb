@@ -1,44 +1,46 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'robe/server'
 require 'net/http'
 
 describe Robe::Server do
-  it "starts up and serves an empty response" do
-    resp = start_and_send(proc { "" }, Net::HTTP::Get.new("/"))
-    expect(resp.body).to eq("")
+  it 'starts up and serves an empty response' do
+    resp = start_and_send(proc { '' }, Net::HTTP::Get.new('/'))
+    expect(resp.body).to eq('')
   end
 
-  it "passes path to the handler" do
+  it 'passes path to the handler' do
     rpath = nil
     rbody = nil
 
     handler = proc do |path, body|
       rpath = path
       rbody = body
-      ""
+      ''
     end
 
-    req = Net::HTTP::Post.new("/foo")
+    req = Net::HTTP::Post.new('/foo')
     # req.body = "bar\ntee"
 
     start_and_send(handler, req)
-    expect(rpath).to eq("/foo")
+    expect(rpath).to eq('/foo')
     # expect(rbody).to eq("bar\ntee")
   end
 
-  it "responds with whatever the handler returns" do
-    handler = proc { "foobles" }
+  it 'responds with whatever the handler returns' do
+    handler = proc { 'foobles' }
 
-    resp = start_and_send(handler, Net::HTTP::Get.new("/"))
-    expect(resp.body).to eq("foobles")
+    resp = start_and_send(handler, Net::HTTP::Get.new('/'))
+    expect(resp.body).to eq('foobles')
   end
 
-  it "prints out exceptions raised in the handler" do
-    handler = proc { raise Exception.new("down with the king!") }
+  it 'prints out exceptions raised in the handler' do
+    handler = proc { raise Exception, 'down with the king!' }
 
     begin
       $stderr = StringIO.new
-      start_and_send(handler, Net::HTTP::Get.new("/"))
+      start_and_send(handler, Net::HTTP::Get.new('/'))
       $stderr.seek(0)
       expect($stderr.read).to match("down with the king!\n")
     ensure
@@ -47,7 +49,7 @@ describe Robe::Server do
   end
 
   it 'aborts slow requests' do
-    start_and_yield(proc { "foo" }) do |server|
+    start_and_yield(proc { 'foo' }) do |server|
       socket = TCPSocket.new('127.0.0.1', server.port)
       sleep 0.2
       socket.puts("GET / HTTP/1.1\r\n")

@@ -1,2 +1,3 @@
-def foobar
-end
+# frozen_string_literal: true
+
+def foobar; end
