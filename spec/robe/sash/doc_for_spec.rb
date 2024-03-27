@@ -43,10 +43,8 @@ describe Robe::Sash::DocFor do
   end
 
   it "mentions pry-doc when relevant" do
-    val = Pry.config.has_pry_doc
-    Pry.config.has_pry_doc = false
+    hide_const('PryDoc')
     struct = described_class.method_struct(String.instance_method(:gsub))
-    Pry.config.has_pry_doc = val
 
     if RUBY_ENGINE == "ruby"
       expect(struct.source).to be_nil
@@ -57,8 +55,7 @@ describe Robe::Sash::DocFor do
     end
   end
 
-  # FIXME: Drop compatibility with Ruby < 2.3 and upgrade pry-doc and bundler.
-  context "native methods", RUBY_VERSION >= "2.4" && :skip do
+  context "native methods", RUBY_VERSION >= "2.6" && :skip do
     let(:c) { described_class }
 
     context "String#gsub info fields" do
