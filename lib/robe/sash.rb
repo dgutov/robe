@@ -54,7 +54,7 @@ module Robe
       if owner.singleton_class?
         # FIXME: Use https://docs.ruby-lang.org/en/3.2/Class.html#method-i-attached_object
         name = owner.to_s[/Class:([A-Z][^\(> ]*)/, 1] # defined in an eigenclass
-      elsif name = name_cache[owner]
+      elsif (name = name_cache[owner])
         inst = true
       elsif !owner.is_a?(Class)
         name, inst = IncludesTracker.method_owner_and_inst(owner, name_cache)
@@ -159,7 +159,7 @@ module Robe
         end
       else
         base_name = prefix[0..colons + 1]
-        base = unless colons == 0
+        base = unless colons.zero?
                  if mod
                    visor.resolve_context(base_name[0..-3], mod)
                  else

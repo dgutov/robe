@@ -18,31 +18,31 @@ describe Robe::ModuleScanner do
   it 'finds instance methods' do
     scanner = klass.new(:foo, false)
     scanner.scan(modules, true, false)
-    expect(scanner.candidates).to eq [a, c].map { |s| s.instance_method(:foo) }
+    expect(scanner.candidates).to eq([a, c].map { |s| s.instance_method(:foo) })
   end
 
   it 'finds module methods' do
     scanner = klass.new(:foo, false)
     scanner.scan(modules, false, true)
-    expect(scanner.candidates).to eq [b, d].map { |s| s.method(:foo).unbind }
+    expect(scanner.candidates).to eq([b, d].map { |s| s.method(:foo).unbind })
   end
 
   it 'find private instance methods' do
     scanner = klass.new(:baz, true)
     scanner.scan(modules, true, false)
-    expect(scanner.candidates).to eq [a, b].map { |s| s.instance_method(:baz) }
+    expect(scanner.candidates).to eq([a, b].map { |s| s.instance_method(:baz) })
   end
 
   it 'finds private module methods' do
     scanner = klass.new(:tee, true)
     scanner.scan(modules, false, true)
-    expect(scanner.candidates).to eq [a, b].map { |s| s.method(:tee).unbind }
+    expect(scanner.candidates).to eq([a, b].map { |s| s.method(:tee).unbind })
   end
 
   it "finds nothing when shouldn't" do
     scanner = klass.new(:foo, true)
     scanner.scan(modules, false, false)
-    expect(scanner.candidates).to eq []
+    expect(scanner.candidates).to eq([])
   end
 
   it 'finds both types when should' do
@@ -59,8 +59,6 @@ describe Robe::ModuleScanner do
   end
 
   it "doesn't pay attention to overridden [private_]instance_methods" do
-    tiff = new_module(:foo, :bar, :bar, :foo)
-
     tiff = Module.new do
       def self.instance_methods(_ign)
         %i[fool me once]
