@@ -41,8 +41,6 @@ jobs:
         include:
           - ruby: jruby-head
             experimental: true
-          - ruby: truffleruby-head
-            experimental: true
 
     steps:
       - name: Checkout Robe

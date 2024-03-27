@@ -3,72 +3,43 @@ require 'robe/core_ext'
 module Robe
   class Sash
     class IncludesTracker
-      def self.method_owner_and_inst(owner, name_cache)
-        includers = maybe_scan
+      class << self
+        attr_accessor :vm_stats
+        attr_accessor :hosts
 
-        mod, inst = includers[owner].first
+        def method_owner_and_inst(owner, name_cache)
+          rescan_maybe
 
-        if mod
+          mod, inst = hosts[owner].first
+
+          return [nil, true] unless mod
+
           [name_cache[mod], inst]
-        else
-          [nil, true]
-        end
-      end
-
-      def self.reset!
-        @@hosts = nil
-      end
-
-      def self.maybe_scan
-        includers = @@hosts
-
-        unless includers
-          @@hosts = includers = Hash.new { |h, k| h[k] = [] }
-
-          ObjectSpace.each_object(Module) do |cl|
-            next unless cl.respond_to?(:included_modules)
-            next if cl.singleton_class?
-            cl.included_modules.each { |mod| includers[mod] << [cl, true] }
-            sc = cl.__singleton_class__
-            sc.included_modules.each { |mod| includers[mod] << [cl, nil] }
-          end
         end
 
-        includers
-      end
+        def rescan_maybe
+          return hosts if vm_stats == current_vm_stats
 
-      if Module.respond_to?(:prepend)
-        module Invalidator
-          private
+          self.hosts = Hash.new { |h, k| h[k] = [] }
+          self.vm_stats = current_vm_stats
 
-          def included(other)
-            IncludesTracker.reset!
-            super(other)
+          ObjectSpace.each_object(Module) do |mod|
+            next unless mod.respond_to?(:included_modules)
+            next if mod.singleton_class?
+
+            mod.included_modules.each { |imod| hosts[imod] << [mod, true] }
+            sc = mod.__singleton_class__
+            sc.included_modules.each { |imod| hosts[imod] << [mod, nil] }
           end
 
-          def extended(other)
-            IncludesTracker.reset!
-            super(other)
-          end
+          self.hosts
         end
 
-        Module.send(:prepend, Invalidator)
-      else
-        Module.class_eval do
-          alias_method :__orig_included, :included
-          alias_method :__orig_extended, :extended
-
-          private
-
-          # Cannot hook into this method without :prepend.
-          def included(other)
-            IncludesTracker.reset!
-            __orig_included(other)
-          end
-
-          def extended(other)
-            IncludesTracker.reset!
-            __orig_extended(other)
+        def current_vm_stats
+          if RUBY_ENGINE == 'jruby'
+            JRuby::Util::cache_stats
+          else
+            RubyVM.stat
           end
         end
       end
