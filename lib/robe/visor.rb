@@ -8,7 +8,7 @@ module Robe
     SearchError = Class.new(StandardError)
 
     def each_object(*args)
-      ObjectSpace.each_object(*args).reject { |m| m.__singleton_class__? }
+      ObjectSpace.each_object(*args).reject { |m| m.singleton_class? }
     end
 
     # Returns descendants and (modules only) also includers.

@@ -3,14 +3,6 @@ class Module
     alias_method :__name__, :name
   end
 
-  if method_defined?(:singleton_class?)
-    alias_method :__singleton_class__?, :singleton_class?
-  else
-    def __singleton_class__?
-      self != Class && ancestors.first != self
-    end
-  end
-
   unless method_defined?(:__singleton_class__)
     alias_method :__singleton_class__, :singleton_class
   end

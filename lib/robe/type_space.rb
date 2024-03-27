@@ -37,10 +37,8 @@ module Robe
       unless instance
         singleton_ancestors = obj.singleton_class.ancestors
 
-        if RUBY_VERSION >= "2.1.0"
-          # Ruby 2.1 includes all singletons in the ancestors chain
-          singleton_ancestors.reject!(&:__singleton_class__?)
-        end
+        # Ruby 2.1+ includes all singletons in the ancestors chain
+        singleton_ancestors.reject!(&:singleton_class?)
 
         scanner.scan(singleton_ancestors, true, false)
       end
