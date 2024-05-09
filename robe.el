@@ -137,6 +137,7 @@ When called with a prefix argument, kills the current Ruby
 process, if any, and starts a new console for the current
 project."
   (interactive "P")
+  (defvar inf-ruby-interact-with-fromcomp)
   (let* ((ruby-buffer (robe-inf-buffer))
          (process (get-buffer-process ruby-buffer)))
     (when (or force (not process))
@@ -154,7 +155,8 @@ project."
             (set-window-configuration conf))
         (error "Aborted"))))
   (when (not (robe-running-p))
-    (let* ((proc (inf-ruby-proc))
+    (let* ((inf-ruby-interact-with-fromcomp nil)
+           (proc (inf-ruby-proc))
            started failed
            (comint-filter (process-filter proc))
            (tmp-filter (lambda (p s)
