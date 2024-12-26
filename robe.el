@@ -115,7 +115,7 @@ When nil, the source can be shown by pressing the button.
 When auto, the source will be shown when there is no doc."
   :type '(choice (const :tag "Hidden by default" nil)
                  (const :tag "Shown by default" t)
-                 (const :tag "When there is not doc" auto)))
+                 (const :tag "When there is no doc" auto)))
 
 (defun robe-completing-read (&rest args)
   (let ((completing-read-function
