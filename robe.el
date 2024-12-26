@@ -758,6 +758,8 @@ Only works with Rails, see e.g. `rinari-console'."
         (font-lock-syntax-table nil)
         (syntax-propertize-function #'ruby-syntax-propertize-function)
         (font-lock-defaults '((ruby-font-lock-keywords) nil nil ((?_ . "w")
+                                                                 (?' . "\"")
+                                                                 (?/ . "\"")
                                                                  (?# . "<")
                                                                  (?\n . ">"))))
         (font-lock-dont-widen t))
