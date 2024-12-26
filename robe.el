@@ -1170,9 +1170,10 @@ Only works with Rails, see e.g. `rinari-console'."
                          (* (in " \t"))
                          "def"
                          (* (in " \t"))
-                         (optional (+ (in "a-z" "A-Z" ?:)) ?.))
-                        (and method-name (regexp-quote method-name))
-                        (rx symbol-end)))
+                         (optional (+ (in "a-z" "A-Z" ?:)) ?.)
+                         (literal (or method-name ""))
+                         ;; For major modes which don't s-p ?! methods.
+                         (or " " "#" "(" "\n" point))))
         (block-regexp (rx
                        (or
                         (syntax ?w) (syntax ?_) (syntax ?\)) (syntax ?\") (syntax ?|))
