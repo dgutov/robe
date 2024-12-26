@@ -1172,8 +1172,8 @@ Only works with Rails, see e.g. `rinari-console'."
                          (* (in " \t"))
                          (optional (+ (in "a-z" "A-Z" ?:)) ?.)
                          (literal (or method-name ""))
-                         ;; For major modes which don't s-p ?! methods.
-                         (or " " "#" "(" "\n" point))))
+                         ;; Workaround for major modes which don't s-p ?! methods.
+                         (or " " "#" "(" line-end point))))
         (block-regexp (rx
                        (or
                         (syntax ?w) (syntax ?_) (syntax ?\)) (syntax ?\") (syntax ?|))
@@ -1214,8 +1214,11 @@ Only works with Rails, see e.g. `rinari-console'."
     (save-excursion
       (when (and method-name
                  (re-search-backward method-regexp nil)
-                 (progn
-                   (goto-char (match-end 0))
+                 (goto-char (match-end 0))
+                 (if (eq ?\( (char-before))
+                     (progn
+                      (forward-char -1)
+                      t)
                    (skip-chars-forward " \t")
                    (eq ?\( (char-after))))
         (let* ((beg (1+ (point)))
