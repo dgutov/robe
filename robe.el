@@ -567,6 +567,8 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
    (lambda (file)
      (with-temp-buffer
        (insert-file-contents file)
+       ;; Using ruby-ts-mode would be less messy, but it's not always
+       ;; available.
        (ruby-mode)
        (condition-case nil
            (let* ((_ (robe--scan-to-const resolved-name))
@@ -577,7 +579,12 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                                  ;; ruby-add-log-current-method
                                  ;; where it can look at the preceding
                                  ;; module when at bol.
-                                 (car (robe-context))
+                                 (save-excursion
+                                   (unless (re-search-forward "\\_<end\\_>"
+                                                              (line-end-position)
+                                                              t)
+                                     (forward-line))
+                                   (car (robe-context)))
                                (goto-char (match-beginning 2))
                                (setq new-module (car (robe-context)))
                                (if new-module
