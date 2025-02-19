@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'pry'
-require 'ostruct'
 
 begin
   require 'pry-doc' if RUBY_ENGINE == 'ruby'
@@ -12,21 +11,20 @@ end
 module Robe
   class Sash
     class DocFor
+      MethodInfo = Struct.new(:docstring, :source, :aliases, :visibility)
+
       def initialize(method)
         @method = method
       end
 
       def format
-        info = self.class.method_struct(@method)
-        {docstring: info.docstring,
-         source: info.source,
-         aliases: info.aliases,
-         visibility: visibility}
+        self.class.method_struct(@method).to_h
       end
 
-      def visibility
-        owner = @method.owner
-        name = @method.name
+      def self.visibility(method)
+        owner = method.owner
+        name = method.name
+
         if owner.__public_instance_methods__(false).include?(name)
           :public
         elsif owner.__protected_instance_methods__(false).include?(name)
@@ -49,11 +47,10 @@ module Robe
           source = (info.source? ? info.source : '# Not available.')
         end
 
-        OpenStruct.new(docstring: doc, source: source,
-                       aliases: aliases)
+        DocFor::MethodInfo.new(doc, source, aliases, visibility(method))
       rescue Pry::CommandError
         message = $ERROR_INFO.message =~ /pry-doc/ ? $ERROR_INFO.message : ''
-        OpenStruct.new(docstring: message, aliases: aliases)
+        DocFor::MethodInfo.new(message, nil, aliases, visibility(method))
       end
     end
   end

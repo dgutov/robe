@@ -86,7 +86,7 @@ describe Robe::Sash::DocFor do
     context 'Know the appropriate amount about Kernel#send' do
       let(:struct) { c.method_struct(Kernel.instance_method(:send)) }
 
-      it { expect(struct.visibility).to be_nil }
+      it { expect(struct.visibility).to eq(:public) }
       it { expect(struct.aliases).to eq([]) }
 
       if RUBY_ENGINE == 'ruby'
