@@ -28,7 +28,7 @@ GEM
     pry-doc (0.13.5)
       pry (~> 0.11)
       yard (~> 0.9.11)
-    rake (13.1.0)
+    rake (13.2.1)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
       rspec-expectations (~> 3.4.0)
