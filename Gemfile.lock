@@ -18,6 +18,7 @@ GEM
     method_source (1.0.0)
     minitest (5.11.3)
     multi_json (1.14.1)
+    ostruct (0.1.0)
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -60,6 +61,7 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (~> 4.1.11)
+  ostruct
   pry (~> 0.14.2)
   pry-doc (~> 0.13.5)
   rake (~> 13.1)
