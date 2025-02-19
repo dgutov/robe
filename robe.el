@@ -1222,7 +1222,8 @@ Only works with Rails, see e.g. `rinari-console'."
         vars)
     (save-excursion
       (when (and method-name
-                 (re-search-backward method-regexp nil)
+                 ;; Can be [legitimately] nil with ruby-ts-mode.
+                 (re-search-backward method-regexp nil t)
                  (goto-char (match-end 0))
                  (if (eq ?\( (char-before))
                      (progn
