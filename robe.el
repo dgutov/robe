@@ -567,32 +567,34 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
    (lambda (file)
      (with-temp-buffer
        (insert-file-contents file)
-       ;; Using ruby-ts-mode would be less messy, but it's not always
-       ;; available.
-       (ruby-mode)
-       (condition-case nil
-           (let* ((_ (robe--scan-to-const resolved-name))
-                  (found-name (or (match-string 2) (match-string 1)))
-                  new-module
-                  (full-name (if (match-beginning 1)
-                                 ;; Working around a bug in
-                                 ;; ruby-add-log-current-method
-                                 ;; where it can look at the preceding
-                                 ;; module when at bol.
-                                 (save-excursion
-                                   (unless (re-search-forward "\\_<end\\_>"
-                                                              (line-end-position)
-                                                              t)
-                                     (forward-line))
-                                   (car (robe-context)))
-                               (goto-char (match-beginning 2))
-                               (setq new-module (car (robe-context)))
-                               (if new-module
-                                   (concat new-module "::" found-name)
-                                 found-name))))
-             (equal full-name resolved-name))
-         (search-failed nil))))
+       (robe--const-here-p resolved-name)))
    files))
+
+(defun robe--const-here-p (resolved-name)
+  ;; Using ruby-ts-mode would be cleaner, but it's Emacs 29+.
+  (ruby-mode)
+  (condition-case nil
+      (let* ((_ (robe--scan-to-const resolved-name))
+             (found-name (or (match-string 2) (match-string 1)))
+             new-module
+             (full-name (if (match-beginning 1)
+                            ;; Working around a bug in
+                            ;; ruby-add-log-current-method
+                            ;; where it can look at the preceding
+                            ;; module when at bol.
+                            (save-excursion
+                              (unless (re-search-forward "\\_<end\\_>"
+                                                         (line-end-position)
+                                                         t)
+                                (forward-line))
+                              (car (robe-context)))
+                          (goto-char (match-beginning 2))
+                          (setq new-module (car (robe-context)))
+                          (if new-module
+                              (concat new-module "::" found-name)
+                            found-name))))
+        (equal full-name resolved-name))
+    (search-failed nil)))
 
 (defun robe-context ()
   (let* ((ruby-symbol-re "[a-zA-Z0-9_?!]")

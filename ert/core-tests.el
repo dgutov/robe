@@ -324,3 +324,21 @@ end")
       (should (equal
                (nth 1 (should-error (robe-jump nil)))
                "Not found")))))
+
+(ert-deftest const-here-p-nested ()
+  (with-temp-buffer
+    (insert "module Foo
+  class ApplicationRecord < ActiveRecord::Base
+    primary_abstract_class
+  end
+end")
+    (should (robe--const-here-p "Foo::ApplicationRecord"))
+    (should-not (robe--const-here-p "ApplicationRecord"))))
+
+(ert-deftest const-here-p-toplevel ()
+  (with-temp-buffer
+    (insert "class ApplicationRecord < ActiveRecord::Base
+  primary_abstract_class
+end")
+    (should (robe--const-here-p "ApplicationRecord"))
+    (should-not (robe--const-here-p "Foo::ApplicationRecord"))))
